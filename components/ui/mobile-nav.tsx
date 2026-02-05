@@ -36,8 +36,8 @@ export function MobileNav() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex flex-col items-center justify-center gap-1.5 w-full h-full active:scale-95 transition-all text-center select-none rounded-xl",
-                                isActive ? "text-foreground" : "text-muted-foreground hover:bg-muted"
+                                "flex flex-col items-center justify-center gap-1.5 w-full h-full active:scale-90 transition-all text-center select-none rounded-2xl",
+                                isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50"
                             )}
                         >
                             <item.icon className={cn(
@@ -45,7 +45,7 @@ export function MobileNav() {
                                 isActive ? "stroke-[3px] scale-110" : "stroke-[2px]"
                             )} />
                             <p className={cn(
-                                "text-[10px] uppercase font-black tracking-widest leading-none transition-all",
+                                "text-[11px] font-black tracking-widest leading-none uppercase transition-all",
                                 isActive ? "opacity-100" : "opacity-0 scale-75"
                             )}>
                                 {item.name}

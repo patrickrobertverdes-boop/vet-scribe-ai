@@ -90,8 +90,8 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                                 className={cn(
                                     "group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative",
                                     isActive
-                                        ? "nav-item-active"
-                                        : "text-foreground hover:bg-black hover:text-white transition-all"
+                                        ? "bg-muted border border-black/10"
+                                        : "text-foreground hover:bg-muted transition-all"
                                 )}
                             >
                                 <item.icon className={cn(
@@ -102,7 +102,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                                 {!isCollapsed && (
                                     <span className={cn(
                                         "text-sm tracking-tight",
-                                        isActive ? "font-bold" : "font-medium"
+                                        isActive ? "font-black" : "font-semibold"
                                     )}>
                                         {item.name}
                                     </span>

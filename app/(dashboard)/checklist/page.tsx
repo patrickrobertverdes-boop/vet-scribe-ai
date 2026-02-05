@@ -9,7 +9,8 @@ import {
     ListChecks,
     Search,
     AlertCircle,
-    Check
+    Check,
+    Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { firebaseService } from '@/lib/firebase-service';
@@ -68,89 +69,84 @@ function ChecklistContent() {
     const pendingCount = items.filter(i => !i.completed).length;
 
     return (
-        <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-24 md:pb-20">
+        <div className="space-y-10 pb-20 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex flex-col gap-4 md:gap-6">
-                <div className="space-y-2 md:space-y-1">
-                    <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 rounded-lg bg-cyan-50 dark:bg-transparent dark:border dark:border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-200 dark:border-cyan-500/20">Checklist</span>
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">
-                        Daily <span className="text-cyan-600 dark:text-cyan-400">Tasks</span>
+            <div className="flex flex-col gap-6">
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-serif font-black text-foreground tracking-tighter leading-tight">
+                        Daily Workflow Checklist
                     </h1>
-                    <p className="text-sm md:text-base text-muted-foreground font-medium mt-2">
-                        Manage your clinical workflow and personal tasks.
+                    <p className="text-lg text-muted-foreground font-medium mt-3">
+                        Monitor and manage surgical protocols and clinical tasks.
                     </p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 {/* Main Checklist Area */}
-                <div className="lg:col-span-8 space-y-6">
-                    <div className="glass rounded-[1.5rem] border border-border shadow-2xl bg-card overflow-hidden">
-                        <div className="p-6 md:p-8 space-y-6">
+                <div className="lg:col-span-8 space-y-8">
+                    <div className="surface p-8">
+                        <div className="space-y-8">
                             {/* Add Item Form */}
                             <AddTaskForm />
 
                             {/* Filters & Actions */}
-                            <div className="flex items-center justify-between border-b border-border pb-4">
-                                <div className="flex items-center gap-4">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all">
-                                        {pendingCount} Tasks Remaining
-                                    </p>
-                                </div>
-                                <div className="relative group">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-cyan-600 transition-colors" />
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-black/10 pb-6">
+                                <p className="text-xs font-black uppercase tracking-widest text-foreground">
+                                    {pendingCount} Tasks Awaiting Completion
+                                </p>
+                                <div className="search-container max-w-xs">
+                                    <Search className="search-icon" />
                                     <input
                                         type="text"
-                                        placeholder="Search tasks..."
+                                        placeholder="Search protocol..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="h-10 pl-10 pr-4 bg-muted border border-border rounded-xl text-[10px] font-bold uppercase tracking-wider focus:bg-background outline-none transition-all w-48"
+                                        className="search-input"
                                     />
                                 </div>
                             </div>
 
                             {/* List */}
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-4">
                                 {isLoading ? (
                                     <div className="py-20 text-center animate-pulse">
-                                        <ListChecks className="h-10 w-10 text-muted-foreground mx-auto opacity-20" />
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-4">Loading Checklist...</p>
+                                        <Loader2 className="h-8 w-8 text-black dark:text-white mx-auto animate-spin" />
+                                        <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-6">Secure Sync Active...</p>
                                     </div>
                                 ) : filteredItems.length === 0 ? (
-                                    <div className="py-20 text-center">
-                                        <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <ListChecks className="h-8 w-8 text-muted-foreground opacity-30" />
+                                    <div className="py-20 text-center surface bg-muted/30 border-dashed border-black/20">
+                                        <div className="h-16 w-16 bg-white border border-black rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <ListChecks className="h-6 w-6 text-black" />
                                         </div>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No tasks found</p>
-                                        <p className="text-xs text-slate-400 mt-2">Add a task above to get started.</p>
+                                        <p className="text-sm font-bold text-foreground uppercase tracking-widest">Protocol Clear</p>
+                                        <p className="text-xs text-muted-foreground mt-2">Initialize new tasks to track clinical progression.</p>
                                     </div>
                                 ) : (
                                     filteredItems.map((item) => (
                                         <div
                                             key={item.id}
                                             className={cn(
-                                                "group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
+                                                "group flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300",
                                                 item.completed
-                                                    ? "bg-muted/30 border-transparent opacity-60"
-                                                    : "bg-muted border-border hover:border-cyan-600/30 hover:shadow-lg"
+                                                    ? "bg-muted/50 border-transparent opacity-50"
+                                                    : "bg-white border-black hover:shadow-xl hover:-translate-y-0.5"
                                             )}
                                         >
                                             <button
                                                 onClick={() => handleToggleItem(item.id, item.completed)}
                                                 className={cn(
-                                                    "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                                                    "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all",
                                                     item.completed
-                                                        ? "bg-emerald-500 border-emerald-500 text-white"
-                                                        : "border-slate-300 dark:border-slate-600 hover:border-cyan-600"
+                                                        ? "bg-black border-black text-white dark:bg-white dark:text-black"
+                                                        : "border-black hover:scale-110"
                                                 )}
                                             >
-                                                {item.completed && <Check className="h-4 w-4" />}
+                                                {item.completed && <Check className="h-4 w-4 stroke-[3px]" />}
                                             </button>
 
                                             <span className={cn(
-                                                "flex-1 text-sm font-bold transition-all",
+                                                "flex-1 text-base font-bold transition-all",
                                                 item.completed ? "line-through text-muted-foreground" : "text-foreground"
                                             )}>
                                                 {item.text}
@@ -158,7 +154,7 @@ function ChecklistContent() {
 
                                             <button
                                                 onClick={() => handleDeleteItem(item.id)}
-                                                className="h-8 w-8 flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-all"
+                                                className="icon-square h-9 w-9 opacity-0 group-hover:opacity-100 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -171,27 +167,27 @@ function ChecklistContent() {
                 </div>
 
                 {/* Info Sidebar */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="glass rounded-[1.5rem] p-8 border border-border shadow-2xl bg-card">
-                        <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-6">Productivity Pro</h3>
+                <div className="lg:col-span-4 space-y-8">
+                    <div className="surface p-8 space-y-8">
+                        <h3 className="text-xs font-black text-foreground uppercase tracking-widest border-b border-black pb-4">Task Analytics</h3>
                         <div className="space-y-6">
-                            <div className="flex items-start gap-4 p-4 rounded-2xl bg-emerald-50 dark:bg-transparent dark:border dark:border-emerald-500/20 border border-emerald-100">
-                                <div className="h-10 w-10 bg-white dark:bg-transparent dark:border dark:border-emerald-500/30 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <div className="flex items-start gap-5 p-5 rounded-2xl bg-muted border border-black/5">
+                                <div className="icon-square bg-white">
                                     <CheckCircle2 className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black uppercase text-emerald-600 mb-1">Weekly Goal</p>
-                                    <p className="text-xs font-bold text-foreground">Clear 50 clinical tasks to unlock senior badge.</p>
+                                    <p className="text-[10px] font-black uppercase text-foreground mb-1">Weekly Standard</p>
+                                    <p className="text-sm font-bold text-muted-foreground">Maintained 92% efficiency across surgical protocols.</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-4 p-4 rounded-2xl bg-amber-50 dark:bg-transparent dark:border dark:border-amber-500/20 border border-amber-100">
-                                <div className="h-10 w-10 bg-white dark:bg-transparent dark:border dark:border-amber-500/30 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                            <div className="flex items-start gap-5 p-5 rounded-2xl bg-muted border border-black/5">
+                                <div className="icon-square bg-white">
                                     <AlertCircle className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black uppercase text-amber-600 mb-1">Focus Mode</p>
-                                    <p className="text-xs font-bold text-foreground">Don't forget to sync your checklist with your team leader.</p>
+                                    <p className="text-[10px] font-black uppercase text-foreground mb-1">Protocol Reminder</p>
+                                    <p className="text-sm font-bold text-muted-foreground">Sync all offline documentation before system standby.</p>
                                 </div>
                             </div>
                         </div>

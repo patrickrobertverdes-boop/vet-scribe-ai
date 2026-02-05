@@ -80,13 +80,13 @@ export default function DashboardLayout({
                 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}
             `}>
                 <div className="flex flex-col w-full h-full relative bg-background mobile-solid">
-                    {/* Close Button - Clean & Solid */}
+                    {/* Close Button - Premium Square */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="absolute right-4 top-4 h-12 w-12 flex items-center justify-center text-foreground hover:bg-muted/20 transition-all z-[60] active:scale-95"
+                        className="mobile-close-btn absolute right-6 top-6"
                         aria-label="Close menu"
                     >
-                        <X className="h-6 w-6 relative top-[1px] left-[0.5px]" />
+                        <X className="h-6 w-6" />
                     </button>
 
                     {/* Sidebar Content with bottom padding for mobile nav */}

@@ -162,48 +162,41 @@ export default function HistoryPage() {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000 pb-20">
             {/* Encounter History Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
-                            Patient Encounters
-                        </span>
-                    </div>
-                    <h1 className="text-4xl font-bold text-foreground tracking-tight leading-none">
-                        Medical <span className="text-primary italic">Records</span>
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-serif font-bold text-foreground tracking-tighter">
+                        Encounter History
                     </h1>
-                    <p className="text-muted-foreground font-medium mt-3">
-                        Comprehensive record of {consultations.length} clinical sessions and diagnostic evaluations.
+                    <p className="text-lg text-muted-foreground mt-3 font-normal">
+                        System inventory of <span className="text-foreground font-bold">{consultations.length} clinical sessions</span> and diagnostic evaluations.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={handleExport}
-                        className="h-12 px-8 glass border border-border rounded-xl text-muted-foreground font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 shadow-sm"
+                        className="h-12 px-8 border border-black rounded-xl text-foreground font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm"
                     >
-                        Export Records
+                        Export CSV
                     </button>
                     <button
                         onClick={() => router.push('/record')}
-                        className="h-12 px-8 bg-primary text-primary-foreground rounded-xl font-bold text-[10px] uppercase tracking-widest hover:translate-y-[-2px] hover:shadow-2xl transition-all active:scale-95 flex items-center gap-3"
+                        className="h-12 px-8 bg-primary text-primary-foreground rounded-xl font-bold text-[10px] uppercase tracking-widest hover:translate-y-[-2px] transition-all active:scale-95 flex items-center gap-3 shadow-lg"
                     >
-                        <PlusCircle className="h-4 w-4" /> New Encounter
+                        <PlusCircle className="h-5 w-5" /> Initialize Session
                     </button>
                 </div>
             </div>
 
             {/* Search Records */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div className="lg:col-span-12 relative group">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search records by patient, diagnosis, or date..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full h-16 glass rounded-2xl border border-border pl-16 pr-8 text-base font-bold text-foreground placeholder:text-muted-foreground focus:bg-card focus:ring-4 focus:ring-primary/5 transition-all shadow-xl outline-none"
-                    />
-                </div>
+            <div className="search-container">
+                <Search className="search-icon" />
+                <input
+                    type="text"
+                    placeholder="Search logs by patient name, identifier, or diagnostic phrase..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input h-16 text-lg"
+                />
             </div>
 
             {/* Encounter History */}

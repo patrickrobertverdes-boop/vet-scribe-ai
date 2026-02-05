@@ -58,31 +58,30 @@ export function AddTaskForm() {
     };
 
     return (
-        <form onSubmit={handleAddItem} className="relative group w-full">
+        <form onSubmit={handleAddItem} className="search-container group w-full">
             <input
                 ref={inputRef}
                 type="text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
-                placeholder="New Task..."
+                placeholder="Initialize New Protocol Task..."
                 disabled={isSubmitting}
-                className="w-full h-14 pl-6 pr-20 bg-muted/50 border border-border rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-600/10 focus:bg-background outline-none transition-all placeholder:text-muted-foreground text-foreground disabled:opacity-50"
+                className="w-full h-14 pl-6 pr-32 bg-white border border-black rounded-2xl text-sm font-bold focus:shadow-xl outline-none transition-all placeholder:text-muted-foreground text-foreground disabled:opacity-50"
             />
             <button
                 type="submit"
                 disabled={isSubmitting}
                 className={cn(
-                    "absolute right-2 top-2 h-10 px-4 rounded-xl font-bold text-xs transition-all flex items-center gap-2",
-                    isSubmitting ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground" : "bg-cyan-600 dark:bg-cyan-500 text-white hover:scale-105 active:scale-95",
-                    !newItemText.trim() && !isSubmitting && "opacity-80 hover:opacity-100" // Slightly fade if empty but still clickable
+                    "absolute right-2 top-2 h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2",
+                    isSubmitting ? "bg-muted text-muted-foreground" : "bg-black text-white hover:scale-105 active:scale-95 shadow-lg",
                 )}
             >
                 {isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 stroke-[3px]" />
                 )}
-                <span>Add</span>
+                <span>Initialize</span>
             </button>
         </form>
     );

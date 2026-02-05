@@ -148,14 +148,14 @@ export default function PatientsPage() {
             )}
 
             {/* Clinical Search */}
-            <div className="relative group max-w-2xl">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-60" />
+            <div className="search-container max-w-2xl">
+                <Search className="search-icon" />
                 <input
                     type="text"
                     placeholder="Query by name, breed, or ownership ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full h-11 bg-white dark:bg-slate-900 border border-border rounded pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:bg-background focus:ring-1 focus:ring-primary/20 outline-none transition-all"
+                    className="search-input h-14 text-base"
                 />
             </div>
 
@@ -225,19 +225,19 @@ export default function PatientsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-5 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     router.push(`/record?patientId=${patient.id}`);
                                                 }}
-                                                className="h-8 px-4 text-[9px] font-medium uppercase tracking-widest border border-border rounded hover:bg-muted transition-all flex items-center gap-2"
+                                                className="h-10 px-5 text-[10px] font-black uppercase tracking-widest border border-black rounded-xl hover:bg-black hover:text-white transition-all flex items-center gap-2.5 shadow-sm"
                                             >
-                                                <Mic className="h-3.5 w-3.5" />
+                                                <Mic className="h-4 w-4" />
                                                 <span>Initialize Scribe</span>
                                             </button>
-                                            <div className="h-8 w-8 border border-border rounded flex items-center justify-center text-muted-foreground hover:bg-muted transition-all">
-                                                <ChevronRight className="h-4 w-4" />
+                                            <div className="icon-square h-10 w-10">
+                                                <ChevronRight className="h-5 w-5" />
                                             </div>
                                         </div>
                                     </td>

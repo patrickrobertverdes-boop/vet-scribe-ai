@@ -33,43 +33,34 @@
   --radius-sm: 4px;
 }
 
-@utility container {
-  margin-inline: auto;
-  padding-inline: 2rem;
-
-  @media (width >=1400px) {
-    max-width: 1400px;
-  }
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 0%;
 
     --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 100%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 210 40% 98%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 0%;
-    --input: 214 32% 91%;
+    --input: 0 0% 90%;
     --ring: 0 0% 0%;
   }
 
@@ -96,8 +87,7 @@
     -webkit-font-smoothing: antialiased;
     font-family: var(--font-sans), system-ui, sans-serif;
     font-size: 16px;
-    /* Increased base size */
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
   h1,
@@ -105,165 +95,103 @@
   h3,
   h4 {
     font-family: var(--font-serif), serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 700;
     color: hsl(var(--foreground));
   }
 
-  h1 {
-    font-size: 2.5rem;
-  }
-
-  h2 {
-    font-size: 1.8rem;
-  }
-
-  h3 {
-    font-size: 1.4rem;
-  }
-
-  /* Universal Color Rules */
   svg {
     color: currentColor;
     stroke: currentColor;
     fill: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
   }
 }
 
 /* 
-   PREMIUM INTERFACE RE-ENGINEERING 
+   PREMIUM CLINICAL DESIGN SYSTEM 
 */
 
-/* Buttons & Navigation Items */
+/* Buttons - NO MORE BLACK INVERSION ON PRESS IN LIGHT MODE */
 button,
-.btn,
-Link,
-a {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.btn {
+  @apply rounded-xl font-bold transition-all duration-200 outline-none;
 }
 
-/* Fix disappearing buttons on press/hover */
-.group:hover,
-button:hover,
-.btn:hover {
-  background-color: black !important;
-  color: white !important;
-  border-color: black !important;
+button:hover:not(.bg-primary) {
+  @apply bg-muted;
 }
 
-.group:active,
-button:active,
-.btn:active {
-  background-color: #111 !important;
-  color: white !important;
-  transform: scale(0.98);
+button:active:not(.bg-primary) {
+  @apply opacity-70 scale-95;
 }
 
-.dark .group:hover,
-.dark button:hover,
-.dark .btn:hover {
-  background-color: white !important;
-  color: black !important;
-  border-color: white !important;
+.bg-primary:hover {
+  @apply opacity-90;
 }
 
-/* Ensure SVG icons follow colors automatically */
-.group:hover svg,
-button:hover svg,
-.btn:hover svg {
-  color: white !important;
+.bg-primary:active {
+  @apply scale-95;
 }
 
-.dark .group:hover svg,
-.dark button:hover svg,
-.dark .btn:hover svg {
-  color: black !important;
-}
-
-/* Icon Box / Square Container */
+/* Icon Containers */
 .icon-square {
-  @apply h-11 w-11 rounded-xl flex items-center justify-center border transition-all shrink-0;
-  border-color: black !important;
-  background-color: white !important;
-  color: black !important;
-}
-
-.group:hover .icon-square {
-  background-color: white !important;
-  border-color: white !important;
-  color: black !important;
+  @apply h-11 w-11 rounded-xl flex items-center justify-center border border-black bg-white text-black shrink-0 transition-all;
 }
 
 .dark .icon-square {
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  color: white !important;
+  @apply border-border bg-card text-white;
 }
 
-/* Active State for Mobile/Sidebar Nav */
+/* Input Fields - FIX OVERLAY ISSUES */
+.input-premium {
+  @apply w-full h-12 px-5 rounded-xl border border-black bg-white text-foreground font-bold outline-none transition-all placeholder:text-muted-foreground focus:ring-1 focus:ring-black;
+}
+
+.dark .input-premium {
+  @apply border-border bg-card focus:ring-white;
+}
+
+.search-container {
+  @apply relative flex items-center w-full;
+}
+
+.search-icon {
+  @apply absolute left-4 h-5 w-5 text-black pointer-events-none z-10;
+}
+
+.dark .search-icon {
+  @apply text-white;
+}
+
+.search-input {
+  @apply input-premium pl-12;
+}
+
+/* Active State for Navigation (No solid black) */
 @utility nav-item-active {
-  @apply font-bold underline decoration-2 underline-offset-8;
-  color: black !important;
+  @apply bg-muted;
+  border-bottom: 2px solid black !important;
+  border-radius: 0 !important;
 
   .dark & {
-    color: white !important;
+    border-bottom: 2px solid white !important;
   }
 }
 
-/* Premium Clinical Surfaces */
+/* Surfaces */
 @utility surface {
-  background-color: white !important;
-  border: 1px solid black !important;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  @apply rounded-xl border border-black bg-white shadow-sm;
 }
 
 .dark .surface {
-  background-color: hsl(var(--card)) !important;
-  border-color: hsl(var(--border)) !important;
-  box-shadow: none;
+  @apply border-border bg-card shadow-none;
 }
 
-/* Input Fields */
-input,
-textarea,
-select {
-  @apply h-12 px-4 rounded-xl border border-border bg-white transition-all text-base outline-none;
-  font-family: var(--font-sans);
+/* Mobile Close Button (X) */
+.mobile-close-btn {
+  @apply h-12 w-12 flex items-center justify-center rounded-xl border border-black bg-white text-black shadow-lg z-[100] active:scale-75 transition-all;
 }
 
-input:focus {
-  @apply border-black ring-1 ring-black/5;
-}
-
-.dark input {
-  @apply bg-background border-border;
-}
-
-/* Remove all blue/gray shades from UI elements */
-.text-primary,
-.text-blue-600,
-.text-purple-600 {
-  color: black !important;
-}
-
-.dark .text-primary,
-.dark .text-blue-400,
-.dark .text-purple-400 {
-  color: white !important;
-}
-
-.bg-primary,
-.bg-blue-600,
-.bg-purple-600 {
-  background-color: black !important;
-  color: white !important;
-}
-
-.dark .bg-primary,
-.dark .bg-blue-500,
-.dark .bg-purple-500 {
-  background-color: white !important;
-  color: black !important;
+.dark .mobile-close-btn {
+  @apply border-border bg-card text-white;
 }
