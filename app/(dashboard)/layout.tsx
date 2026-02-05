@@ -37,12 +37,6 @@ export default function DashboardLayout({
         if (!loading && !isLoggingIn && !isSigningUp) {
             if (!user) {
                 router.replace('/login');
-            } else {
-                const isGoogleUser = user.providerData.some(p => p.providerId.includes('google'));
-
-                if (!user.emailVerified && !isGoogleUser) {
-                    router.replace('/verify-email');
-                }
             }
         }
     }, [user, loading, isLoggingIn, isSigningUp, router]);
@@ -60,11 +54,7 @@ export default function DashboardLayout({
 
     if (!user) return null;
 
-    // Strict guard: If they are not verified and not Google, do not show the dashboard content
-    const isGoogleAccount = user.providerData.some(p => p.providerId.includes('google'));
-    if (!user.emailVerified && !isGoogleAccount) {
-        return null;
-    }
+    // Gate removed
 
     return (
         <div className="flex bg-mesh min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">

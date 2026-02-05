@@ -50,11 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeUserBackground = async (user: User) => {
         if (!db) return;
 
-        // Gated: Internal initialization only happens for verified clinical accounts
-        if (!user.emailVerified) {
-            console.log(`[Background-Init] Skipping for unverified user: ${user.uid}`);
-            return;
-        }
+        // Gate removed: Verification no longer mandatory for clinical initialization
 
         try {
             console.log(`[Background-Init] Initializing provisioned data for: ${user.uid}`);
@@ -134,9 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (currentUser) {
                 // For returning sessions, we do a quick background sync to avoid stale claims on mobile
                 // but we don't block the initial UI if it's already verified
-                if (!currentUser.emailVerified) {
-                    await currentUser.reload().catch(console.warn);
-                }
                 setUser(currentUser);
                 initializeUserBackground(currentUser);
             } else {
@@ -195,8 +188,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log(`[STAGE: WEBHOOK-SUCCESS] [${correlationId}] Server confirmed webhook dispatch`);
 
             // 5. Finalize UI
-            toast.success('Security link dispatched to registry email.');
-            router.push('/verify-email');
+            toast.success('Registration successful.');
+            router.push('/');
 
         } catch (error: any) {
             console.error(`[STAGE: FATAL] [${correlationId}] Execution halted:`, error.message);
@@ -292,11 +285,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error('Please use the Google Account button.');
             }
 
-            if (!user.emailVerified) {
-                console.warn(`[STAGE: GATE] [${correlationId}] Access denied: Email lacks verification`);
-                router.push('/verify-email');
-                throw new Error('Clinical verification pending. Please check your registry email.');
-            }
+            // Gate removed: Verification no longer mandatory
 
             // PROVISIONING: Ensure user document exists in Firestore via backend
             console.log(`[STAGE: PROVISIONING] [${correlationId}] Calling backend provisioning...`);
