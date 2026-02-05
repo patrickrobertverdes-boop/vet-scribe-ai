@@ -9,8 +9,7 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
-    updateProfile,
-    sendEmailVerification
+    updateProfile
 } from 'firebase/auth';
 import {
     doc,
@@ -143,12 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: `${firstName} ${lastName}`
             });
 
-            // 2.5 Standard Firebase Insurance: Send standard verification immediately
-            // This ensures at least ONE email is sent even if the webhook leg fails.
-            console.log(`[Auth-Flow] [${correlationId}] Dispatching standard Firebase verification insurance...`);
-            await sendEmailVerification(user).catch(err => {
-                console.warn(`[Auth-Flow] [${correlationId}] Standard verification failed (likely rate limited):`, err.message);
-            });
 
             // 3. Create basic profile in Firestore
             await setDoc(doc(db, 'users', user.uid), {
@@ -216,14 +209,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const correlationId = `resend_client_${Date.now()}`;
-        console.log(`[Auth-Flow] [${correlationId}] Initiating resend request for: ${user.email}`);
+        console.log(`[Auth-Flow] [${correlationId}] Initiating custom resend for: ${user.email}`);
 
         try {
-            // Standard Firebase Resend Insurance
-            await sendEmailVerification(user).catch(err => {
-                console.warn(`[Auth-Flow] [${correlationId}] Standard resend failed:`, err.message);
-            });
-
             const response = await fetch('/api/auth/resend-verification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

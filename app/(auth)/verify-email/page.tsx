@@ -12,6 +12,14 @@ export default function VerifyEmailPage() {
     const [isResending, setIsResending] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
     const router = useRouter();
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown > 0) {
+            const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [cooldown]);
 
     useEffect(() => {
         if (user) {
@@ -55,9 +63,11 @@ export default function VerifyEmailPage() {
     };
 
     const handleResend = async () => {
+        if (cooldown > 0) return;
         setIsResending(true);
         try {
             await resendVerification();
+            setCooldown(60); // 60 second cooldown
         } catch (error: any) {
             toast.error(error.message || 'Transmission error.');
         } finally {
@@ -84,11 +94,13 @@ export default function VerifyEmailPage() {
 
                 <button
                     onClick={handleResend}
-                    disabled={isResending}
+                    disabled={isResending || cooldown > 0}
                     className="w-full h-10 border border-slate-300 dark:border-slate-700 bg-white dark:bg-black text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-widest rounded-md hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                     {isResending ? (
                         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    ) : cooldown > 0 ? (
+                        `Wait ${cooldown}s`
                     ) : (
                         'Resend Link'
                     )}
