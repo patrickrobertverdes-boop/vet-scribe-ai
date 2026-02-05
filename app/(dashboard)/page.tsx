@@ -113,16 +113,16 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => router.push('/analytics')}
-                        className="h-10 px-4 border border-border rounded text-muted-foreground hover:text-primary hover:bg-muted transition-all flex items-center gap-2.5"
+                        className="h-10 px-4 border border-black dark:border-border rounded text-foreground hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all flex items-center gap-2.5"
                     >
                         <Activity className="h-4 w-4" />
-                        <span className="text-[11px] font-medium uppercase tracking-widest">Analytics</span>
+                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Analytics</span>
                     </button>
 
                     <div className="h-10 border border-black dark:border-border px-4 rounded flex items-center gap-3 bg-white dark:bg-card">
                         <Calendar className="h-4 w-4 text-black dark:text-white" />
                         <div className="text-left">
-                            <p className="text-[11px] font-bold text-foreground">
+                            <p className="text-[11px] font-bold text-foreground leading-none">
                                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </p>
                         </div>
@@ -130,11 +130,10 @@ export default function DashboardPage() {
 
                     <button
                         onClick={handleInitializeScribe}
-                        className="btn-premium h-10 px-6 bg-primary text-primary-foreground"
+                        className="h-10 px-5 bg-primary text-primary-foreground rounded font-bold text-[11px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2.5 shadow-none border border-black dark:border-white"
                     >
-                        <Zap className="h-4 w-4" />
-                        <span className="hidden sm:inline">Initialize Scribe</span>
-                        <span className="sm:hidden">Scribe</span>
+                        <Zap className="h-4 w-4 no-demote" />
+                        Initialize Scribe
                     </button>
                 </div>
             </header>
@@ -149,10 +148,10 @@ export default function DashboardPage() {
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-white dark:bg-card border border-black dark:border-border rounded-xl p-6 group transition-all hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black shadow-none cursor-pointer"
+                        className="bg-white dark:bg-card border border-black dark:border-border rounded-xl p-6 group transition-all cursor-pointer"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-black dark:border-white/20 bg-white dark:bg-transparent transition-colors shrink-0 group-hover:bg-white dark:group-hover:bg-black">
+                            <div className="icon-square">
                                 <stat.icon className="h-4 w-4" />
                             </div>
                             <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-black dark:border-border transition-colors group-hover:border-white dark:group-hover:border-black">

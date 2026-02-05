@@ -80,23 +80,9 @@
   .dark {
     --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
+    --border: 217.2 32.6% 17.5%;
     --card: 224 71.4% 4.1%;
     --card-foreground: 210 16.7% 92.2%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 210 20% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -110,51 +96,46 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     font-family: var(--font-plex), system-ui, sans-serif;
-    font-size: 14px;
-    letter-spacing: -0.01em;
   }
 
+  /* ABSOLUTE COLOR ENFORCEMENT */
   h1,
   h2,
   h3,
   h4,
-  .font-serif {
-    color: hsl(var(--foreground)) !important;
+  .font-serif,
+  p,
+  span,
+  label {
+    color: currentColor;
   }
 
-  /* ABSOLUTE ICON ENFORCEMENT */
-  svg:not(.no-demote) {
-    color: black !important;
-    stroke: black !important;
+  svg {
+    color: currentColor;
+    stroke: currentColor;
+    fill: none;
     opacity: 1 !important;
-  }
-
-  .dark svg:not(.no-demote) {
-    color: white !important;
-    stroke: white !important;
-    opacity: 1 !important;
-  }
-
-  .group:hover svg {
-    color: inherit !important;
-    stroke: inherit !important;
   }
 }
 
-/* Sidebar Specifics */
-.sidebar svg {
+/* 
+   SURFACE RULES 
+   These ensure that whenever a background is changed, 
+   the children's color property is updated so currentColor works.
+*/
+
+.bg-white {
+  background-color: white !important;
   color: black !important;
-  stroke: black !important;
 }
 
-.dark .sidebar svg {
+.bg-black {
+  background-color: black !important;
   color: white !important;
-  stroke: white !important;
 }
 
-/* Hover Inversion */
+/* Dashboard Card Specific Fixes */
 .group:hover {
   background-color: black !important;
   color: white !important;
@@ -165,25 +146,39 @@
   color: black !important;
 }
 
-.group:hover * {
-  color: inherit !important;
+/* Icon Container Square Fix */
+.icon-square {
+  @apply h-10 w-10 rounded-lg flex items-center justify-center border transition-all shrink-0;
+  border-color: black !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+.group:hover .icon-square {
+  border-color: white !important;
+  background-color: black !important;
+  color: white !important;
+}
+
+.dark .icon-square {
   border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: transparent !important;
+  color: white !important;
 }
 
-.dark .group:hover * {
-  color: inherit !important;
-  border-color: rgba(0, 0, 0, 0.2) !important;
+.dark .group:hover .icon-square {
+  border-color: black !important;
+  background-color: white !important;
+  color: black !important;
 }
 
-/* Active State */
+/* Utilities */
 @utility nav-item-active {
   background-color: black !important;
   color: white !important;
-  border: 1px solid black !important;
 
   .dark & {
     background-color: white !important;
     color: black !important;
-    border: 1px solid white !important;
   }
 }
