@@ -28,8 +28,11 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Link Generation
-        console.log(`[FIREBASE-LINK] [${correlationId}] Generating Firebase verification link...`);
+        console.log(`[FIREBASE-LINK] [${correlationId}] Project ID: ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'verdes-8568d'}`);
+        console.log(`[FIREBASE-LINK] [${correlationId}] Resend Continue URL: ${PUBLIC_URL}/login`);
+
         const actionCodeSettings = {
+            // Reverting to preferred domain as user confirmed authorization
             url: `${PUBLIC_URL}/login`,
         };
 
