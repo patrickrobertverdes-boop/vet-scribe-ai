@@ -43,8 +43,8 @@ export default function LoginPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
             <div className="space-y-1">
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">System Login</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <h1 className="text-xl font-bold text-foreground tracking-tight">System Login</h1>
+                <p className="text-sm text-muted-foreground">
                     Authenticate to access patient records.
                 </p>
             </div>
@@ -57,7 +57,7 @@ export default function LoginPage() {
                             type="email"
                             required
                             autoFocus
-                            className="w-full h-10 px-3 rounded-md bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all outline-none placeholder:text-slate-400"
+                            className="w-full h-10 px-3 rounded-md bg-card border border-border text-sm text-foreground focus:ring-1 focus:ring-ring transition-all outline-none placeholder:text-muted-foreground/50"
                             placeholder="user@clinic.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -71,7 +71,7 @@ export default function LoginPage() {
                         <input
                             type="password"
                             required
-                            className="w-full h-10 px-3 rounded-md bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all outline-none placeholder:text-slate-400"
+                            className="w-full h-10 px-3 rounded-md bg-card border border-border text-sm text-foreground focus:ring-1 focus:ring-ring transition-all outline-none placeholder:text-muted-foreground/50"
                             placeholder="Authorized credentials"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +83,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full h-10 rounded-md bg-black dark:bg-white text-white dark:text-black font-bold text-xs uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center"
+                        className="w-full h-10 rounded-md bg-primary font-bold text-xs uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center"
                     >
                         {isSubmitting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -95,9 +95,9 @@ export default function LoginPage() {
                     </button>
 
                     <div className="relative flex py-2 items-center">
-                        <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                        <span className="flex-shrink-0 mx-4 text-[10px] text-slate-400 uppercase tracking-widest">Single Sign-On</span>
-                        <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                        <div className="flex-grow border-t border-border"></div>
+                        <span className="flex-shrink-0 mx-4 text-[10px] text-muted-foreground uppercase tracking-widest">Single Sign-On</span>
+                        <div className="flex-grow border-t border-border"></div>
                     </div>
 
                     <button

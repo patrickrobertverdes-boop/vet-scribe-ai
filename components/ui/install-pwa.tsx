@@ -49,7 +49,7 @@ export function InstallPWA() {
     return (
         <button
             onClick={handleInstall}
-            className="flex items-center gap-2 px-4 py-2 md:px-5 md:py-3 bg-slate-900 dark:bg-primary text-white md:rounded-2xl rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl border border-white/10 shrink-0"
+            className="flex items-center gap-2 px-4 py-2 md:px-5 md:py-3 bg-primary rounded-xl md:rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl border border-white/10 shrink-0"
         >
             <Download className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Install App</span>

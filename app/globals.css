@@ -49,90 +49,67 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 222 47% 11%;
+    /* #0f172a */
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
     --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
+
     --secondary: 0 0% 100%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 100%;
-    --muted-foreground: 0 0% 0%;
-    --accent: 0 0% 100%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 0%;
-    --input: 0 0% 100%;
-    --ring: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --secondary-foreground: 222 47% 11%;
 
-    /* Force all common utility colors to black/white for strict theme */
-    --color-slate-50: #ffffff;
-    --color-slate-100: #ffffff;
-    --color-slate-200: #ffffff;
-    --color-slate-300: #ffffff;
-    --color-slate-400: #000000;
-    --color-slate-500: #000000;
-    --color-slate-600: #000000;
-    --color-slate-700: #000000;
-    --color-slate-800: #000000;
-    --color-slate-900: #000000;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --color-emerald-50: #ffffff;
-    --color-emerald-500: #000000;
-    --color-emerald-600: #000000;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --color-rose-50: #ffffff;
-    --color-rose-500: #000000;
-    --color-rose-600: #000000;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --color-blue-50: #ffffff;
-    --color-blue-500: #000000;
-    --color-blue-600: #000000;
+    --border: 222 47% 11%;
+    /* Use high contrast for strict mode */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 47.4% 11.2%;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 5%;
-    --ring: 0 0% 100%;
-    --card: 0 0% 3%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 100%;
+    --background: 224 71.4% 4.1%;
+    /* #020617 */
+    --foreground: 210 20% 98%;
+    /* #f8f9fa */
 
-    /* Restore colors in dark mode */
-    --color-slate-50: oklch(0.984 0.003 247.858);
-    --color-slate-100: oklch(0.968 0.007 247.896);
-    --color-slate-200: oklch(0.923 0.01 248.865);
-    --color-slate-300: oklch(0.869 0.013 248.839);
-    --color-slate-400: oklch(0.704 0.015 249.713);
-    --color-slate-500: oklch(0.554 0.016 257.417);
-    --color-slate-600: oklch(0.446 0.03 256.802);
-    --color-slate-700: oklch(0.372 0.033 257.581);
-    --color-slate-800: oklch(0.279 0.041 260.031);
-    --color-slate-900: oklch(0.208 0.042 265.755);
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 16.7% 92.2%;
+    /* #e5e7eb */
 
-    --color-emerald-50: oklch(0.979 0.011 162.312);
-    --color-emerald-500: oklch(0.637 0.146 163.228);
-    --color-emerald-600: oklch(0.519 0.129 162.935);
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
 
-    --color-rose-50: oklch(0.977 0.01 11.233);
-    --color-rose-500: oklch(0.618 0.207 20.372);
-    --color-rose-600: oklch(0.534 0.19 14.778);
+    --primary: 210 20% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -159,16 +136,13 @@
   .font-serif {
     font-family: var(--font-serif), serif;
     font-weight: 500;
-    /* Medium per rules */
     color: hsl(var(--foreground));
   }
 
-  /* Typography Authority Rules */
   label,
   .text-label {
     font-family: var(--font-plex);
     font-weight: 500;
-    /* Medium per rules */
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -180,7 +154,6 @@
   body,
   .text-body {
     font-weight: 400;
-    /* Regular per rules */
   }
 
   button,
@@ -194,7 +167,6 @@
   .btn-premium {
     @apply font-semibold;
     height: 44px;
-    /* Slightly shorter, more precise */
     border-radius: 4px;
     padding: 0 20px;
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -219,26 +191,25 @@
     outline: none;
   }
 
-  /* Icon Demotion - Disabled in light mode for strict black */
+  /* Icon Normalization - icons inherit foreground by default */
+  svg {
+    color: currentColor;
+    fill: none;
+    stroke: currentColor;
+  }
+
   svg:not(.no-demote) {
     opacity: 1;
-    transform: scale(0.92);
-    /* Slightly smaller */
     transition: all 0.2s ease;
   }
 
   .dark svg:not(.no-demote) {
-    opacity: 0.6;
+    opacity: 0.8;
   }
 
   .active svg,
   .group:hover svg {
     opacity: 1 !important;
-  }
-
-  .dark .active svg,
-  .dark .group:hover svg {
-    opacity: 0.9 !important;
   }
 }
 
@@ -277,7 +248,7 @@
 }
 
 .dark .sidebar svg {
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .sidebar .active svg {
@@ -285,7 +256,7 @@
   color: hsl(var(--primary));
 }
 
-/* Custom Scrollbar - Quieter */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -294,12 +265,28 @@
   @apply bg-slate-200 dark:bg-slate-800 rounded-full;
 }
 
-/* Prevent black-on-black */
-.bg-primary .text-primary-foreground,
-.bg-primary-foreground .text-primary {
-  color: white !important;
+/* Surface-Level Foreground Enforcement */
+.bg-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
-.dark .bg-primary .text-primary-foreground {
-  color: black !important;
+.bg-card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.bg-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.bg-accent {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.bg-muted {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
