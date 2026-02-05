@@ -373,7 +373,7 @@ export const firebaseService = {
     // Path: users/{uid}/profile/config
     getUserProfile: async (uid: string): Promise<any> => {
         try {
-            const docRef = doc(getFirestoreDb(), 'users', uid, 'profile', 'config');
+            const docRef = doc(getFirestoreDb(), 'users', uid);
             const snap = await getDoc(docRef);
             return snap.exists() ? snap.data() : null;
         } catch (e) {
@@ -383,7 +383,7 @@ export const firebaseService = {
     },
 
     subscribeToUserProfile: (uid: string, callback: (profile: any) => void) => {
-        const docRef = doc(getFirestoreDb(), 'users', uid, 'profile', 'config');
+        const docRef = doc(getFirestoreDb(), 'users', uid);
         return onSnapshot(docRef, (snap) => {
             if (snap.exists()) callback(snap.data());
             else callback(null);
@@ -394,7 +394,7 @@ export const firebaseService = {
     },
 
     updateUserProfile: async (uid: string, data: any) => {
-        const docRef = doc(getFirestoreDb(), 'users', uid, 'profile', 'config');
+        const docRef = doc(getFirestoreDb(), 'users', uid);
         await setDoc(docRef, { ...data, updatedAt: Timestamp.now() }, { merge: true });
     },
 

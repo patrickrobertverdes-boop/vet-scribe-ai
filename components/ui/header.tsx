@@ -138,7 +138,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                                     )}
                                 </div>
                                 <div className="text-left hidden lg:block overflow-hidden">
-                                    <p className="text-[12px] font-medium text-foreground leading-none truncate">{profile?.name || user.email?.split('@')[0]}</p>
+                                    <p className="text-[12px] font-medium text-foreground leading-none truncate">{profile?.displayName || profile?.name || user.email?.split('@')[0]}</p>
                                 </div>
                             </button>
                             <button

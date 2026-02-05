@@ -13,9 +13,10 @@ interface ImageUploadProps {
     onChange: (value: string) => void;
     className?: string;
     placeholderEmoji?: string;
+    onUploading?: (uploading: boolean) => void;
 }
 
-export function ImageUpload({ value, onChange, className, placeholderEmoji = '' }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, className, placeholderEmoji = '', onUploading }: ImageUploadProps) {
     const { user } = useAuth();
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -34,6 +35,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '' 
         }
 
         setIsUploading(true);
+        onUploading?.(true);
         try {
             // Create unique path for this image
             const timestamp = Date.now();
@@ -55,6 +57,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '' 
             toast.error('Failed to upload image.');
         } finally {
             setIsUploading(false);
+            onUploading?.(false);
         }
     };
 

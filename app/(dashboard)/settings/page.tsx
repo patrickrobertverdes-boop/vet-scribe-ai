@@ -54,7 +54,14 @@ export default function SettingsPage() {
     useEffect(() => {
         if (!user) return;
         const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
-            if (data) setProfile(data);
+            if (data) {
+                // Merge data to ensure we have name/displayName/specialty/image
+                setProfile({
+                    name: data.displayName || data.name || '',
+                    specialty: data.specialty || '',
+                    image: data.image || ''
+                });
+            }
         });
         return () => unsubscribe();
     }, [user]);
@@ -62,7 +69,11 @@ export default function SettingsPage() {
     const handleUpdateProfile = async (newData: any) => {
         if (!user) return;
         try {
-            await firebaseService.updateUserProfile(user.uid, newData);
+            // Map 'name' back to 'displayName' for consistency with provisioning/Auth
+            const dataToSave = { ...newData };
+            if (newData.name) dataToSave.displayName = newData.name;
+
+            await firebaseService.updateUserProfile(user.uid, dataToSave);
             toast.success("Profile synchronized with clinical vault.");
         } catch (e) {
             toast.error("Failed to update profile.");
@@ -82,7 +93,11 @@ export default function SettingsPage() {
         setIsUploading(true);
         try {
             const url = await firebaseService.uploadProfileImage(user.uid, file);
-            await handleUpdateProfile({ ...profile, image: url });
+
+            // CRITICAL: Only update the image field to avoid overwriting with stale state
+            await firebaseService.updateUserProfile(user.uid, { image: url });
+
+            setProfile((prev: any) => ({ ...prev, image: url }));
             setIsUploading(false);
             toast.success("Profile picture updated.");
         } catch (err) {
@@ -174,7 +189,16 @@ export default function SettingsPage() {
                                         <div className="relative group">
                                             <div className="h-32 w-32 rounded-2xl bg-muted border border-border overflow-hidden relative flex items-center justify-center shadow-inner group-hover:scale-105 transition-all duration-500">
                                                 {profile.image ? (
-                                                    <img src={profile.image} alt="Profile" className="h-full w-full object-cover" />
+                                                    <img
+                                                        src={profile.image}
+                                                        alt="Profile"
+                                                        className="h-full w-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            const parent = (e.target as HTMLImageElement).parentElement;
+                                                            if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                                        }}
+                                                    />
                                                 ) : (
                                                     <UserCircle className="h-12 w-12 text-muted-foreground/30" />
                                                 )}

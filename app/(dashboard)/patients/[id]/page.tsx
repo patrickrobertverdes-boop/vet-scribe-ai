@@ -201,7 +201,16 @@ export default function PatientProfilePage() {
                         onClick={() => setShowEditModal(true)}
                     >
                         {patient.image?.startsWith('data:') || patient.image?.startsWith('http') ? (
-                            <img src={patient.image} alt={patient.name} className="h-full w-full object-cover" />
+                            <img
+                                src={patient.image}
+                                alt={patient.name}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    const parent = (e.target as HTMLImageElement).parentElement;
+                                    if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                }}
+                            />
                         ) : (
                             <Binary className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
                         )}

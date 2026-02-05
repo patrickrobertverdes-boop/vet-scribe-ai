@@ -30,6 +30,7 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
         image: patient.image,
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +106,18 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
                                     <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 block text-center md:text-left">Profile Picture</label>
                                     <ImageUpload
                                         value={formData.image}
-                                        onChange={(val) => setFormData({ ...formData, image: val })}
+                                        onChange={async (val) => {
+                                            setFormData(prev => ({ ...prev, image: val }));
+                                            if (val.startsWith('http') && user) {
+                                                try {
+                                                    await firebaseService.updatePatient(user.uid, patient.id, { image: val });
+                                                    console.log("Patient image auto-synced.");
+                                                } catch (e) {
+                                                    console.warn("Failed to auto-sync image:", e);
+                                                }
+                                            }
+                                        }}
+                                        onUploading={setIsUploading}
                                         placeholderEmoji=""
                                     />
                                 </div>
@@ -228,10 +240,10 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={isSaving}
+                        disabled={isSaving || isUploading}
                         className="h-12 sm:h-14 px-6 sm:px-12 bg-slate-900 text-primary rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] hover:translate-y-[-2px] hover:shadow-2xl shadow-slate-900/20 transition-all active:translate-y-0 disabled:opacity-50 flex items-center gap-2 sm:gap-4 border border-white/10"
                     >
-                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        {isSaving || isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         <span className="hidden sm:inline">Update Profile</span>
                         <span className="sm:hidden">Update</span>
                     </button>

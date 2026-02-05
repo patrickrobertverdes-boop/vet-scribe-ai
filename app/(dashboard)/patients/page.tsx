@@ -190,7 +190,16 @@ export default function PatientsPage() {
                                         <div className="flex items-center gap-4">
                                             <div className="h-10 w-10 bg-slate-100 dark:bg-slate-900 border border-border rounded flex items-center justify-center overflow-hidden shrink-0">
                                                 {patient.image?.startsWith('data:') || patient.image?.startsWith('http') ? (
-                                                    <img src={patient.image} alt={patient.name} className="h-full w-full object-cover" />
+                                                    <img
+                                                        src={patient.image}
+                                                        alt={patient.name}
+                                                        className="h-full w-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            const parent = (e.target as HTMLImageElement).parentElement;
+                                                            if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                                        }}
+                                                    />
                                                 ) : (
                                                     <Shield className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                                                 )}
@@ -252,7 +261,16 @@ export default function PatientsPage() {
                             <div className="flex items-center gap-4 min-w-0">
                                 <div className="h-12 w-12 bg-slate-50 border border-border rounded flex items-center justify-center overflow-hidden shrink-0">
                                     {patient.image?.startsWith('data:') || patient.image?.startsWith('http') ? (
-                                        <img src={patient.image} alt={patient.name} className="h-full w-full object-cover" />
+                                        <img
+                                            src={patient.image}
+                                            alt={patient.name}
+                                            className="h-full w-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                const parent = (e.target as HTMLImageElement).parentElement;
+                                                if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                            }}
+                                        />
                                     ) : (
                                         <Shield className="h-5 w-5 text-muted-foreground/30" />
                                     )}
