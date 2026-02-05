@@ -33,6 +33,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
+    resendVerification: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,8 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth || !db) throw new Error("Firebase is not initialized");
 
         setIsSigningUp(true);
+        const correlationId = `signup_client_${Date.now()}`;
+        console.log(`[Auth-Flow] [${correlationId}] Initiating signup for: ${email}`);
+
         try {
-            // 1. Create Auth User (Only blocking operation)
+            // 1. Create Auth User
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const { user } = userCredential;
 
@@ -138,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: `${firstName} ${lastName}`
             });
 
-            // 3. Fire-and-forget: Create basic profile (non-blocking)
-            setDoc(doc(db, 'users', user.uid), {
+            // 3. Create basic profile in Firestore
+            await setDoc(doc(db, 'users', user.uid), {
                 email: user.email,
                 firstName: firstName,
                 lastName: lastName,
@@ -148,9 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 uid: user.uid,
                 role: 'owner',
                 settings: { theme: 'system', notifications: true }
-            }).catch(err => console.error("Profile creation deferred:", err));
+            });
 
-            // 4. Trigger n8n webhook for email verification
+            // 4. Trigger n8n webhook (CRITICAL SIDE-EFFECT)
+            console.log(`[Auth-Flow] [${correlationId}] Triggering verification webhook...`);
             const webhookRes = await fetch('/api/auth/signup-verification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -162,38 +167,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (!webhookRes.ok) {
-                const contentType = webhookRes.headers.get("content-type");
-                let errorMessage = "Failed to trigger verification email";
-
-                if (contentType && contentType.includes("application/json")) {
-                    const errorData = await webhookRes.json();
-                    errorMessage = errorData.error || errorMessage;
-                } else {
-                    const errorText = await webhookRes.text();
-                    console.error("Non-JSON error response:", errorText.substring(0, 200));
-                }
-                console.error("Webhook failed:", errorMessage);
+                const errorData = await webhookRes.json().catch(() => ({ error: 'Unknown Error' }));
+                console.error(`[Auth-Flow] [${correlationId}] Webhook critical failure:`, errorData);
+                // We proceed to the next page but notify the user that email might be delayed
+                toast.error('Account created, but verification email failed to send. Please try the "Resend" button on the next page.');
+            } else {
+                console.log(`[Auth-Flow] [${correlationId}] Signup webhook confirmed`);
             }
 
-            // 4. Trigger background initialization (non-blocking)
+            // 5. Background initialization
             initializeUserBackground(user);
 
-            // 5. Redirect to verification pending page
-            toast.success('Check your email to verify your account!');
+            // 6. Finalize
+            toast.success('Security link dispatched to registry email.');
             router.push('/verify-email');
         } catch (error: any) {
-            console.error("Signup Error:", error);
-            let message = 'Failed to create account.';
-            if (error.code === 'auth/email-already-in-use') message = 'This email is already registered.';
-            if (error.code === 'auth/invalid-email') message = 'Invalid email address.';
-            if (error.code === 'auth/operation-not-allowed') message = 'Email/Password accounts are not enabled in Firebase Console.';
-            if (error.code === 'auth/configuration-not-found') message = 'Enable "Email/Password" in Firebase Console.';
-            if (error.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
-            if (error.code === 'auth/network-request-failed') message = 'Network error. Check connection.';
+            console.error(`[Auth-Flow] [${correlationId}] Fatal signup error:`, error);
+            let message = 'Failed to create record.';
+            if (error.code === 'auth/email-already-in-use') message = 'This email designation is already registered.';
+            if (error.code === 'auth/weak-password') message = 'Security key must be at least 6 characters.';
 
             throw new Error(message);
         } finally {
             setIsSigningUp(false);
+        }
+    };
+
+    const resendVerification = async () => {
+        if (!user?.email) {
+            console.error("[Auth-Flow] Cannot resend: User context missing or email null");
+            throw new Error("Identity context missing");
+        }
+
+        const correlationId = `resend_client_${Date.now()}`;
+        console.log(`[Auth-Flow] [${correlationId}] Initiating resend request for: ${user.email}`);
+
+        try {
+            const response = await fetch('/api/auth/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.email,
+                    displayName: user.displayName,
+                    uid: user.uid
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Transmission Error' }));
+                console.error(`[Auth-Flow] [${correlationId}] Resend webhook failure:`, errorData);
+                throw new Error("Verification link delivery failed. Please try again.");
+            }
+
+            console.log(`[Auth-Flow] [${correlationId}] Resend webhook confirmed`);
+            toast.success("Security link re-dispatched.");
+        } catch (error: any) {
+            console.error(`[Auth-Flow] [${correlationId}] Fatal resend error:`, error);
+            throw error;
         }
     };
 
@@ -287,7 +317,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, isSigningUp, signup, login, signInWithGoogle, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            isSigningUp,
+            signup,
+            login,
+            signInWithGoogle,
+            logout,
+            resendVerification
+        }}>
             {children}
         </AuthContext.Provider>
     );

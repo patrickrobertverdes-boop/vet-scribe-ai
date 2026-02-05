@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export default function VerifyEmailPage() {
-    const { user, logout } = useAuth();
+    const { user, logout, resendVerification } = useAuth();
     const [isResending, setIsResending] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
     const router = useRouter();
@@ -55,26 +55,11 @@ export default function VerifyEmailPage() {
     };
 
     const handleResend = async () => {
-        if (!user?.email) return;
         setIsResending(true);
         try {
-            const response = await fetch('/api/auth/resend-verification', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: user.email,
-                    displayName: user.displayName,
-                    uid: user.uid
-                })
-            });
-
-            if (response.ok) {
-                toast.success('Link dispatched.');
-            } else {
-                toast.error('Failed to resend.');
-            }
+            await resendVerification();
         } catch (error: any) {
-            toast.error('Transmission error.');
+            toast.error(error.message || 'Transmission error.');
         } finally {
             setIsResending(false);
         }

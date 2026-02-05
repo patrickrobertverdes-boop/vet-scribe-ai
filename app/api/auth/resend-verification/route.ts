@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
+    const correlationId = `resend_${Date.now()}`;
+    console.log(`[Auth-Webhook] [${correlationId}] Starting resend verification flow`);
+
     try {
         const { email, displayName, uid } = await req.json();
 
         if (!email) {
+            console.error(`[Auth-Webhook] [${correlationId}] Missing email in request`);
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
+
+        console.log(`[Auth-Webhook] [${correlationId}] Generating verification link for: ${email}`);
 
         const actionCodeSettings = {
             url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://vets-scribe.web.app'}/login`,
@@ -20,28 +26,40 @@ export async function POST(req: NextRequest) {
         const oobCode = urlObj.searchParams.get('oobCode');
         const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vets-scribe.web.app'}/auth/verify?oobCode=${oobCode}`;
 
-        // PLACEHOLDER: Put your RESEND webhook URL here if it is different
-        const n8nWebhookUrl = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/ad6e1227-ad9a-4483-8bce-720937c9363a";
+        // Resend verification webhook (PROD) - DISTINCT from signup
+        const n8nWebhookUrl = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/2da4cd33-aee8-422c-bc07-d5826e915e7c";
 
+        console.log(`[Auth-Webhook] [${correlationId}] Dispatching n8n resend webhook...`);
+
+        const timestamp = new Date().toISOString();
         const response = await fetch(n8nWebhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 email,
                 name: displayName || email.split('@')[0],
+                uid,
                 verificationLink,
-                action: 'resend'
+                action: 'resend',
+                timestamp,
+                correlationId
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            return NextResponse.json({ error: `n8n Error: ${response.status}`, details: errorText }, { status: 500 });
+            console.error(`[Auth-Webhook] [${correlationId}] n8n delivery failed: ${response.status}`, errorText);
+            return NextResponse.json({
+                error: `Webhook delivery failed: ${response.status}`,
+                details: errorText,
+                correlationId
+            }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        console.log(`[Auth-Webhook] [${correlationId}] Webhook dispatched successfully`);
+        return NextResponse.json({ success: true, correlationId });
     } catch (error: any) {
-        console.error('Resend webhook error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error(`[Auth-Webhook] [${correlationId}] Execution error:`, error);
+        return NextResponse.json({ error: error.message, correlationId }, { status: 500 });
     }
 }
