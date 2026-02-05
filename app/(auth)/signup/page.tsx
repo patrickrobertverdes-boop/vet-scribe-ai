@@ -62,40 +62,40 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="relative z-10 w-full max-w-md p-8 md:p-12 glass border-none shadow-2xl rounded-3xl animate-in fade-in zoom-in-95 duration-500">
-            {/* Clinical Brand Identity */}
+        <div className="relative z-10 w-full max-w-md p-8 md:p-12 bg-white dark:bg-black border border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl animate-in fade-in zoom-in-95 duration-500">
+            {/* Simple Clean Header */}
             <div className="text-center mb-10">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded bg-primary text-primary-foreground mb-6 shadow-sm">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-black dark:bg-white text-white dark:text-black mb-6 shadow-sm">
                     <Zap className="h-6 w-6" />
                 </div>
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
-                    Practice Registration
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+                    Create Account
                 </h1>
-                <p className="text-[13px] text-muted-foreground leading-relaxed">
-                    Establish clinical credentials for your practice.
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Enter your details to get started.
                 </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">First Name</label>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">First Name</label>
                         <input
                             type="text"
                             required
                             autoFocus
-                            className="w-full h-11 px-4 rounded-xl bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all outline-none"
+                            className="w-full h-11 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all outline-none placeholder:text-slate-400"
                             placeholder="Alex"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Last Name</label>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Last Name</label>
                         <input
                             type="text"
                             required
-                            className="w-full h-11 px-4 rounded-xl bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all outline-none"
+                            className="w-full h-11 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all outline-none placeholder:text-slate-400"
                             placeholder="Smith"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
@@ -104,23 +104,23 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Professional Email</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
                     <input
                         type="email"
                         required
-                        className="w-full h-11 px-4 rounded-xl bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all outline-none"
-                        placeholder="doctor@practice.com"
+                        className="w-full h-11 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all outline-none placeholder:text-slate-400"
+                        placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Security Key</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label>
                     <input
                         type="password"
                         required
-                        className="w-full h-11 px-4 rounded-xl bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all outline-none"
+                        className="w-full h-11 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all outline-none placeholder:text-slate-400"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -128,11 +128,11 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Confirm Key</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Confirm Password</label>
                     <input
                         type="password"
                         required
-                        className="w-full h-11 px-4 rounded-xl bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all outline-none"
+                        className="w-full h-11 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700 text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all outline-none placeholder:text-slate-400"
                         placeholder="••••••••"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -143,30 +143,30 @@ export default function SignupPage() {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="btn-premium w-full bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                        className="w-full h-11 rounded-lg bg-black dark:bg-white text-white dark:text-black font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 disabled:opacity-50 transition-all flex items-center justify-center"
                     >
                         {isSubmitting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                             <>
-                                Initialize Account <ArrowRight className="ml-2 h-4 w-4" />
+                                Sign Up <ArrowRight className="ml-2 h-4 w-4" />
                             </>
                         )}
                     </button>
 
                     <div className="relative py-2">
                         <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                            <div className="w-full border-t border-border"></div>
+                            <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
                         </div>
-                        <div className="relative flex justify-center text-[10px] uppercase font-semibold tracking-widest text-muted-foreground">
-                            <span className="bg-card px-3">Infrastructure SSO</span>
+                        <div className="relative flex justify-center text-xs uppercase font-medium text-slate-500">
+                            <span className="bg-white dark:bg-black px-3">Or continue with</span>
                         </div>
                     </div>
 
                     <button
                         type="button"
                         onClick={useAuth().signInWithGoogle}
-                        className="w-full h-10 border border-border text-foreground font-medium text-sm rounded bg-card hover:bg-muted transition-all flex items-center justify-center gap-3 shadow-sm"
+                        className="w-full h-11 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium text-sm rounded-lg bg-white dark:bg-black hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-3"
                     >
                         <svg className="h-4 w-4" viewBox="0 0 24 24">
                             <path
@@ -186,16 +186,16 @@ export default function SignupPage() {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
                             />
                         </svg>
-                        Clinical Onboarding
+                        Sign up with Google
                     </button>
                 </div>
             </form>
 
-            <div className="mt-10 text-center">
-                <p className="text-xs text-muted-foreground">
-                    Existing credentials?{' '}
-                    <Link href="/login" className="text-primary font-semibold hover:underline decoration-primary/30 transition-all">
-                        Sign in here
+            <div className="mt-8 text-center">
+                <p className="text-sm text-slate-500">
+                    Already have an account?{' '}
+                    <Link href="/login" className="text-black dark:text-white font-semibold hover:underline transition-all">
+                        Log in
                     </Link>
                 </p>
             </div>
