@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+@theme {
+  --color-border: var(--border);
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: 6px;
+  --radius-md: 4px;
+  --radius-sm: 2px;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+
+  @media (width >=--theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+
+  @media (width >=1400px) {
+    max-width: 1400px;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --primary: 215 25% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 40%;
+    /* Increased contrast */
+    --accent: 215 25% 25%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 215 25% 25%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    /* Quieter background */
+    --foreground: 210 40% 95%;
+    --primary: 215 25% 90%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 32% 10%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 10%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 215 25% 90%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 16%;
+    --input: 217 32% 10%;
+    --ring: 215 25% 90%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 95%;
+    --popover: 222 47% 6%;
+    --popover-foreground: 210 40% 95%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-plex), system-ui, sans-serif;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-serif {
+    font-family: var(--font-serif), serif;
+    font-weight: 500;
+    /* Medium per rules */
+    color: hsl(var(--foreground));
+  }
+
+  /* Typography Authority Rules */
+  label,
+  .text-label {
+    font-family: var(--font-plex);
+    font-weight: 500;
+    /* Medium per rules */
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    display: inline-block;
+  }
+
+  p,
+  body,
+  .text-body {
+    font-weight: 400;
+    /* Regular per rules */
+  }
+
+  button,
+  .btn,
+  [role="button"] {
+    @apply cursor-pointer transition-all duration-200 inline-flex items-center justify-center;
+    font-family: var(--font-plex);
+    outline: none;
+  }
+
+  .btn-premium {
+    @apply font-semibold;
+    height: 44px;
+    /* Slightly shorter, more precise */
+    border-radius: 4px;
+    padding: 0 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 14px;
+    height: 38px;
+    border-radius: 4px;
+    padding: 0 10px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    transition: all 0.1s ease;
+  }
+
+  input:focus {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+    outline: none;
+  }
+
+  /* Icon Demotion */
+  svg:not(.no-demote) {
+    opacity: 0.6;
+    transform: scale(0.92);
+    /* Slightly smaller */
+    transition: all 0.2s ease;
+  }
+
+  .active svg,
+  .group:hover svg {
+    opacity: 0.9 !important;
+  }
+}
+
+/* Structural Utilities */
+@utility nav-item-active {
+  font-weight: 600 !important;
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: hsl(var(--foreground)) !important;
+
+  .dark & {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+}
+
+@utility divider {
+  height: 1px;
+  background-color: hsl(var(--border) / 0.5);
+  margin: 1.5rem 0;
+}
+
+@utility surface {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.8);
+}
+
+@utility glass {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border) / 0.8);
+}
+
+/* Sidebar Custom Extensions */
+.sidebar svg {
+  opacity: 0.6;
+}
+
+.sidebar .active svg {
+  opacity: 1;
+  color: hsl(var(--primary));
+}
+
+/* Custom Scrollbar - Quieter */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}
+
+/* Prevent black-on-black */
+.bg-primary .text-primary-foreground,
+.bg-primary-foreground .text-primary {
+  color: white !important;
+}
+
+.dark .bg-primary .text-primary-foreground {
+  color: black !important;
+}

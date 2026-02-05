@@ -1,0 +1,73 @@
+# Firebase App Hosting Configuration
+# Place this file in your project root directory
+
+# Cloud Run service configuration
+runConfig:
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+# Environment variables and secrets
+env:
+  # Deepgram API Key (Secret - Server-side only)
+  - variable: DEEPGRAM_API_KEY
+    secret: deepgram-api-key
+    availability:
+      - RUNTIME
+
+  # Gemini API Key (Secret - Server-side only)
+  - variable: GEMINI_API_KEY
+    secret: gemini-api-key
+    availability:
+      - RUNTIME
+
+  # AssemblyAI API Key (Secret - Server-side only)
+  - variable: ASSEMBLYAI_API_KEY
+    secret: assemblyai-api-key
+    availability:
+      - RUNTIME
+
+  # Firebase Public Configuration (Safe to expose)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyBUo6O5hpqaQPitXi9PKu7QT1vo4pX4zNA
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: verdes-8568d.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: verdes-8568d
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: verdes-8568d.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "998512816404"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:998512816404:web:39188572d42022d6a35201
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-G1JK1H80R9
+    availability:
+      - BUILD
+      - RUNTIME
