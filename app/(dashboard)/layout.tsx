@@ -15,7 +15,7 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, loading, isSigningUp } = useAuth();
+    const { user, loading, isSigningUp, isLoggingIn } = useAuth();
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -33,28 +33,21 @@ export default function DashboardLayout({
     }, [isMobileMenuOpen, isAIAssistantOpen]);
 
     useEffect(() => {
-        if (!loading) {
+        // Only evaluate auth state once system is fully ready
+        if (!loading && !isLoggingIn && !isSigningUp) {
             if (!user) {
                 router.replace('/login');
             } else {
                 const isGoogleUser = user.providerData.some(p => p.providerId.includes('google'));
-
-                // Debugging
-                console.log("Auth State Check:", {
-                    email: user.email,
-                    verified: user.emailVerified,
-                    isGoogle: isGoogleUser,
-                    providers: user.providerData.map(p => p.providerId)
-                });
 
                 if (!user.emailVerified && !isGoogleUser) {
                     router.replace('/verify-email');
                 }
             }
         }
-    }, [user, loading, router]);
+    }, [user, loading, isLoggingIn, isSigningUp, router]);
 
-    if (loading || isSigningUp) {
+    if (loading || isSigningUp || isLoggingIn) {
         return (
             <div className="min-h-dvh w-full flex items-center justify-center bg-mesh">
                 <div className="flex flex-col items-center gap-4">

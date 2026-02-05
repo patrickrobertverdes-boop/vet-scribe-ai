@@ -45,16 +45,24 @@ export default function DashboardPage() {
 
     useEffect(() => {
         setMounted(true);
-        if (!user) return;
+        if (!user || user.isAnonymous) return;
 
-        const unsubscribeStats = firebaseService.subscribeToPracticeStats(user.uid, (data) => {
-            setStats(data);
-        });
+        let unsubscribeStats = () => { };
+        let unsubscribeChecklist = () => { };
 
-        const unsubscribeChecklist = firebaseService.subscribeToChecklist(user.uid, (items) => {
-            setChecklist(items);
+        try {
+            unsubscribeStats = firebaseService.subscribeToPracticeStats(user.uid, (data) => {
+                setStats(data);
+            });
+
+            unsubscribeChecklist = firebaseService.subscribeToChecklist(user.uid, (items) => {
+                setChecklist(items);
+                setIsLoadingChecklist(false);
+            });
+        } catch (err) {
+            console.error("[Dashboard] Early access error handled:", err);
             setIsLoadingChecklist(false);
-        });
+        }
 
         return () => {
             unsubscribeStats();

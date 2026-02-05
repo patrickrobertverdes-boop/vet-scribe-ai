@@ -29,6 +29,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     isSigningUp: boolean;
+    isLoggingIn: boolean;
     signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
     login: (email: string, password: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSigningUp, setIsSigningUp] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const router = useRouter();
 
     // Helper to initialize user data (Runs in background)
@@ -120,18 +122,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setLoading(false); // Unblock UI immediately
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            // If we are in a manual flow (login/signup), we let those functions handle loading/navigation
+            if (isLoggingIn || isSigningUp) {
+                setUser(currentUser);
+                return;
+            }
+
+            console.log(`[Auth-State] Change detected. User: ${currentUser?.uid}`);
 
             if (currentUser) {
-                // Run background initialization without awaiting
+                // For returning sessions, we do a quick background sync to avoid stale claims on mobile
+                // but we don't block the initial UI if it's already verified
+                if (!currentUser.emailVerified) {
+                    await currentUser.reload().catch(console.warn);
+                }
+                setUser(currentUser);
                 initializeUserBackground(currentUser);
+            } else {
+                setUser(null);
             }
+
+            setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [isLoggingIn, isSigningUp]);
 
     const signup = async (email: string, password: string, firstName: string, lastName: string) => {
         if (!auth || !db) throw new Error("Firebase configuration missing");
@@ -235,6 +251,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const correlationId = `login_client_${Date.now()}`;
         console.log(`[STAGE: LOGIN-START] [${correlationId}] Attempting entry for: ${email}`);
 
+        setIsLoggingIn(true);
+        setLoading(true);
+
         try {
             // STEP 1: PRE-SIGNIN CHECK
             if (db) {
@@ -301,13 +320,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // CRITICAL: Force-refresh the token AGAIN after provisioning to pick up custom claims
             console.log(`[STAGE: SYNC-FINAL] [${correlationId}] Synchronizing security claims...`);
-            await user.getIdToken(true);
+            const tokenResult = await user.getIdTokenResult(true);
+            console.log(`[STAGE: PROOF] [${correlationId}] CLAIMS:`, tokenResult.claims);
 
             console.log(`[STAGE: SUCCESS] [${correlationId}] Access granted to dashboard`);
+
+            // Finalize state before unblocking UI/Navigation
+            setUser(user);
+            setLoading(false);
+            setIsLoggingIn(false);
+
             toast.success('Access granted.');
             router.push('/');
         } catch (error: any) {
             console.error(`[STAGE: LOGIN-FATAL] [${correlationId}]`, error.message);
+            setIsLoggingIn(false);
+            setLoading(false);
 
             let message = error.message;
             if (error.code === 'auth/user-not-found') message = 'Account not found in registry.';
@@ -360,6 +388,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user,
             loading,
             isSigningUp,
+            isLoggingIn,
             signup,
             login,
             signInWithGoogle,

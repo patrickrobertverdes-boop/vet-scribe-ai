@@ -73,7 +73,8 @@ export default function VerifyEmailPage() {
 
                 // CRITICAL: Force-refresh the token AGAIN after provisioning
                 console.log("[Verify-Email] Synchronizing final claims...");
-                await user.getIdToken(true);
+                const tokenResult = await user.getIdTokenResult(true);
+                console.log("[Verify-Email] PROOF - CLAIMS:", tokenResult.claims);
 
                 toast.success('Access granted.', { id: loadingToast });
                 window.location.href = '/';

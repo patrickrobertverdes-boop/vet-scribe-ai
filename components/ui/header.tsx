@@ -35,10 +35,19 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
     const [profile, setProfile] = useState<any>(null);
 
     useEffect(() => {
-        if (!user) return;
-        const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
-            setProfile(data);
-        });
+        if (!user || user.isAnonymous) return;
+
+        // Defensive subscription: will retry or return null on permission error
+        // instead of crashing the header
+        let unsubscribe = () => { };
+        try {
+            unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+                setProfile(data);
+            });
+        } catch (err) {
+            console.error("[Header] Early profile access blocked:", err);
+        }
+
         return () => unsubscribe();
     }, [user]);
 
@@ -113,7 +122,17 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                             >
                                 <div className="h-5 w-5 bg-slate-100 dark:bg-transparent dark:border dark:border-white/20 rounded-sm flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 overflow-hidden">
                                     {profile?.image ? (
-                                        <img src={profile.image} alt="User" className="h-full w-full object-cover" />
+                                        <img
+                                            src={profile.image}
+                                            alt="User"
+                                            className="h-full w-full object-cover"
+                                            onError={(e) => {
+                                                // If Storage access fails (403), fallback to icon silently
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                const parent = (e.target as HTMLImageElement).parentElement;
+                                                if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="no-demote"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                            }}
+                                        />
                                     ) : (
                                         <User className="h-3 w-3 no-demote" />
                                     )}
