@@ -91,7 +91,7 @@ export default function DashboardPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-black dark:text-white uppercase tracking-[0.22em] border border-black/20 dark:border-white/20 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-bold text-black dark:text-white uppercase tracking-[0.22em] border border-black dark:border-white px-2 py-0.5 rounded">
                             System Standby
                         </span>
                     </div>
@@ -140,22 +140,22 @@ export default function DashboardPage() {
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="surface p-6 group transition-all hover:border-primary/30"
+                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-6 group transition-all hover:border-slate-300 dark:hover:border-slate-700"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className={cn(
-                                "h-10 w-10 rounded flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 group-hover:bg-primary/5 transition-colors",
+                                "h-10 w-10 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 group-hover:bg-slate-900 dark:group-hover:bg-slate-100 group-hover:text-white dark:group-hover:text-slate-950 transition-colors",
                                 stat.color
                             )}>
-                                <stat.icon className="h-4 w-4 opacity-100" />
+                                <stat.icon className="h-4 w-4" />
                             </div>
-                            <span className="text-[9px] font-medium uppercase tracking-widest px-2 py-0.5 rounded border border-divider text-muted-foreground">
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
                                 {stat.trend}
                             </span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</p>
-                            <p className="text-3xl font-serif font-medium tracking-tight text-foreground">{stat.value}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">{stat.label}</p>
+                            <p className="text-3xl font-serif font-medium tracking-tight text-slate-900 dark:text-white">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -171,28 +171,28 @@ export default function DashboardPage() {
                                 <div className="h-9 w-9 border border-slate-200 dark:border-slate-800 rounded flex items-center justify-center text-slate-400 dark:text-slate-500">
                                     <ListChecks className="h-4 w-4" />
                                 </div>
-                                <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Protocol Checklist</h2>
+                                <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest">Protocol Checklist</h2>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Link href="/checklist" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-all uppercase tracking-widest border-b border-transparent hover:border-slate-900 dark:hover:border-slate-200 leading-none">
+                                <Link href="/checklist" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all uppercase tracking-widest border-b border-transparent hover:border-slate-900 dark:hover:border-white leading-none">
                                     Index
                                 </Link>
-                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-white rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
+                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
                                     + Add
                                 </Link>
                             </div>
                         </div>
 
-                        <div className="flex-1 divide-y divide-slate-50 dark:divide-slate-900 relative min-h-[300px]">
+                        <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-900 relative min-h-[300px]">
                             {isLoadingChecklist ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <Loader2 className="h-5 w-5 animate-spin text-slate-300 dark:text-slate-700" />
+                                    <Loader2 className="h-5 w-5 animate-spin text-slate-400 dark:text-slate-600" />
                                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-4">Syncing Archive...</p>
                                 </div>
                             ) : checklist.length === 0 ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                                    <Shield className="h-12 w-12 text-slate-100 dark:text-slate-900 mb-4" />
-                                    <p className="text-[10px] font-bold text-slate-900 dark:text-slate-200 uppercase tracking-widest mb-1">No Active Tasks</p>
+                                    <Shield className="h-12 w-12 text-slate-200 dark:text-slate-800 mb-4" />
+                                    <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-1">No Active Tasks</p>
                                     <p className="text-sm text-slate-400 dark:text-slate-600 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
                                 </div>
                             ) : (
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                                         <div className={cn(
                                             "h-5 w-5 rounded border transition-all flex items-center justify-center shrink-0",
                                             item.completed
-                                                ? "bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100 text-white dark:text-slate-950"
+                                                ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-black"
                                                 : "border-slate-200 dark:border-slate-800 group-hover:border-slate-400 dark:group-hover:border-slate-600"
                                         )}>
                                             {item.completed && <Check className="h-3 w-3" />}
@@ -221,7 +221,7 @@ export default function DashboardPage() {
                             )}
                             {!isLoadingChecklist && checklist.length > 5 && (
                                 <div className="px-8 py-4 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex justify-center">
-                                    <Link href="/checklist" className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest hover:text-slate-900 dark:hover:text-slate-200">
+                                    <Link href="/checklist" className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
                                         View {checklist.length - 5} More Tasks
                                     </Link>
                                 </div>
@@ -233,32 +233,32 @@ export default function DashboardPage() {
                 {/* Command Actions Module */}
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-xl flex flex-col gap-8 shadow-sm h-full transition-colors">
-                        <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest mb-2">Command Protocol</h2>
+                        <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-2">Command Protocol</h2>
 
                         <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleInitializeScribe}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-100 dark:border-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all group bg-white dark:bg-slate-950"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-900 dark:hover:border-white hover:shadow-sm transition-all group bg-white dark:bg-slate-950"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 group-hover:bg-slate-900 dark:group-hover:bg-slate-100 group-hover:text-white dark:group-hover:text-slate-950 transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
                                     <Wand2 className="h-5 w-5" />
                                 </div>
                                 <div className="text-left py-2">
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Voice Protocol</p>
-                                    <p className="font-bold text-sm text-slate-900 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">Launch AI Scribe</p>
+                                    <p className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-slate-900 dark:group-hover:text-white">Launch AI Scribe</p>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => setShowAICreator(true)}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-100 dark:border-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all group bg-white dark:bg-slate-950"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-900 dark:hover:border-white hover:shadow-sm transition-all group bg-white dark:bg-slate-950"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 group-hover:bg-slate-900 dark:group-hover:bg-slate-100 group-hover:text-white dark:group-hover:text-slate-950 transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
                                     <Plus className="h-5 w-5" />
                                 </div>
                                 <div className="text-left py-2">
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Patient Database</p>
-                                    <p className="font-bold text-sm text-slate-900 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">Add New Patient</p>
+                                    <p className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-slate-900 dark:group-hover:text-white">Add New Patient</p>
                                 </div>
                             </button>
                         </div>
@@ -273,12 +273,12 @@ export default function DashboardPage() {
                                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-500/20">Nominal</span>
                             </div>
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                     <span>Sync Latency</span>
                                     <span>24ms</span>
                                 </div>
                                 <div className="h-1 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                                    <div className="h-full w-full bg-slate-900 dark:bg-slate-200 rounded-full opacity-10 dark:opacity-20" />
+                                    <div className="h-full w-full bg-slate-300 dark:bg-slate-700 rounded-full w-[2%]" />
                                 </div>
                             </div>
                         </div>
