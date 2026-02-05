@@ -103,10 +103,11 @@ export default function DashboardPage() {
                             System Standby
                         </span>
                     </div>
-                    <h1 className="text-4xl font-serif font-medium text-foreground tracking-tight">
-                        Welcome Back
-                    </h1>
-
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-bold font-serif text-foreground tracking-tight">
+                            Welcome Back, <span className="text-foreground font-normal">Dr. {user?.displayName?.split(' ')[1] || user?.email?.split('@')[0] || 'Physician'}</span>
+                        </h1>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -118,8 +119,8 @@ export default function DashboardPage() {
                         <span className="text-[11px] font-medium uppercase tracking-widest">Analytics</span>
                     </button>
 
-                    <div className="h-10 border border-black dark:border-divider px-4 rounded flex items-center gap-3 bg-white dark:bg-slate-900/50">
-                        <Calendar className="h-4 w-4 text-black dark:text-primary/60" />
+                    <div className="h-10 border border-black dark:border-border px-4 rounded flex items-center gap-3 bg-white dark:bg-card">
+                        <Calendar className="h-4 w-4 text-black dark:text-white" />
                         <div className="text-left">
                             <p className="text-[11px] font-bold text-foreground">
                                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -141,29 +142,26 @@ export default function DashboardPage() {
             {/* Performance Stats */}
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
                 {[
-                    { label: 'Active Clinic', value: '01', trend: 'Local', icon: Stethoscope, color: 'text-black dark:text-white' },
-                    { label: 'Saved Records', value: stats.consultations.toString().padStart(2, '0'), trend: 'Live', icon: ShieldCheck, color: 'text-black dark:text-white' },
-                    { label: 'Total Patients', value: stats.patients.toString().padStart(2, '0'), trend: 'Live', icon: Users, color: 'text-black dark:text-white' },
-                    { label: 'Current Date', value: new Date().getDate().toString().padStart(2, '0'), trend: 'System', icon: Clock, color: 'text-black dark:text-white' },
+                    { label: 'Active Clinic', value: '01', trend: 'Local', icon: Stethoscope },
+                    { label: 'Saved Records', value: stats.consultations.toString().padStart(2, '0'), trend: 'Live', icon: ShieldCheck },
+                    { label: 'Total Patients', value: stats.patients.toString().padStart(2, '0'), trend: 'Live', icon: Users },
+                    { label: 'Current Date', value: new Date().getDate().toString().padStart(2, '0'), trend: 'System', icon: Clock },
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-card border border-black dark:border-border rounded-xl p-6 group transition-all hover:bg-black hover:text-white dark:hover:border-white shadow-none"
+                        className="bg-white dark:bg-card border border-black dark:border-border rounded-xl p-6 group transition-all hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black shadow-none cursor-pointer"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className={cn(
-                                "h-10 w-10 rounded-lg flex items-center justify-center border border-black bg-white group-hover:bg-white group-hover:text-black transition-colors shrink-0",
-                                stat.color
-                            )}>
+                            <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-black dark:border-white/20 bg-white dark:bg-transparent transition-colors shrink-0 group-hover:bg-white dark:group-hover:bg-black">
                                 <stat.icon className="h-4 w-4" />
                             </div>
-                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-black dark:border-border text-foreground dark:text-muted-foreground group-hover:border-white group-hover:text-white transition-colors">
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-black dark:border-border transition-colors group-hover:border-white dark:group-hover:border-black">
                                 {stat.trend}
                             </span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-foreground dark:text-muted-foreground group-hover:text-white/80 transition-colors">{stat.label}</p>
-                            <p className="text-3xl font-serif font-medium tracking-tight text-foreground group-hover:text-white transition-colors">{stat.value}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] transition-colors">{stat.label}</p>
+                            <p className="text-3xl font-bold font-serif tracking-tight transition-colors">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -185,7 +183,7 @@ export default function DashboardPage() {
                                 <Link href="/checklist" className="text-[10px] font-bold text-foreground hover:underline transition-all uppercase tracking-widest leading-none">
                                     Index
                                 </Link>
-                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-black dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-slate-200 border border-black rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
+                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-primary text-primary-foreground hover:opacity-90 border border-border rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
                                     + Add
                                 </Link>
                             </div>
@@ -194,14 +192,14 @@ export default function DashboardPage() {
                         <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-900 relative min-h-[300px]">
                             {isLoadingChecklist ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <Loader2 className="h-5 w-5 animate-spin text-black dark:text-white" />
-                                    <p className="text-[10px] font-bold text-black dark:text-white uppercase tracking-widest mt-4">Syncing Archive...</p>
+                                    <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-4">Syncing Archive...</p>
                                 </div>
                             ) : checklist.length === 0 ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                                    <Shield className="h-12 w-12 text-black/10 dark:text-slate-800 mb-4" />
+                                    <Shield className="h-12 w-12 text-black/20 dark:text-white/10 mb-4" />
                                     <p className="text-[10px] font-bold text-black dark:text-white uppercase tracking-widest mb-1">No Active Tasks</p>
-                                    <p className="text-sm text-black dark:text-slate-600 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
+                                    <p className="text-sm text-black/60 dark:text-white/60 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
                                 </div>
                             ) : (
                                 checklist.slice(0, 5).map((item) => (
@@ -213,8 +211,8 @@ export default function DashboardPage() {
                                         <div className={cn(
                                             "h-5 w-5 rounded border transition-all flex items-center justify-center shrink-0",
                                             item.completed
-                                                ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black group-hover:bg-white group-hover:border-white group-hover:text-black"
-                                                : "border-black dark:border-slate-800 group-hover:border-white"
+                                                ? "bg-primary text-primary-foreground border-border"
+                                                : "border-border group-hover:border-primary-foreground"
                                         )}>
                                             {item.completed && <Check className="h-3 w-3" />}
                                         </div>
@@ -228,7 +226,7 @@ export default function DashboardPage() {
                                 ))
                             )}
                             {!isLoadingChecklist && checklist.length > 5 && (
-                                <div className="px-8 py-4 bg-white dark:bg-slate-900/30 border-t border-black dark:border-slate-800 flex justify-center">
+                                <div className="px-8 py-4 bg-muted border-t border-border flex justify-center">
                                     <Link href="/checklist" className="text-[10px] font-bold text-foreground uppercase tracking-widest hover:underline">
                                         View {checklist.length - 5} More Tasks
                                     </Link>
@@ -246,10 +244,10 @@ export default function DashboardPage() {
                         <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleInitializeScribe}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-black dark:border-border hover:bg-black hover:text-white dark:hover:border-foreground transition-all group bg-white dark:bg-card"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all group bg-card"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-black border border-black dark:text-slate-400 bg-white dark:bg-slate-800 group-hover:bg-white group-hover:text-black transition-all shrink-0">
-                                    <Wand2 className="h-5 w-5" />
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card group-hover:bg-card transition-all shrink-0">
+                                    <Wand2 className="h-5 w-5 no-demote" />
                                 </div>
                                 <div className="text-left py-2">
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-black/60 dark:text-slate-500 mb-1 group-hover:text-white/60">Voice Protocol</p>
@@ -276,7 +274,9 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="h-1.5 w-1.5 rounded-full bg-black dark:bg-emerald-500 animate-pulse" />
-                                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">System Integrity</span>
+                                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none">
+                                        System Integrity
+                                    </span>
                                 </div>
                                 <span className="text-[10px] font-bold text-black dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-black dark:border-emerald-500/20">Nominal</span>
                             </div>
