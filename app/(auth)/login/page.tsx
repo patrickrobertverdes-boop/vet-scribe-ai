@@ -41,35 +41,6 @@ export default function LoginPage() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            {/* Mobile First Deployment Section */}
-            <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                <div className="flex items-center gap-3">
-                    <div className="h-6 w-6 bg-black dark:bg-white rounded flex items-center justify-center text-white dark:text-black">
-                        <Zap className="h-3.5 w-3.5" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Mobile Deployment</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <a
-                        href="#"
-                        className="flex items-center justify-center gap-3 h-12 bg-white dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl hover:border-black dark:hover:border-white transition-all group"
-                    >
-                        <svg className="h-5 w-5 fill-current grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                        </svg>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-black dark:group-hover:text-white">Download iOS App</span>
-                    </a>
-                    <a
-                        href="#"
-                        className="flex items-center justify-center gap-3 h-12 bg-white dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl hover:border-black dark:hover:border-white transition-all group"
-                    >
-                        <svg className="h-5 w-5 fill-current grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" viewBox="0 0 24 24">
-                            <path d="M17.523 15.3414L12 12L17.523 8.65863C17.8285 8.47353 18.0163 8.13645 18 7.7651V4.2651C18 3.56637 17.243 3.12941 16.636 3.48316L3.36361 11.2185C2.75704 11.5721 2.75704 12.4278 3.36361 12.7815L16.636 20.5168C17.243 20.8706 18 20.4336 18 19.7349V16.2349C18.0163 15.8635 17.8285 15.5265 17.523 15.3414Z" />
-                        </svg>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-black dark:group-hover:text-white">Download APK</span>
-                    </a>
-                </div>
-            </div>
 
             <div className="space-y-1">
                 <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">System Login</h1>

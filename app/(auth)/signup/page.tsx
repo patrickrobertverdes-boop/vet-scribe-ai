@@ -20,10 +20,7 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (user) {
-            const isGoogleUser = user.providerData.some(p => p.providerId.includes('google'));
-            if (user.emailVerified || isGoogleUser) {
-                router.replace('/');
-            }
+            router.replace('/');
         }
     }, [user, router]);
 
