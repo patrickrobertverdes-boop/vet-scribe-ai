@@ -299,6 +299,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error(`System Provisioning Error: ${provError.error}`);
             }
 
+            // CRITICAL: Force-refresh the token AGAIN after provisioning to pick up custom claims
+            console.log(`[STAGE: SYNC-FINAL] [${correlationId}] Synchronizing security claims...`);
+            await user.getIdToken(true);
+
             console.log(`[STAGE: SUCCESS] [${correlationId}] Access granted to dashboard`);
             toast.success('Access granted.');
             router.push('/');

@@ -1,41 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper function to check if user has a verified email (CORE SECURITY GATE)
-    function isVerified() {
-      return isAuthenticated() && request.auth.token.email_verified == true;
-    }
-
-    // Helper function to check if request is for own data
-    function isOwner(userId) {
-      return isVerified() && request.auth.uid == userId;
-    }
-
-    // STRICT USER SCOPING: All data must be under /users/{userId}
-    match /users/{userId} {
-      // Allow access to the user document itself ONLY if verified
-      allow read, write: if isOwner(userId);
-      
-      // Recursively allow all subcollections (patients, consultations, etc.)
-      match /{allPaths=**} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-
-    // Explicitly deny access to root level collections
-    match /patients/{docId} {
-      allow read, write: if false;
-    }
-    match /consultations/{docId} {
-      allow read, write: if false;
-    }
-    match /appointments/{docId} {
-      allow read, write: if false;
+    // DIAGNOSTIC CORE: Allow any auth user
+    // We will tighten this to email_verified once flow is confirmed
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }

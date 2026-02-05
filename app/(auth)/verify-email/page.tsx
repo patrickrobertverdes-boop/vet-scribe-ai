@@ -71,6 +71,10 @@ export default function VerifyEmailPage() {
                     throw new Error("Provisioning failed. Contact support.");
                 }
 
+                // CRITICAL: Force-refresh the token AGAIN after provisioning
+                console.log("[Verify-Email] Synchronizing final claims...");
+                await user.getIdToken(true);
+
                 toast.success('Access granted.', { id: loadingToast });
                 window.location.href = '/';
             } else {
