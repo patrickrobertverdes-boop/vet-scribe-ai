@@ -6,30 +6,28 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Helper function to check if user has a verified email (CORE SECURITY GATE)
+    function isVerified() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+
     // Helper function to check if request is for own data
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isVerified() && request.auth.uid == userId;
     }
 
     // STRICT USER SCOPING: All data must be under /users/{userId}
     match /users/{userId} {
-      // Allow access to the user document itself
+      // Allow access to the user document itself ONLY if verified
       allow read, write: if isOwner(userId);
       
-      // Recursively allow all subcollections:
-      // - patients
-      // - consultations
-      // - appointments
-      // - messages
-      // - conversations
-      // And any nested subcollections (e.g., patients/{patientId}/documents)
+      // Recursively allow all subcollections (patients, consultations, etc.)
       match /{allPaths=**} {
         allow read, write: if isOwner(userId);
       }
     }
 
     // Explicitly deny access to root level collections
-    // This prevents any accidental queries to root /patients, /consultations, etc.
     match /patients/{docId} {
       allow read, write: if false;
     }

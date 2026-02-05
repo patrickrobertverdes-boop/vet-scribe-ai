@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     try {
         // 1. Environment Sanity Check
         const WEBHOOK_URL = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/ad6e1227-ad9a-4483-8bce-720937c9363a";
-        const PUBLIC_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app';
+        const PUBLIC_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://vets-scribe.web.app';
 
         console.log(`[ENV-CHECK] [${correlationId}] App URL: ${PUBLIC_URL}`);
         console.log(`[ENV-CHECK] [${correlationId}] NODE_ENV: ${process.env.NODE_ENV}`);

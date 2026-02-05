@@ -47,7 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Helper to initialize user data (Runs in background)
     const initializeUserBackground = async (user: User) => {
         if (!db) return;
+
+        // Gated: Internal initialization only happens for verified clinical accounts
+        if (!user.emailVerified) {
+            console.log(`[Background-Init] Skipping for unverified user: ${user.uid}`);
+            return;
+        }
+
         try {
+            console.log(`[Background-Init] Initializing provisioned data for: ${user.uid}`);
             // Priority: Minimal Profile (ensure this exists)
             const userDocRef = doc(db, 'users', user.uid);
             await setDoc(userDocRef, {
@@ -145,21 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: `${firstName} ${lastName}`
             });
 
-            // 3. Firestore Record
-            console.log(`[STAGE: FIRESTORE] [${correlationId}] Creating user document in Firestore...`);
-            await setDoc(doc(db, 'users', user.uid), {
-                email: user.email,
-                firstName: firstName,
-                lastName: lastName,
-                displayName: `${firstName} ${lastName}`,
-                createdAt: serverTimestamp(),
-                uid: user.uid,
-                role: 'owner',
-                settings: { theme: 'system', notifications: true }
-            });
-            console.log(`[STAGE: FIRESTORE] [${correlationId}] Document committed successfully`);
-
-            // 4. Trigger Server Webhook
+            // 3. Trigger Server Webhook
             console.log(`[STAGE: WEBHOOK] [${correlationId}] calling /api/auth/signup-verification...`);
 
             // Artificial delay to ensure indexing
@@ -265,6 +259,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // CRITICAL FOR MOBILE: Force-refresh the user token
             console.log(`[STAGE: SYNC] [${correlationId}] Reloading profile from cloud (Mobile Parity)...`);
             await user.reload();
+
+            // FORCE TOKEN REFRESH: Ensures client has latest claims (like email_verified)
+            console.log(`[STAGE: TOKEN] [${correlationId}] Forcing ID Token refresh...`);
+            const idToken = await user.getIdToken(true);
             console.log(`[STAGE: SYNC] [${correlationId}] Cloud status: ${user.emailVerified ? 'VERIFIED' : 'PENDING'}`);
 
             // Extra safety: double check providerData after signin
@@ -279,6 +277,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.warn(`[STAGE: GATE] [${correlationId}] Access denied: Email lacks verification`);
                 router.push('/verify-email');
                 throw new Error('Clinical verification pending. Please check your registry email.');
+            }
+
+            // PROVISIONING: Ensure user document exists in Firestore via backend
+            console.log(`[STAGE: PROVISIONING] [${correlationId}] Calling backend provisioning...`);
+            const provisionRes = await fetch('/api/auth/provision', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({
+                    displayName: user.displayName,
+                    uid: user.uid
+                })
+            });
+
+            if (!provisionRes.ok) {
+                const provError = await provisionRes.json().catch(() => ({ error: 'Provisioning Failed' }));
+                console.error(`[STAGE: PROVISIONING-FAILURE] [${correlationId}]`, provError);
+                throw new Error(`System Provisioning Error: ${provError.error}`);
             }
 
             console.log(`[STAGE: SUCCESS] [${correlationId}] Access granted to dashboard`);

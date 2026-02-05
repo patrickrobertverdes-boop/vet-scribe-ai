@@ -50,15 +50,35 @@ export default function VerifyEmailPage() {
         if (!user) return;
         const loadingToast = toast.loading('Synchronizing...');
         try {
+            console.log("[Verify-Email] Refreshing user state...");
             await user.reload();
+
             if (user.emailVerified) {
+                console.log("[Verify-Email] Verified. Refreshing token and provisioning...");
+                const idToken = await user.getIdToken(true);
+
+                // Call provisioning to ensure Firestore doc exists
+                const provRes = await fetch('/api/auth/provision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ uid: user.uid })
+                });
+
+                if (!provRes.ok) {
+                    throw new Error("Provisioning failed. Contact support.");
+                }
+
                 toast.success('Access granted.', { id: loadingToast });
                 window.location.href = '/';
             } else {
                 toast.error('Pending verification.', { id: loadingToast });
             }
         } catch (error: any) {
-            toast.error('Sync failed.', { id: loadingToast });
+            console.error("[Verify-Email] Manual refresh error:", error);
+            toast.error(error.message || 'Sync failed.', { id: loadingToast });
         }
     };
 
