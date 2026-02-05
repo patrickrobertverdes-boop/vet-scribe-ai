@@ -117,27 +117,24 @@ export default function PatientsPage() {
             {/* Directory Header */}
             <div className="flex flex-col gap-6">
                 <div>
-                    <div className="flex items-center gap-2 mb-2">
-
-                    </div>
-                    <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight">
-                        Clinical <span className="text-primary">Directory</span>
+                    <h1 className="text-4xl font-serif font-bold text-foreground tracking-tighter">
+                        Clinical Directory
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-2 font-normal">
-                        System inventory of <span className="text-foreground font-medium">{patients.length} active patient entities</span> under clinical observation.
+                    <p className="text-lg text-muted-foreground mt-3 font-normal">
+                        System inventory of <span className="text-foreground font-bold">{patients.length} active patient entities</span> under clinical observation.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => setShowAICreator(true)}
-                        className="btn-premium bg-primary text-primary-foreground"
+                        className="h-12 px-6 bg-primary text-primary-foreground rounded-xl font-bold text-sm tracking-tight flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-5 w-5" />
                         <span>Establish New Record</span>
                     </button>
-                    <button onClick={() => toast.success('Adjusting filters...')} className="h-9 w-9 border border-border rounded flex items-center justify-center text-muted-foreground hover:bg-muted transition-all">
-                        <Filter className="h-4 w-4" />
+                    <button onClick={() => toast.success('Adjusting filters...')} className="h-12 w-12 border border-black rounded-xl flex items-center justify-center text-foreground hover:bg-black hover:text-white transition-all">
+                        <Filter className="h-5 w-5" />
                     </button>
                 </div>
             </div>
@@ -170,13 +167,13 @@ export default function PatientsPage() {
                 {/* Protocol: Unified Table Representation */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-white dark:bg-slate-900 border-b border-border">
+                        <thead className="bg-white dark:bg-card border-b border-black">
                             <tr>
-                                <th className="px-6 py-4 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Entity</th>
-                                <th className="px-6 py-4 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Biological Data</th>
-                                <th className="px-6 py-4 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Primary Owner</th>
-                                <th className="px-6 py-4 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Clinical Status</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Interface</th>
+                                <th className="px-6 py-5 text-[11px] font-bold text-foreground uppercase tracking-widest">Entity</th>
+                                <th className="px-6 py-5 text-[11px] font-bold text-foreground uppercase tracking-widest">Biological Data</th>
+                                <th className="px-6 py-5 text-[11px] font-bold text-foreground uppercase tracking-widest">Primary Owner</th>
+                                <th className="px-6 py-5 text-[11px] font-bold text-foreground uppercase tracking-widest">Clinical Status</th>
+                                <th className="px-6 py-5 text-right text-[11px] font-bold text-foreground uppercase tracking-widest">Interface</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -223,7 +220,7 @@ export default function PatientsPage() {
                                         <div className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-1">Legitimacy Verified</div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white">
                                             {patient.status}
                                         </span>
                                     </td>
@@ -276,18 +273,18 @@ export default function PatientsPage() {
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <h3 className="font-medium text-foreground text-sm truncate">{patient.name}</h3>
-                                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mt-1 truncate">
+                                    <h3 className="font-medium text-foreground text-base truncate">{patient.name}</h3>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mt-1 truncate">
                                         {patient.breed} • {patient.species}
                                     </p>
-                                    <div className="flex items-center gap-2 mt-1.5">
-                                        <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 text-[8px] font-medium uppercase tracking-widest border border-emerald-100 dark:border-emerald-800">
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="px-2 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-[9px] font-bold uppercase tracking-widest border border-black">
                                             {patient.status}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <button className="h-8 w-8 flex items-center justify-center text-muted-foreground border border-border rounded">
+                            <button className="h-8 w-8 flex items-center justify-center text-muted-foreground border border-border rounded opacity-0 group-hover:opacity-100 transition-all">
                                 <ChevronRight className="h-4 w-4" />
                             </button>
                         </div>

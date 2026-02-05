@@ -55,20 +55,20 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
             {/* Clinical Infrastructure Brand */}
             <div className="h-20 px-6 flex items-center justify-between border-b border-border/50">
                 <div className={cn("flex items-center gap-3 transition-all duration-300", isCollapsed && "opacity-0 invisible w-0")}>
-                    <div className="h-7 w-7 bg-primary rounded-sm flex items-center justify-center text-primary-foreground shadow-sm">
-                        <Zap className="h-4 w-4 no-demote" />
+                    <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm">
+                        <Zap className="h-5 w-5 no-demote" />
                     </div>
                     <div>
-                        <span className="text-base font-serif font-medium tracking-tight text-foreground leading-none block">VetScribe</span>
-                        <span className="text-[9px] font-bold text-foreground uppercase tracking-[0.1em] mt-1 block">Veterinary Assistant</span>
+                        <span className="text-lg font-serif font-black tracking-tighter text-foreground leading-none block">VetScribe</span>
+                        <span className="text-[10px] font-bold text-foreground uppercase tracking-[0.2em] mt-1 block">Clinical Node</span>
                     </div>
                 </div>
 
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-7 w-7 border border-black dark:border-border/60 rounded-sm flex items-center justify-center text-foreground dark:text-muted-foreground hover:bg-black hover:text-white dark:hover:bg-muted transition-all"
+                    className="h-10 w-10 border border-black dark:border-border rounded-xl flex items-center justify-center text-foreground hover:bg-black hover:text-white transition-all bg-card"
                 >
-                    {isCollapsed ? <ChevronRight className="h-3 w-3 no-demote" /> : <ChevronLeft className="h-3 w-3 no-demote" />}
+                    {isCollapsed ? <ChevronRight className="h-4 w-4 no-demote" /> : <ChevronLeft className="h-4 w-4 no-demote" />}
                 </button>
             </div>
 
@@ -88,26 +88,21 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                                 href={item.href}
                                 onClick={onNavigate}
                                 className={cn(
-                                    "group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 relative",
+                                    "group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative",
                                     isActive
                                         ? "nav-item-active"
-                                        : "text-foreground hover:bg-black hover:text-white dark:hover:bg-slate-800/30 transition-all duration-100"
+                                        : "text-foreground hover:bg-black hover:text-white transition-all"
                                 )}
                             >
-                                {/* Subtle Left Indicator */}
-                                {isActive && (
-                                    <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-primary" />
-                                )}
-
                                 <item.icon className={cn(
-                                    "h-4 w-4 shrink-0 transition-opacity",
-                                    isActive ? "opacity-100" : "opacity-100 dark:opacity-60"
+                                    "h-5 w-5 shrink-0 transition-all",
+                                    isActive ? "stroke-[3px]" : "stroke-[2px]"
                                 )} />
 
                                 {!isCollapsed && (
                                     <span className={cn(
-                                        "text-[13px] tracking-tight",
-                                        isActive ? "font-semibold" : "font-normal"
+                                        "text-sm tracking-tight",
+                                        isActive ? "font-bold" : "font-medium"
                                     )}>
                                         {item.name}
                                     </span>

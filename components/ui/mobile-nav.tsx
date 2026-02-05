@@ -24,8 +24,8 @@ export function MobileNav() {
 
 
     return (
-        <div className="lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 bg-white dark:bg-slate-950 border-t border-black dark:border-slate-800 safe-bottom shadow-none transition-transform duration-300">
-            <nav className="h-[4.5rem] grid grid-cols-4 w-full">
+        <div className="lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 bg-white dark:bg-card border-t border-black dark:border-border safe-bottom shadow-none">
+            <nav className="h-[5rem] grid grid-cols-4 w-full px-2">
                 {navigation.map((item) => {
                     const isActive = item.activeMatch
                         ? pathname.startsWith(item.activeMatch)
@@ -36,20 +36,20 @@ export function MobileNav() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex flex-col items-center justify-center gap-1 w-full h-full active:scale-95 transition-all text-center select-none",
-                                isActive ? "text-black dark:text-white" : "text-black dark:text-slate-500"
+                                "flex flex-col items-center justify-center gap-1.5 w-full h-full active:scale-95 transition-all text-center select-none rounded-xl",
+                                isActive ? "text-foreground" : "text-muted-foreground hover:bg-muted"
                             )}
                         >
                             <item.icon className={cn(
                                 "h-6 w-6 transition-all duration-300",
-                                isActive ? "stroke-[2.5px]" : "stroke-[1.5px]"
+                                isActive ? "stroke-[3px] scale-110" : "stroke-[2px]"
                             )} />
-                            <span className={cn(
-                                "text-[9px] uppercase font-bold tracking-[0.1em]",
-                                isActive ? "opacity-100" : "opacity-0 hidden"
+                            <p className={cn(
+                                "text-[10px] uppercase font-black tracking-widest leading-none transition-all",
+                                isActive ? "opacity-100" : "opacity-0 scale-75"
                             )}>
                                 {item.name}
-                            </span>
+                            </p>
                         </Link>
                     );
                 })}

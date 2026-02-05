@@ -58,22 +58,22 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     <button
                         onClick={onAIAssistantClick}
-                        className="h-8 w-8 flex items-center justify-center text-primary border border-border/80 rounded-sm hover:bg-muted transition-all"
+                        className="h-10 w-10 flex items-center justify-center text-foreground border border-black dark:border-border rounded-xl hover:bg-black hover:text-white transition-all bg-card"
                     >
-                        <Brain className="h-4 w-4" />
+                        <Brain className="h-5 w-5" />
                     </button>
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden h-8 w-8 flex items-center justify-center text-foreground dark:text-muted-foreground border border-black dark:border-border rounded-sm hover:bg-black hover:text-white dark:hover:bg-muted transition-all"
+                        className="lg:hidden h-10 w-10 flex items-center justify-center text-foreground border border-black dark:border-border rounded-xl hover:bg-black hover:text-white transition-all bg-card"
                     >
-                        <Menu className="h-4 w-4" />
+                        <Menu className="h-5 w-5" />
                     </button>
 
                     {/* Data Query Interface */}
                     <div className="relative w-full max-w-md group hidden lg:block ml-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 transition-colors" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-foreground" />
                         <input
-                            className="w-full h-8 bg-white border border-black dark:bg-card dark:border-border rounded-sm pl-9 pr-10 text-[13px] text-foreground placeholder:text-black/50 dark:placeholder:text-muted-foreground focus:ring-1 focus:ring-black dark:focus:ring-primary/20 outline-none transition-all"
+                            className="w-full h-10 bg-white border border-black dark:bg-card dark:border-border rounded-xl pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-black outline-none transition-all shadow-sm"
                             placeholder="Clinical directory query..."
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -82,8 +82,8 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                                 }
                             }}
                         />
-                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden xl:flex items-center px-1 py-0.5 border border-black dark:border-border/60 rounded bg-white dark:bg-muted/30">
-                            <span className="text-[8px] font-bold text-foreground dark:text-muted-foreground uppercase tracking-tighter">CMD+K</span>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden xl:flex items-center px-1.5 py-0.5 border border-black dark:border-border rounded bg-muted">
+                            <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">CMD+K</span>
                         </div>
                     </div>
                 </div>
@@ -97,18 +97,18 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
 
                     <InstallPWA />
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => router.push('/notifications')}
-                            className="h-8 w-8 flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all"
+                            className="h-10 w-10 flex items-center justify-center text-foreground border border-black dark:border-border rounded-xl hover:bg-black hover:text-white transition-all bg-card"
                         >
-                            <Bell className="h-3.5 w-3.5" />
+                            <Bell className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => router.push('/settings')}
-                            className="h-8 w-8 hidden md:flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all"
+                            className="h-10 w-10 hidden md:flex items-center justify-center text-foreground border border-black dark:border-border rounded-xl hover:bg-black hover:text-white transition-all bg-card"
                         >
-                            <Settings2 className="h-3.5 w-3.5" />
+                            <Settings2 className="h-4 w-4" />
                         </button>
                     </div>
 
@@ -118,34 +118,33 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => router.push('/settings')}
-                                className="flex items-center gap-2.5 pl-1.5 pr-2.5 h-8 border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all max-w-[180px]"
+                                className="flex items-center gap-3 pl-2 pr-4 h-10 border border-black dark:border-border rounded-xl hover:bg-black hover:text-white transition-all max-w-[220px] bg-card"
                             >
-                                <div className="h-5 w-5 bg-white border border-black dark:bg-transparent dark:border dark:border-white/20 rounded-sm flex items-center justify-center text-black dark:text-slate-400 shrink-0 overflow-hidden">
+                                <div className="h-7 w-7 bg-white dark:bg-black border border-black dark:border-white/20 rounded-lg flex items-center justify-center text-black dark:text-white shrink-0 overflow-hidden">
                                     {profile?.image ? (
                                         <img
                                             src={profile.image}
                                             alt="User"
                                             className="h-full w-full object-cover"
                                             onError={(e) => {
-                                                // If Storage access fails (403), fallback to icon silently
                                                 (e.target as HTMLImageElement).style.display = 'none';
                                                 const parent = (e.target as HTMLImageElement).parentElement;
-                                                if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="no-demote"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                                if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="no-demote"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
                                             }}
                                         />
                                     ) : (
-                                        <User className="h-3 w-3 no-demote" />
+                                        <User className="h-4 w-4 no-demote" />
                                     )}
                                 </div>
                                 <div className="text-left hidden lg:block overflow-hidden">
-                                    <p className="text-[12px] font-medium text-foreground leading-none truncate">{profile?.displayName || profile?.name || user.email?.split('@')[0]}</p>
+                                    <p className="text-sm font-bold text-foreground leading-none truncate">{profile?.displayName || profile?.name || user.email?.split('@')[0]}</p>
                                 </div>
                             </button>
                             <button
                                 onClick={logout}
-                                className="h-8 w-8 flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white dark:hover:text-rose-600 transition-all"
+                                className="h-10 w-10 flex items-center justify-center text-foreground border border-black dark:border-border rounded-xl hover:bg-black hover:text-white dark:hover:bg-rose-600 transition-all bg-card"
                             >
-                                <LogOut className="h-3.5 w-3.5" />
+                                <LogOut className="h-4 w-4" />
                             </button>
                         </div>
                     ) : (

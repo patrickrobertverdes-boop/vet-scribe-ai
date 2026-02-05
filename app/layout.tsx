@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Sans, Source_Serif_4 } from 'next/font/google';
+import { Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
-const plexSans = IBM_Plex_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
   display: 'swap',
-  variable: '--font-plex',
+  variable: '--font-sans',
 });
 
 const sourceSerif = Source_Serif_4({
@@ -47,8 +46,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${plexSans.variable} ${sourceSerif.variable}`} suppressHydrationWarning>
-      <body className={plexSans.className} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${sourceSerif.variable}`} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
             <Toaster position="top-right" />
