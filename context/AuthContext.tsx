@@ -9,7 +9,8 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
-    updateProfile
+    updateProfile,
+    sendEmailVerification
 } from 'firebase/auth';
 import {
     doc,
@@ -142,6 +143,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: `${firstName} ${lastName}`
             });
 
+            // 2.5 Standard Firebase Insurance: Send standard verification immediately
+            // This ensures at least ONE email is sent even if the webhook leg fails.
+            console.log(`[Auth-Flow] [${correlationId}] Dispatching standard Firebase verification insurance...`);
+            await sendEmailVerification(user).catch(err => {
+                console.warn(`[Auth-Flow] [${correlationId}] Standard verification failed (likely rate limited):`, err.message);
+            });
+
             // 3. Create basic profile in Firestore
             await setDoc(doc(db, 'users', user.uid), {
                 email: user.email,
@@ -156,23 +164,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // 4. Trigger n8n webhook (CRITICAL SIDE-EFFECT)
             console.log(`[Auth-Flow] [${correlationId}] Triggering verification webhook...`);
+
+            // Artificial delay to ensure Firebase Auth has indexed the new user
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             const webhookRes = await fetch('/api/auth/signup-verification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: user.email,
                     displayName: `${firstName} ${lastName}`,
-                    uid: user.uid
+                    uid: user.uid,
+                    correlationId
                 })
             });
 
             if (!webhookRes.ok) {
-                const errorData = await webhookRes.json().catch(() => ({ error: 'Unknown Error' }));
+                const errorData = await webhookRes.json().catch(() => ({ error: 'Communication error with auth server' }));
                 console.error(`[Auth-Flow] [${correlationId}] Webhook critical failure:`, errorData);
-                // We proceed to the next page but notify the user that email might be delayed
-                toast.error('Account created, but verification email failed to send. Please try the "Resend" button on the next page.');
+
+                // Show rich error to help diagnostic
+                const detail = errorData.error || errorData.details || 'Unknown server error';
+                toast.error(`Account created, but verification dispatch failed: ${detail}`, { duration: 6000 });
             } else {
                 console.log(`[Auth-Flow] [${correlationId}] Signup webhook confirmed`);
+                toast.success('Security link dispatched to registry email.');
             }
 
             // 5. Background initialization
@@ -203,6 +219,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`[Auth-Flow] [${correlationId}] Initiating resend request for: ${user.email}`);
 
         try {
+            // Standard Firebase Resend Insurance
+            await sendEmailVerification(user).catch(err => {
+                console.warn(`[Auth-Flow] [${correlationId}] Standard resend failed:`, err.message);
+            });
+
             const response = await fetch('/api/auth/resend-verification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

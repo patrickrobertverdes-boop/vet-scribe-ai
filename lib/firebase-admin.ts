@@ -1,35 +1,45 @@
 import * as admin from 'firebase-admin';
-import * as fs from 'fs';
-import * as path from 'path';
 
 function getAdminApp() {
     if (admin.apps.length > 0) return admin.app();
 
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    const serviceAccountPath = path.join(process.cwd(), 'service-account.json');
 
+    // 1. Try Service Account File (Local Development)
     try {
-        if (fs.existsSync(serviceAccountPath)) {
-            console.log('--- Firebase Admin: Local File Mode ---');
-            const sa = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-
-            // Normalize private key newlines
-            if (sa.private_key) {
-                sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-            }
-
+        const saPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'service-account.json';
+        if (require('fs').existsSync(saPath)) {
+            const sa = JSON.parse(require('fs').readFileSync(saPath, 'utf8'));
+            console.log(`[Firebase-Admin] Initializing with Service Account: ${projectId}`);
             return admin.initializeApp({
                 credential: admin.credential.cert(sa),
-                projectId: projectId
+                projectId
             });
         }
     } catch (e) {
-        console.error('--- Firebase Admin: Local File Error ---', e);
+        // Silent fail on local file check
     }
 
-    // Fallback to ADC if file missing or fails
+    // 2. Try Environment Variable Service Account
+    try {
+        const saJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+        if (saJson) {
+            const sa = JSON.parse(saJson);
+            console.log(`[Firebase-Admin] Initializing with Env SA: ${projectId}`);
+            return admin.initializeApp({
+                credential: admin.credential.cert(sa),
+                projectId
+            });
+        }
+    } catch (e) {
+        // Silent fail
+    }
+
+    // 3. Fallback to Application Default Credentials (ADC) - Best for Google Cloud/Firebase App Hosting
+    console.log(`[Firebase-Admin] Initializing with ADC: ${projectId}`);
     return admin.initializeApp({
-        projectId: projectId,
+        credential: admin.credential.applicationDefault(),
+        projectId
     });
 }
 
