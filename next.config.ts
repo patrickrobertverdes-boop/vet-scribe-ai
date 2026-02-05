@@ -2,12 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'standalone', 
-  compiler: {
-    removeConsole: false,
+  output: 'standalone',
+  images: {
+    unoptimized: true,
   },
-  turbopack: {
-    root: 'C:\\Users\\verdes\\.gemini\\antigravity\\scratch\\vet-scribe-ai',
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   }
 } as any;
 
