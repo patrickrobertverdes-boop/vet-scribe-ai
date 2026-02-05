@@ -3,76 +3,97 @@ import { adminAuth } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     const correlationId = `resend_${Date.now()}`;
-    console.log(`[Auth-Webhook] [${correlationId}] Starting resend verification flow`);
+    console.log(`[ENTRY] [${correlationId}] Resend Webhook Route Entered`);
 
     try {
-        const { email, displayName, uid } = await req.json();
+        // 1. Environment Sanity Check
+        const WEBHOOK_URL = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/2da4cd33-aee8-422c-bc07-d5826e915e7c";
+        const PUBLIC_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app';
 
-        if (!email) {
-            console.error(`[Auth-Webhook] [${correlationId}] Missing email in request`);
-            return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+        console.log(`[ENV-CHECK] [${correlationId}] App URL: ${PUBLIC_URL}`);
+
+        if (!PUBLIC_URL) {
+            throw new Error(`CRITICAL: NEXT_PUBLIC_APP_URL is missing or undefined for [${correlationId}]`);
         }
 
-        console.log(`[Auth-Webhook] [${correlationId}] Generating verification link for: ${email}`);
+        // 2. Body Parsing
+        const body = await req.json();
+        const { email, displayName, uid } = body;
 
-        const appUrl = process.env.NODE_ENV === 'production'
-            ? 'https://vets-scribe.web.app'
-            : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+        console.log(`[PAYLOAD] [${correlationId}] Processing resend for: ${email} (UID: ${uid})`);
 
+        if (!email || !uid) {
+            console.error(`[VALIDATION-ERROR] [${correlationId}] Missing required identity fields`);
+            return NextResponse.json({ error: 'Identity incomplete: Email and UID required', correlationId }, { status: 400 });
+        }
+
+        // 3. Link Generation
+        console.log(`[FIREBASE-LINK] [${correlationId}] Generating Firebase verification link...`);
         const actionCodeSettings = {
-            url: `${appUrl}/login`,
+            url: `${PUBLIC_URL}/login`,
         };
 
         const firebaseLink = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings);
+        console.log(`[FIREBASE-LINK] [${correlationId}] Raw Link Generated Successfully`);
 
-        // Construct custom premium verification link
         const urlObj = new URL(firebaseLink);
         const oobCode = urlObj.searchParams.get('oobCode');
 
         if (!oobCode) {
-            console.error(`[Auth-Webhook] [${correlationId}] Failed to extract oobCode from Firebase link`);
-            return NextResponse.json({ error: 'Failed to generate security token', correlationId }, { status: 500 });
+            throw new Error(`SECURITY-TOKEN-ERROR: Could not extract oobCode for [${correlationId}]`);
         }
 
-        const verificationLink = `${appUrl}/auth/verify?oobCode=${oobCode}`;
+        const verificationLink = `${PUBLIC_URL}/auth/verify?oobCode=${oobCode}`;
+        console.log(`[FINAL-LINK] [${correlationId}] Clinical Verification Link: ${verificationLink}`);
 
-        // Resend verification webhook (PROD) - DISTINCT from signup
-        const n8nWebhookUrl = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/2da4cd33-aee8-422c-bc07-d5826e915e7c";
-
-        console.log(`[Auth-Webhook] [${correlationId}] Dispatching n8n resend webhook. Email: ${email}`);
-
+        // 4. n8n Dispatch
+        console.log(`[N8N-DISPATCH] [${correlationId}] Attempting resend webhook request to n8n...`);
         const timestamp = new Date().toISOString();
-        const response = await fetch(n8nWebhookUrl, {
+
+        const n8nBody = {
+            email,
+            name: displayName || email.split('@')[0],
+            uid,
+            verificationLink,
+            action: 'resend',
+            timestamp,
+            correlationId,
+            origin: 'server-api'
+        };
+
+        const response = await fetch(WEBHOOK_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Correlation-Id": correlationId
+                "X-Correlation-Id": correlationId,
+                "X-Origin": "vet-scribe-server"
             },
-            body: JSON.stringify({
-                email,
-                name: displayName || email.split('@')[0],
-                uid,
-                verificationLink,
-                action: 'resend',
-                timestamp,
-                correlationId
-            })
+            body: JSON.stringify(n8nBody)
         });
+
+        console.log(`[N8N-RESPONSE] [${correlationId}] Status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[Auth-Webhook] [${correlationId}] n8n delivery failed: ${response.status}`, errorText);
-            return NextResponse.json({
-                error: `n8n Webhook Error: ${response.status}`,
-                details: errorText,
-                correlationId
-            }, { status: 500 });
+            console.error(`[N8N-FAILURE] [${correlationId}] Response Body:`, errorText);
+            throw new Error(`Webhook Delivery Failed: ${response.status} - ${errorText}`);
         }
 
-        console.log(`[Auth-Webhook] [${correlationId}] Webhook confirmed by n8n`);
-        return NextResponse.json({ success: true, correlationId });
+        const responseData = await response.text();
+        console.log(`[SUCCESS] [${correlationId}] n8n confirmed resend receipt. Payload: ${responseData}`);
+
+        return NextResponse.json({
+            success: true,
+            correlationId,
+            message: 'Resend verification confirmed by backend'
+        });
+
     } catch (error: any) {
-        console.error(`[Auth-Webhook] [${correlationId}] Fatal route error:`, error);
-        return NextResponse.json({ error: `Internal error: ${error.message}`, correlationId }, { status: 500 });
+        console.error(`[FATAL-ROUTE-ERROR] [${correlationId}]`, error.message);
+        return NextResponse.json({
+            error: error.message || 'Internal Server Error',
+            details: error.stack,
+            correlationId
+        }, { status: 500 });
     }
 }

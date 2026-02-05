@@ -113,6 +113,27 @@ export default function VerifyEmailPage() {
                     <LogOut className="h-3 w-3" /> Sign Out
                 </button>
             </div>
+
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between px-1">
+                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Post-Office Status</span>
+                    <ConnectivityStatus />
+                </div>
+            </div>
         </div>
     );
+}
+
+function ConnectivityStatus() {
+    const [status, setStatus] = useState<'testing' | 'online' | 'error'>('testing');
+
+    useEffect(() => {
+        fetch('/api/auth/healthcheck')
+            .then(res => res.ok ? setStatus('online') : setStatus('error'))
+            .catch(() => setStatus('error'));
+    }, []);
+
+    if (status === 'testing') return <span className="text-[9px] text-slate-400 animate-pulse">Scanning...</span>;
+    if (status === 'online') return <span className="text-[9px] text-emerald-500 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Linked</span>;
+    return <span className="text-[9px] text-rose-500 font-bold">Connection Degraded</span>;
 }

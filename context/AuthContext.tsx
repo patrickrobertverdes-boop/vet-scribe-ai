@@ -126,24 +126,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const signup = async (email: string, password: string, firstName: string, lastName: string) => {
-        if (!auth || !db) throw new Error("Firebase is not initialized");
+        if (!auth || !db) throw new Error("Firebase configuration missing");
 
         setIsSigningUp(true);
         const correlationId = `signup_client_${Date.now()}`;
-        console.log(`[Auth-Flow] [${correlationId}] Initiating signup for: ${email}`);
+        console.log(`[STAGE: START] [${correlationId}] Client initiated signup for: ${email}`);
 
         try {
             // 1. Create Auth User
+            console.log(`[STAGE: AUTH] [${correlationId}] Registering credentials in Firebase...`);
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const { user } = userCredential;
+            console.log(`[STAGE: AUTH] [${correlationId}] Firebase user created: ${user.uid}`);
 
-            // 2. Set display name in Firebase Auth
+            // 2. Set display name
+            console.log(`[STAGE: PROFILE] [${correlationId}] Updating Auth profile display name...`);
             await updateProfile(user, {
                 displayName: `${firstName} ${lastName}`
             });
 
-
-            // 3. Create basic profile in Firestore
+            // 3. Firestore Record
+            console.log(`[STAGE: FIRESTORE] [${correlationId}] Creating user document in Firestore...`);
             await setDoc(doc(db, 'users', user.uid), {
                 email: user.email,
                 firstName: firstName,
@@ -154,12 +157,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: 'owner',
                 settings: { theme: 'system', notifications: true }
             });
+            console.log(`[STAGE: FIRESTORE] [${correlationId}] Document committed successfully`);
 
-            // 4. Trigger n8n webhook (CRITICAL SIDE-EFFECT)
-            console.log(`[Auth-Flow] [${correlationId}] Triggering verification webhook...`);
+            // 4. Trigger Server Webhook
+            console.log(`[STAGE: WEBHOOK] [${correlationId}] calling /api/auth/signup-verification...`);
 
-            // Artificial delay to ensure Firebase Auth has indexed the new user
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Artificial delay to ensure indexing
+            await new Promise(resolve => setTimeout(resolve, 800));
 
             const webhookRes = await fetch('/api/auth/signup-verification', {
                 method: 'POST',
@@ -173,29 +177,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (!webhookRes.ok) {
-                const errorData = await webhookRes.json().catch(() => ({ error: 'Communication error with auth server' }));
-                console.error(`[Auth-Flow] [${correlationId}] Webhook critical failure:`, errorData);
-
-                // Show rich error to help diagnostic
-                const detail = errorData.error || errorData.details || 'Unknown server error';
-                toast.error(`Account created, but verification dispatch failed: ${detail}`, { duration: 6000 });
-            } else {
-                console.log(`[Auth-Flow] [${correlationId}] Signup webhook confirmed`);
-                toast.success('Security link dispatched to registry email.');
+                const errorData = await webhookRes.json().catch(() => ({ error: 'Backend Unreachable' }));
+                console.error(`[STAGE: WEBHOOK-FAILURE] [${correlationId}]`, errorData);
+                throw new Error(`Webhook Error: ${errorData.error || 'Server rejected request'}`);
             }
 
-            // 5. Background initialization
-            initializeUserBackground(user);
+            console.log(`[STAGE: WEBHOOK-SUCCESS] [${correlationId}] Server confirmed webhook dispatch`);
 
-            // 6. Finalize
+            // 5. Finalize UI
             toast.success('Security link dispatched to registry email.');
             router.push('/verify-email');
+
         } catch (error: any) {
-            console.error(`[Auth-Flow] [${correlationId}] Fatal signup error:`, error);
-            let message = 'Failed to create record.';
-            if (error.code === 'auth/email-already-in-use') message = 'This email designation is already registered.';
+            console.error(`[STAGE: FATAL] [${correlationId}] Execution halted:`, error.message);
+
+            let message = error.message || 'Verification flow failed.';
+            if (error.code === 'auth/email-already-in-use') message = 'This email is already in our clinical registry.';
             if (error.code === 'auth/weak-password') message = 'Security key must be at least 6 characters.';
 
+            toast.error(message, { duration: 5000 });
             throw new Error(message);
         } finally {
             setIsSigningUp(false);
@@ -238,58 +238,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, password: string) => {
         if (!auth) throw new Error("Firebase auth not initialized");
+        const correlationId = `login_client_${Date.now()}`;
+        console.log(`[STAGE: LOGIN-START] [${correlationId}] Attempting entry for: ${email}`);
 
         try {
-            // STEP 1: PRE-SIGNIN CHECK (To prevent the dashboard "flash")
-            // Check Firestore for authMethod BEFORE signing in
+            // STEP 1: PRE-SIGNIN CHECK
             if (db) {
+                console.log(`[STAGE: PRE-CHECK] [${correlationId}] Auditing account linkage...`);
                 const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
                     const userData = querySnapshot.docs[0].data();
                     if (userData.authMethod === 'google') {
-                        toast.error('This account is linked to Google. Please sign in with Google Account.');
-                        return;
+                        throw new Error('This account is linked to Google. Please use Google Sign-In.');
                     }
                 }
             }
 
             // STEP 2: ACTUAL SIGN IN
+            console.log(`[STAGE: AUTH-PROVIDER] [${correlationId}] Validating credentials with Firebase...`);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            console.log(`[STAGE: AUTH-PROVIDER] [${correlationId}] Identity confirmed: ${user.uid}`);
 
-            // CRITICAL FOR MOBILE: Force-refresh the user token to get latest claims (like emailVerified)
-            console.log(`[Auth-Flow] [${user.uid}] Reloading user profile for latest verification status...`);
+            // CRITICAL FOR MOBILE: Force-refresh the user token
+            console.log(`[STAGE: SYNC] [${correlationId}] Reloading profile from cloud (Mobile Parity)...`);
             await user.reload();
+            console.log(`[STAGE: SYNC] [${correlationId}] Cloud status: ${user.emailVerified ? 'VERIFIED' : 'PENDING'}`);
 
             // Extra safety: double check providerData after signin
             const hasGoogleProvider = user.providerData.some(p => p.providerId.includes('google'));
             if (hasGoogleProvider) {
-                toast.error('Please use the Google Account button.');
                 await firebaseSignOut(auth);
                 setUser(null);
-                return;
+                throw new Error('Please use the Google Account button.');
             }
 
             if (!user.emailVerified) {
-                console.warn(`[Auth-Flow] [${user.uid}] Login blocked: Email not verified.`);
-                toast.error('Please verify your email first.');
+                console.warn(`[STAGE: GATE] [${correlationId}] Access denied: Email lacks verification`);
                 router.push('/verify-email');
-                return;
+                throw new Error('Clinical verification pending. Please check your registry email.');
             }
 
-            toast.success('Logged in successfully');
+            console.log(`[STAGE: SUCCESS] [${correlationId}] Access granted to dashboard`);
+            toast.success('Access granted.');
             router.push('/');
         } catch (error: any) {
-            console.error("Login error:", error);
-            let message = 'Invalid email or password.';
+            console.error(`[STAGE: LOGIN-FATAL] [${correlationId}]`, error.message);
 
-            if (error.code === 'auth/user-not-found') message = 'No account found with this email.';
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') message = 'Incorrect password. Please try again.';
-            if (error.code === 'auth/too-many-requests') message = 'Too many failed attempts. Try again later.';
-            if (error.code === 'auth/user-disabled') message = 'This account has been disabled.';
+            let message = error.message;
+            if (error.code === 'auth/user-not-found') message = 'Account not found in registry.';
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') message = 'Access Key invalid.';
+            if (error.code === 'auth/too-many-requests') message = 'Account locked due to attempts. Resend link or try later.';
 
+            toast.error(message);
             throw new Error(message);
         }
     };
