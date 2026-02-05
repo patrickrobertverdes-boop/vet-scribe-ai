@@ -54,20 +54,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         try {
             console.log(`[Background-Init] Initializing provisioned data for: ${user.uid}`);
-            // Priority: Minimal Profile (ensure this exists)
-            const userDocRef = doc(db, 'users', user.uid);
-            await setDoc(userDocRef, {
-                email: user.email,
-                uid: user.uid,
-                role: 'owner',
-                lastSeen: serverTimestamp()
-            }, { merge: true });
+            // Priority initialization happens in the server-side provisioning API
+            // to avoid client-side "Missing or insufficient permissions" before token sync
+            console.log(`[Background-Init] Starting background task initialization for: ${user.uid}`);
 
             // Subcollections - Fire and forget checks
             // We use promise.allsettled to not block each other
             const subcollections = [
                 (async () => {
-                    const clientDataRef = doc(collection(userDocRef, 'client_data'), 'config');
+                    const clientDataRef = doc(db, 'users', user.uid, 'client_data', 'config');
                     const snap = await getDoc(clientDataRef);
                     if (!snap.exists()) {
                         await setDoc(clientDataRef, {
@@ -79,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                 })(),
                 (async () => {
-                    const historyRef = doc(collection(userDocRef, 'history'), 'welcome_note');
+                    const historyRef = doc(db, 'users', user.uid, 'history', 'welcome_note');
                     const snap = await getDoc(historyRef);
                     if (!snap.exists()) {
                         await setDoc(historyRef, {
@@ -92,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                 })(),
                 (async () => {
-                    const patientRef = doc(collection(userDocRef, 'patients'), '_placeholder');
+                    const patientRef = doc(db, 'users', user.uid, 'patients', '_placeholder');
                     const snap = await getDoc(patientRef);
                     if (!snap.exists()) {
                         await setDoc(patientRef, {
@@ -249,18 +244,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         try {
             // STEP 1: PRE-SIGNIN CHECK
-            if (db) {
-                console.log(`[STAGE: PRE-CHECK] [${correlationId}] Auditing account linkage...`);
-                const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    const userData = querySnapshot.docs[0].data();
-                    if (userData.authMethod === 'google') {
-                        throw new Error('This account is linked to Google. Please use Google Sign-In.');
-                    }
-                }
-            }
+            // Pre-check removed as root collection queries are restricted by security rules
+            // Firebase Auth will handle credential validation
 
             // STEP 2: ACTUAL SIGN IN
             console.log(`[STAGE: AUTH-PROVIDER] [${correlationId}] Validating credentials with Firebase...`);
@@ -289,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // PROVISIONING: Ensure user document exists in Firestore via backend
             console.log(`[STAGE: PROVISIONING] [${correlationId}] Calling backend provisioning...`);
-            const provisionRes = await fetch('/api/provision-user', {
+            const provisionRes = await fetch('/api/auth/provision', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,10 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // DIAGNOSTIC CORE: Allow any auth user
-    // We will tighten this to email_verified once flow is confirmed
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Explicit user-scoped access
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to any subcollection under the user document
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

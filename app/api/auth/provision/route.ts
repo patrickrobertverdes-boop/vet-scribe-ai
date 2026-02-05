@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '../../../../lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     const correlationId = `provision_${Date.now()}`;
@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         const uid = decodedToken.uid;
         const email = decodedToken.email;
-        const emailVerified = decodedToken.email_verified;
 
-        console.log(`[PROVISION] [${correlationId}] Token Verified. UID: ${uid}, Email: ${email}, Verified: ${emailVerified}`);
+        console.log(`[PROVISION] [${correlationId}] Token Verified. UID: ${uid}, Email: ${email}`);
 
-        if (!email || !emailVerified) {
-            console.warn(`[PROVISION] [${correlationId}] Provisioning halted: Email missing or not verified`);
-            return NextResponse.json({ error: 'Clinical identity incomplete or unverified', correlationId }, { status: 403 });
+        // Gate removed: Verification no longer mandatory for provisioning
+        if (!email) {
+            console.warn(`[PROVISION] [${correlationId}] Provisioning halted: Email missing`);
+            return NextResponse.json({ error: 'Clinical identity incomplete', correlationId }, { status: 400 });
         }
 
         // 2. Body parsing for optional metadata
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
         if (lastName) provisionData.lastName = lastName;
         if (displayName) provisionData.displayName = displayName;
 
+        // Bypassing security rules via Admin SDK
         await userRef.set(provisionData, { merge: true });
         console.log(`[PROVISION] [${correlationId}] Firestore document provisioned successfully`);
 
@@ -59,12 +60,11 @@ export async function POST(req: NextRequest) {
             verified: true
         });
 
-        // 5. DISPATCH TO n8n (Server-side only per architecture requirement)
-        console.log(`[PROVISION] [${correlationId}] Dispatching status update to n8n...`);
+        // 5. DISPATCH TO n8n
         const N8N_WEBHOOK_URL = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/ad6e1227-ad9a-4483-8bce-720937c9363a";
 
         try {
-            const n8nRes = await fetch(N8N_WEBHOOK_URL, {
+            await fetch(N8N_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -77,21 +77,14 @@ export async function POST(req: NextRequest) {
                     correlationId
                 })
             });
-
-            if (!n8nRes.ok) {
-                console.warn(`[PROVISION] [${correlationId}] n8n notification failed: ${n8nRes.status}`);
-            } else {
-                console.log(`[PROVISION] [${correlationId}] n8n notification successful`);
-            }
         } catch (webhookErr: any) {
-            console.error(`[PROVISION] [${correlationId}] n8n fetch error:`, webhookErr.message);
-            // We don't fail the whole request if n8n is down, as Firestore is already provisioned
+            console.error(`[PROVISION] [${correlationId}] n8n notification failed:`, webhookErr.message);
         }
 
         return NextResponse.json({
             success: true,
             correlationId,
-            message: 'User provisioned successfully with fresh claims and n8n notification'
+            message: 'User provisioned successfully'
         });
 
     } catch (error: any) {
