@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-6 group transition-all hover:border-black dark:hover:border-white"
+                        className="bg-card border border-border rounded-xl p-6 group transition-all hover:border-black dark:hover:border-white shadow-sm"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className={cn(
@@ -173,8 +173,8 @@ export default function DashboardPage() {
             <div className="grid gap-8 lg:grid-cols-12">
                 {/* Clinical Checklist Module */}
                 <div className="lg:col-span-8 space-y-6">
-                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col h-full shadow-sm transition-colors">
-                        <div className="px-8 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-950 transition-colors">
+                    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-sm transition-colors">
+                        <div className="px-8 py-5 border-b border-border/60 flex items-center justify-between bg-card transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="h-9 w-9 border border-slate-200 dark:border-slate-800 rounded flex items-center justify-center text-slate-400 dark:text-slate-500">
                                     <ListChecks className="h-4 w-4" />
@@ -240,13 +240,13 @@ export default function DashboardPage() {
 
                 {/* Command Actions Module */}
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-xl flex flex-col gap-8 shadow-sm h-full transition-colors">
-                        <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-widest mb-2">Command Protocol</h2>
+                    <div className="bg-card border border-border p-8 rounded-xl flex flex-col gap-8 shadow-sm h-full transition-colors">
+                        <h2 className="text-xs font-bold text-foreground uppercase tracking-widest mb-2">Command Protocol</h2>
 
                         <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleInitializeScribe}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-black dark:hover:border-white hover:shadow-sm transition-all group bg-white dark:bg-slate-950"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:border-foreground hover:shadow-sm transition-all group bg-card"
                             >
                                 <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
                                     <Wand2 className="h-5 w-5" />
@@ -259,7 +259,7 @@ export default function DashboardPage() {
 
                             <button
                                 onClick={() => setShowAICreator(true)}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-black dark:hover:border-white hover:shadow-sm transition-all group bg-white dark:bg-slate-950"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:border-foreground hover:shadow-sm transition-all group bg-card"
                             >
                                 <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
                                     <Plus className="h-5 w-5" />

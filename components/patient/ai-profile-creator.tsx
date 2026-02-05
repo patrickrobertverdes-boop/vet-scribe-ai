@@ -212,51 +212,51 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                         />
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Patient Description */}
-                                <div className="space-y-5">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                            <Sparkles className="h-3 w-3 text-black dark:text-white" /> AI Extraction (Optional)
-                                        </label>
-                                        <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700">Extracts Details</span>
-                                    </div>
-                                    <div className="relative group">
-                                        <textarea
-                                            value={prompt}
-                                            onChange={(e) => setPrompt(e.target.value)}
-                                            placeholder="Paste clinical notes or type a description to auto-fill fields..."
-                                            className="w-full border border-slate-300 dark:border-slate-700 p-8 rounded-xl text-slate-900 dark:text-white font-bold placeholder:text-slate-400 dark:placeholder:text-slate-600 min-h-[120px] focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all shadow-sm resize-none leading-relaxed tracking-tight bg-white dark:bg-slate-950"
-                                        />
-                                        <div className="absolute bottom-6 right-6 flex items-center gap-2">
-                                            <button
-                                                onClick={handleGenerate}
-                                                disabled={isGenerating || !prompt.trim()}
-                                                className="h-10 px-6 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-[9px] uppercase tracking-widest shadow-lg hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 flex items-center gap-3 group"
-                                            >
-                                                {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />}
-                                                {isGenerating ? 'Analyzing...' : 'Auto-fill'}
-                                            </button>
-                                        </div>
+                            {/* Patient Description */}
+                            <div className="space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
+                                        <Sparkles className="h-3 w-3 text-black dark:text-white" /> AI Extraction (Optional)
+                                    </label>
+                                    <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700">Extracts Details</span>
+                                </div>
+                                <div className="relative group">
+                                    <textarea
+                                        value={prompt}
+                                        onChange={(e) => setPrompt(e.target.value)}
+                                        placeholder="Paste clinical notes or type a description to auto-fill fields..."
+                                        className="w-full border border-slate-300 dark:border-slate-700 p-8 rounded-xl text-slate-900 dark:text-white font-bold placeholder:text-slate-400 dark:placeholder:text-slate-600 min-h-[120px] focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all shadow-sm resize-none leading-relaxed tracking-tight bg-white dark:bg-slate-950"
+                                    />
+                                    <div className="absolute bottom-6 right-6 flex items-center gap-2">
+                                        <button
+                                            onClick={handleGenerate}
+                                            disabled={isGenerating || !prompt.trim()}
+                                            className="h-10 px-6 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-[9px] uppercase tracking-widest shadow-lg hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 flex items-center gap-3 group"
+                                        >
+                                            {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />}
+                                            {isGenerating ? 'Analyzing...' : 'Auto-fill'}
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
 
-                                {error && (
-                                    <div className="p-6 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-4 text-rose-700 animate-in slide-in-from-top-2">
-                                        <AlertTriangle className="h-5 w-5 shrink-0" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">{error}</p>
-                                    </div>
-                                )}
+                            {error && (
+                                <div className="p-6 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-4 text-rose-700 animate-in slide-in-from-top-2">
+                                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">{error}</p>
+                                </div>
+                            )}
 
-                                {/* Info Box */}
-                                <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-start gap-4">
-                                    <div className="h-8 w-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-slate-700">
-                                        <Info className="h-4 w-4" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wide leading-none">Pro Tip</p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">You can save immediately with just a Name. Our AI will analyze your notes in the background and update the record automatically.</p>
-                                    </div>
+                            {/* Info Box */}
+                            <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-start gap-4">
+                                <div className="h-8 w-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-slate-700">
+                                    <Info className="h-4 w-4" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wide leading-none">Pro Tip</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">You can save immediately with just a Name. Our AI will analyze your notes in the background and update the record automatically.</p>
                                 </div>
                             </div>
                         </div>
