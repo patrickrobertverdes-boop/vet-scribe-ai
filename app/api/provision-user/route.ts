@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
 
         console.log(`[PROVISION] [${correlationId}] Token Verified. UID: ${uid}, Email: ${email}, Verified: ${emailVerified}`);
 
-        if (!emailVerified) {
-            console.warn(`[PROVISION] [${correlationId}] Provisioning halted: Email not verified`);
-            return NextResponse.json({ error: 'Email verification required for provisioning', correlationId }, { status: 403 });
+        if (!email || !emailVerified) {
+            console.warn(`[PROVISION] [${correlationId}] Provisioning halted: Email missing or not verified`);
+            return NextResponse.json({ error: 'Clinical identity incomplete or unverified', correlationId }, { status: 403 });
         }
 
         // 2. Body parsing for optional metadata
@@ -52,17 +52,46 @@ export async function POST(req: NextRequest) {
         await userRef.set(provisionData, { merge: true });
         console.log(`[PROVISION] [${correlationId}] Firestore document provisioned successfully`);
 
-        // 4. Set Custom Claims (Optional but recommended for robust rules)
+        // 4. Set Custom Claims
         console.log(`[PROVISION] [${correlationId}] Setting custom claims...`);
         await adminAuth.setCustomUserClaims(uid, {
             role: 'owner',
             verified: true
         });
 
+        // 5. DISPATCH TO n8n (Server-side only per architecture requirement)
+        console.log(`[PROVISION] [${correlationId}] Dispatching status update to n8n...`);
+        const N8N_WEBHOOK_URL = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/ad6e1227-ad9a-4483-8bce-720937c9363a";
+
+        try {
+            const n8nRes = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    uid,
+                    displayName: displayName || `${firstName} ${lastName}`.trim() || email.split('@')[0],
+                    action: 'provisioned',
+                    status: 'active',
+                    timestamp: new Date().toISOString(),
+                    correlationId
+                })
+            });
+
+            if (!n8nRes.ok) {
+                console.warn(`[PROVISION] [${correlationId}] n8n notification failed: ${n8nRes.status}`);
+            } else {
+                console.log(`[PROVISION] [${correlationId}] n8n notification successful`);
+            }
+        } catch (webhookErr: any) {
+            console.error(`[PROVISION] [${correlationId}] n8n fetch error:`, webhookErr.message);
+            // We don't fail the whole request if n8n is down, as Firestore is already provisioned
+        }
+
         return NextResponse.json({
             success: true,
             correlationId,
-            message: 'User provisioned successfully with fresh claims'
+            message: 'User provisioned successfully with fresh claims and n8n notification'
         });
 
     } catch (error: any) {

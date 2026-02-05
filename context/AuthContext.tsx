@@ -281,7 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // PROVISIONING: Ensure user document exists in Firestore via backend
             console.log(`[STAGE: PROVISIONING] [${correlationId}] Calling backend provisioning...`);
-            const provisionRes = await fetch('/api/auth/provision', {
+            const provisionRes = await fetch('/api/provision-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
                 const idToken = await user.getIdToken(true);
 
                 // Call provisioning to ensure Firestore doc exists
-                const provRes = await fetch('/api/auth/provision', {
+                const provRes = await fetch('/api/provision-user', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
