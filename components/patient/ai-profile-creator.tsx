@@ -147,19 +147,19 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                     <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-1.5 sm:mb-0 uppercase truncate">Add New Patient</h2>
+                                    <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight leading-none mb-1.5 sm:mb-0 uppercase truncate">Add New Patient</h2>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="h-10 w-10 border border-slate-200 dark:border-slate-800 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white active:scale-95 shrink-0 ml-2 bg-white dark:bg-slate-950">
+                            <button onClick={onClose} className="h-10 w-10 border border-border flex items-center justify-center rounded-xl hover:bg-muted transition-all text-muted-foreground hover:text-foreground active:scale-95 shrink-0 ml-2 bg-background">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-10 space-y-6 sm:space-y-10 bg-white dark:bg-slate-950">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-10 space-y-6 sm:space-y-10 bg-background">
                             {/* Visual Identity & Manual Entry */}
-                            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start p-5 sm:p-8 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50 dark:bg-slate-900/50">
+                            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start p-5 sm:p-8 border border-border rounded-2xl bg-muted/50">
                                 <div className="shrink-0 flex flex-col items-center gap-3">
-                                    <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">Entity Identity</label>
+                                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Entity Identity</label>
                                     <ImageUpload
                                         value={image}
                                         onChange={setImage}
@@ -169,13 +169,13 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
 
                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full mt-4 md:mt-0">
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Patient Name</label>
+                                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Patient Name</label>
                                         <input
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="e.g. Luna"
-                                            className="w-full h-12 px-5 rounded-xl text-sm font-bold border border-slate-300 dark:border-slate-700 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all shadow-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 bg-white dark:bg-slate-950"
+                                            className="w-full h-12 px-5 rounded-xl text-sm font-bold border border-border outline-none focus:ring-2 focus:ring-foreground transition-all shadow-sm text-foreground placeholder:text-muted-foreground bg-background"
                                         />
                                     </div>
                                     <div className="space-y-3">
@@ -250,13 +250,13 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                             )}
 
                             {/* Info Box */}
-                            <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-start gap-4">
-                                <div className="h-8 w-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-slate-700">
+                            <div className="p-6 bg-muted border border-border rounded-2xl flex items-start gap-4">
+                                <div className="h-8 w-8 bg-background rounded-lg flex items-center justify-center text-muted-foreground shrink-0 border border-border">
                                     <Info className="h-4 w-4" />
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wide leading-none">Pro Tip</p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">You can save immediately with just a Name. Our AI will analyze your notes in the background and update the record automatically.</p>
+                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-wide leading-none">Pro Tip</p>
+                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">You can save immediately with just a Name. Our AI will analyze your notes in the background and update the record automatically.</p>
                                 </div>
                             </div>
                         </div>

@@ -20,7 +20,7 @@ export const useDesignStore = create<DesignState>()(
     persist(
         (set) => ({
             theme: 'light',
-            accentColor: '#0f766e', // Default teal
+            accentColor: '#000000', // Clinical Black
             density: 'comfortable',
             fontSize: 'medium',
             clinicalModel: 'gemini-flash-latest',

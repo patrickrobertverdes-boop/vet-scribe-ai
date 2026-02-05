@@ -87,9 +87,9 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 onDrop={handleDrop}
                 onClick={() => !isUploading && fileInputRef.current?.click()}
                 className={cn(
-                    "relative h-32 w-32 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-500 overflow-hidden shadow-2xl bg-white border-4 border-slate-50",
+                    "relative h-32 w-32 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-500 overflow-hidden shadow-2xl bg-card border-4 border-border",
                     isDragging ? "border-primary ring-8 ring-primary/10 scale-105" : "hover:border-primary/20",
-                    !isUrl && "bg-slate-50",
+                    !isUrl && "bg-muted",
                     isUploading && "cursor-wait"
                 )}
             >
@@ -142,7 +142,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 disabled={isUploading}
             />
 
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-bold uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-3 group-hover:translate-y-0 shadow-2xl whitespace-nowrap z-20 border border-white/10">
+            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-foreground text-background rounded-lg text-[8px] font-bold uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-3 group-hover:translate-y-0 shadow-2xl whitespace-nowrap z-20 border border-background/10">
                 {isUploading ? 'Uploading...' : isUrl ? 'Change Identity' : 'Upload Biometrics'}
             </div>
         </div>

@@ -64,7 +64,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                     </button>
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden h-8 w-8 flex items-center justify-center text-muted-foreground border border-border rounded-sm hover:bg-muted transition-all"
+                        className="lg:hidden h-8 w-8 flex items-center justify-center text-foreground dark:text-muted-foreground border border-black dark:border-border rounded-sm hover:bg-black hover:text-white dark:hover:bg-muted transition-all"
                     >
                         <Menu className="h-4 w-4" />
                     </button>
@@ -73,7 +73,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                     <div className="relative w-full max-w-md group hidden lg:block ml-2">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 transition-colors" />
                         <input
-                            className="w-full h-8 bg-slate-100/30 dark:bg-slate-900/40 border border-border/80 rounded-sm pl-9 pr-10 text-[13px] text-foreground placeholder:text-muted-foreground focus:bg-background focus:ring-1 focus:ring-primary/20 outline-none transition-all"
+                            className="w-full h-8 bg-white border border-black dark:bg-card dark:border-border rounded-sm pl-9 pr-10 text-[13px] text-foreground placeholder:text-black/50 dark:placeholder:text-muted-foreground focus:ring-1 focus:ring-black dark:focus:ring-primary/20 outline-none transition-all"
                             placeholder="Clinical directory query..."
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -82,17 +82,17 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                                 }
                             }}
                         />
-                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden xl:flex items-center px-1 py-0.5 border border-border/60 rounded bg-muted/30">
-                            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">CMD+K</span>
+                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden xl:flex items-center px-1 py-0.5 border border-black dark:border-border/60 rounded bg-white dark:bg-muted/30">
+                            <span className="text-[8px] font-bold text-foreground dark:text-muted-foreground uppercase tracking-tighter">CMD+K</span>
                         </div>
                     </div>
                 </div>
 
                 {/* System Controls */}
                 <div className="flex items-center gap-3">
-                    <div className="hidden xl:flex items-center gap-2 mr-4 opacity-70">
-                        <div className="h-1 w-1 rounded-full bg-emerald-500" />
-                        <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.15em]">Secure Node</span>
+                    <div className="hidden xl:flex items-center gap-2 mr-4">
+                        <div className="h-1 w-1 rounded-full bg-black dark:bg-emerald-500" />
+                        <span className="text-[9px] font-bold text-foreground dark:text-muted-foreground uppercase tracking-[0.15em]">Secure Node</span>
                     </div>
 
                     <InstallPWA />
@@ -100,13 +100,13 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => router.push('/notifications')}
-                            className="h-8 w-8 flex items-center justify-center text-muted-foreground border border-border/60 rounded-sm hover:bg-muted transition-all"
+                            className="h-8 w-8 flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all"
                         >
                             <Bell className="h-3.5 w-3.5" />
                         </button>
                         <button
                             onClick={() => router.push('/settings')}
-                            className="h-8 w-8 hidden md:flex items-center justify-center text-muted-foreground border border-border/60 rounded-sm hover:bg-muted transition-all"
+                            className="h-8 w-8 hidden md:flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all"
                         >
                             <Settings2 className="h-3.5 w-3.5" />
                         </button>
@@ -118,9 +118,9 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => router.push('/settings')}
-                                className="flex items-center gap-2.5 pl-1.5 pr-2.5 h-8 border border-border/60 rounded-sm hover:bg-muted/50 transition-all max-w-[180px]"
+                                className="flex items-center gap-2.5 pl-1.5 pr-2.5 h-8 border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white transition-all max-w-[180px]"
                             >
-                                <div className="h-5 w-5 bg-slate-100 dark:bg-transparent dark:border dark:border-white/20 rounded-sm flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 overflow-hidden">
+                                <div className="h-5 w-5 bg-white border border-black dark:bg-transparent dark:border dark:border-white/20 rounded-sm flex items-center justify-center text-black dark:text-slate-400 shrink-0 overflow-hidden">
                                     {profile?.image ? (
                                         <img
                                             src={profile.image}
@@ -143,7 +143,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                             </button>
                             <button
                                 onClick={logout}
-                                className="h-8 w-8 flex items-center justify-center text-muted-foreground border border-border/60 rounded-sm hover:text-rose-600 transition-all"
+                                className="h-8 w-8 flex items-center justify-center text-foreground border border-black dark:border-border/60 rounded-sm hover:bg-black hover:text-white dark:hover:text-rose-600 transition-all"
                             >
                                 <LogOut className="h-3.5 w-3.5" />
                             </button>

@@ -60,13 +60,13 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     </div>
                     <div>
                         <span className="text-base font-serif font-medium tracking-tight text-foreground leading-none block">VetScribe</span>
-                        <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.1em] mt-1 block">Veterinary Assistant</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase tracking-[0.1em] mt-1 block">Veterinary Assistant</span>
                     </div>
                 </div>
 
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-7 w-7 border border-border/60 rounded-sm flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"
+                    className="h-7 w-7 border border-black dark:border-border/60 rounded-sm flex items-center justify-center text-foreground dark:text-muted-foreground hover:bg-black hover:text-white dark:hover:bg-muted transition-all"
                 >
                     {isCollapsed ? <ChevronRight className="h-3 w-3 no-demote" /> : <ChevronLeft className="h-3 w-3 no-demote" />}
                 </button>
@@ -82,7 +82,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     return (
                         <div key={item.name}>
                             {/* Structural Separator for grouping (visual anchor) */}
-                            {index === 3 && <div className="h-px bg-border/40 mx-3 my-4" />}
+                            {index === 3 && <div className="h-px bg-black dark:bg-border/40 mx-3 my-4" />}
 
                             <Link
                                 href={item.href}
@@ -91,7 +91,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                                     "group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 relative",
                                     isActive
                                         ? "nav-item-active"
-                                        : "text-muted-foreground hover:bg-slate-100/50 dark:hover:bg-slate-800/30 hover:text-foreground"
+                                        : "text-foreground hover:bg-black hover:text-white dark:hover:bg-slate-800/30 transition-all duration-100"
                                 )}
                             >
                                 {/* Subtle Left Indicator */}
@@ -101,7 +101,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
                                 <item.icon className={cn(
                                     "h-4 w-4 shrink-0 transition-opacity",
-                                    isActive ? "opacity-100" : "opacity-60"
+                                    isActive ? "opacity-100" : "opacity-100 dark:opacity-60"
                                 )} />
 
                                 {!isCollapsed && (
@@ -119,15 +119,15 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
             </nav>
 
             {/* Infrastructure Metadata */}
-            <div className="p-4 border-t border-border/40 bg-slate-50/30 dark:bg-slate-950/20">
+            <div className="p-4 border-t border-border/40 bg-muted/30">
                 {!isCollapsed ? (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.12em] leading-none">System Load</span>
-                            <div className="h-1 w-1 rounded-full bg-emerald-500/80" />
+                            <span className="text-[9px] font-bold text-foreground dark:text-muted-foreground uppercase tracking-[0.12em] leading-none">System Load</span>
+                            <div className="h-1 w-1 rounded-full bg-black dark:bg-emerald-500/80" />
                         </div>
-                        <div className="h-0.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full w-[92%] bg-slate-400 dark:bg-slate-600" />
+                        <div className="h-0.5 w-full bg-white border border-black dark:border-none dark:bg-muted rounded-full overflow-hidden">
+                            <div className="h-full w-[92%] bg-black dark:bg-border" />
                         </div>
                     </div>
                 ) : (

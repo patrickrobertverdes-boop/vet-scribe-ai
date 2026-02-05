@@ -52,45 +52,87 @@
     --foreground: 0 0% 0%;
     --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
+    --secondary: 0 0% 100%;
     --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
-    /* Increased contrast */
-    --accent: 0 0% 96%;
+    --muted: 0 0% 100%;
+    --muted-foreground: 0 0% 0%;
+    --accent: 0 0% 100%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 88%;
+    --border: 0 0% 0%;
     --input: 0 0% 100%;
     --ring: 0 0% 0%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
+
+    /* Force all common utility colors to black/white for strict theme */
+    --color-slate-50: #ffffff;
+    --color-slate-100: #ffffff;
+    --color-slate-200: #ffffff;
+    --color-slate-300: #ffffff;
+    --color-slate-400: #000000;
+    --color-slate-500: #000000;
+    --color-slate-600: #000000;
+    --color-slate-700: #000000;
+    --color-slate-800: #000000;
+    --color-slate-900: #000000;
+
+    --color-emerald-50: #ffffff;
+    --color-emerald-500: #000000;
+    --color-emerald-600: #000000;
+
+    --color-rose-50: #ffffff;
+    --color-rose-500: #000000;
+    --color-rose-600: #000000;
+
+    --color-blue-50: #ffffff;
+    --color-blue-500: #000000;
+    --color-blue-600: #000000;
   }
 
   .dark {
-    --background: 222 47% 4%;
-    /* Quieter background */
-    --foreground: 210 40% 95%;
-    --primary: 215 25% 90%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 32% 10%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 32% 10%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 215 25% 90%;
-    --accent-foreground: 222 47% 11%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 40%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 32% 16%;
-    --input: 217 32% 10%;
-    --ring: 215 25% 90%;
-    --card: 222 47% 6%;
-    --card-foreground: 210 40% 95%;
-    --popover: 222 47% 6%;
-    --popover-foreground: 210 40% 95%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 5%;
+    --ring: 0 0% 100%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Restore colors in dark mode */
+    --color-slate-50: oklch(0.984 0.003 247.858);
+    --color-slate-100: oklch(0.968 0.007 247.896);
+    --color-slate-200: oklch(0.923 0.01 248.865);
+    --color-slate-300: oklch(0.869 0.013 248.839);
+    --color-slate-400: oklch(0.704 0.015 249.713);
+    --color-slate-500: oklch(0.554 0.016 257.417);
+    --color-slate-600: oklch(0.446 0.03 256.802);
+    --color-slate-700: oklch(0.372 0.033 257.581);
+    --color-slate-800: oklch(0.279 0.041 260.031);
+    --color-slate-900: oklch(0.208 0.042 265.755);
+
+    --color-emerald-50: oklch(0.979 0.011 162.312);
+    --color-emerald-500: oklch(0.637 0.146 163.228);
+    --color-emerald-600: oklch(0.519 0.129 162.935);
+
+    --color-rose-50: oklch(0.977 0.01 11.233);
+    --color-rose-500: oklch(0.618 0.207 20.372);
+    --color-rose-600: oklch(0.534 0.19 14.778);
   }
 }
 
@@ -177,16 +219,25 @@
     outline: none;
   }
 
-  /* Icon Demotion */
+  /* Icon Demotion - Disabled in light mode for strict black */
   svg:not(.no-demote) {
-    opacity: 0.6;
+    opacity: 1;
     transform: scale(0.92);
     /* Slightly smaller */
     transition: all 0.2s ease;
   }
 
+  .dark svg:not(.no-demote) {
+    opacity: 0.6;
+  }
+
   .active svg,
   .group:hover svg {
+    opacity: 1 !important;
+  }
+
+  .dark .active svg,
+  .dark .group:hover svg {
     opacity: 0.9 !important;
   }
 }
@@ -194,11 +245,13 @@
 /* Structural Utilities */
 @utility nav-item-active {
   font-weight: 600 !important;
-  background: rgba(15, 23, 42, 0.04) !important;
+  background: transparent !important;
+  border: 1px solid black !important;
   color: hsl(var(--foreground)) !important;
 
   .dark & {
     background: rgba(255, 255, 255, 0.03) !important;
+    border: none !important;
   }
 }
 
@@ -220,6 +273,10 @@
 
 /* Sidebar Custom Extensions */
 .sidebar svg {
+  opacity: 1;
+}
+
+.dark .sidebar svg {
   opacity: 0.6;
 }
 

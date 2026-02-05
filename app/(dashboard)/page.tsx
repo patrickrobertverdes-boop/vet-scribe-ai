@@ -118,10 +118,10 @@ export default function DashboardPage() {
                         <span className="text-[11px] font-medium uppercase tracking-widest">Analytics</span>
                     </button>
 
-                    <div className="h-10 border border-divider px-4 rounded flex items-center gap-3 bg-slate-50/50 dark:bg-slate-900/50">
-                        <Calendar className="h-4 w-4 text-primary/60" />
+                    <div className="h-10 border border-black dark:border-divider px-4 rounded flex items-center gap-3 bg-white dark:bg-slate-900/50">
+                        <Calendar className="h-4 w-4 text-black dark:text-primary/60" />
                         <div className="text-left">
-                            <p className="text-[11px] font-medium text-foreground">
+                            <p className="text-[11px] font-bold text-foreground">
                                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </p>
                         </div>
@@ -148,22 +148,22 @@ export default function DashboardPage() {
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-card border border-border rounded-xl p-6 group transition-all hover:border-black dark:hover:border-white shadow-sm"
+                        className="bg-card border border-black dark:border-border rounded-xl p-6 group transition-all hover:bg-black hover:text-white dark:hover:border-white shadow-none"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className={cn(
-                                "h-10 w-10 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors",
+                                "h-10 w-10 rounded-lg flex items-center justify-center border border-black bg-white group-hover:bg-white group-hover:text-black transition-colors shrink-0",
                                 stat.color
                             )}>
                                 <stat.icon className="h-4 w-4" />
                             </div>
-                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-black dark:border-border text-foreground dark:text-muted-foreground group-hover:border-white group-hover:text-white transition-colors">
                                 {stat.trend}
                             </span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">{stat.label}</p>
-                            <p className="text-3xl font-serif font-medium tracking-tight text-black dark:text-white">{stat.value}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-foreground dark:text-muted-foreground group-hover:text-white/80 transition-colors">{stat.label}</p>
+                            <p className="text-3xl font-serif font-medium tracking-tight text-foreground group-hover:text-white transition-colors">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -176,16 +176,16 @@ export default function DashboardPage() {
                     <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-sm transition-colors">
                         <div className="px-8 py-5 border-b border-border/60 flex items-center justify-between bg-card transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="h-9 w-9 border border-slate-200 dark:border-slate-800 rounded flex items-center justify-center text-slate-400 dark:text-slate-500">
+                                <div className="h-9 w-9 border border-black dark:border-border rounded flex items-center justify-center text-foreground">
                                     <ListChecks className="h-4 w-4" />
                                 </div>
-                                <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-widest">Protocol Checklist</h2>
+                                <h2 className="text-xs font-bold text-foreground uppercase tracking-widest">Protocol Checklist</h2>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Link href="/checklist" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-black dark:hover:text-white transition-all uppercase tracking-widest border-b border-transparent hover:border-black dark:hover:border-white leading-none">
+                                <Link href="/checklist" className="text-[10px] font-bold text-foreground hover:underline transition-all uppercase tracking-widest leading-none">
                                     Index
                                 </Link>
-                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
+                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-black dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-slate-200 border border-black rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
                                     + Add
                                 </Link>
                             </div>
@@ -194,33 +194,33 @@ export default function DashboardPage() {
                         <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-900 relative min-h-[300px]">
                             {isLoadingChecklist ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <Loader2 className="h-5 w-5 animate-spin text-slate-400 dark:text-slate-600" />
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-4">Syncing Archive...</p>
+                                    <Loader2 className="h-5 w-5 animate-spin text-black dark:text-white" />
+                                    <p className="text-[10px] font-bold text-black dark:text-white uppercase tracking-widest mt-4">Syncing Archive...</p>
                                 </div>
                             ) : checklist.length === 0 ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                                    <Shield className="h-12 w-12 text-slate-200 dark:text-slate-800 mb-4" />
+                                    <Shield className="h-12 w-12 text-black/10 dark:text-slate-800 mb-4" />
                                     <p className="text-[10px] font-bold text-black dark:text-white uppercase tracking-widest mb-1">No Active Tasks</p>
-                                    <p className="text-sm text-slate-400 dark:text-slate-600 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
+                                    <p className="text-sm text-black dark:text-slate-600 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
                                 </div>
                             ) : (
                                 checklist.slice(0, 5).map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex items-center gap-5 px-8 py-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all cursor-pointer group"
+                                        className="flex items-center gap-5 px-8 py-5 hover:bg-black hover:text-white dark:hover:bg-slate-900/50 transition-all cursor-pointer group"
                                         onClick={() => handleToggleCheckItem(item.id, item.completed)}
                                     >
                                         <div className={cn(
                                             "h-5 w-5 rounded border transition-all flex items-center justify-center shrink-0",
                                             item.completed
-                                                ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black"
-                                                : "border-slate-200 dark:border-slate-800 group-hover:border-black dark:group-hover:border-slate-600"
+                                                ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black group-hover:bg-white group-hover:border-white group-hover:text-black"
+                                                : "border-black dark:border-slate-800 group-hover:border-white"
                                         )}>
                                             {item.completed && <Check className="h-3 w-3" />}
                                         </div>
                                         <span className={cn(
-                                            "text-sm font-medium flex-1 leading-relaxed",
-                                            item.completed ? "line-through text-slate-400 dark:text-slate-600" : "text-black dark:text-slate-300"
+                                            "text-sm font-bold flex-1 leading-relaxed",
+                                            item.completed ? "line-through opacity-50" : "text-foreground"
                                         )}>
                                             {item.text}
                                         </span>
@@ -228,8 +228,8 @@ export default function DashboardPage() {
                                 ))
                             )}
                             {!isLoadingChecklist && checklist.length > 5 && (
-                                <div className="px-8 py-4 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex justify-center">
-                                    <Link href="/checklist" className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest hover:text-black dark:hover:text-white">
+                                <div className="px-8 py-4 bg-white dark:bg-slate-900/30 border-t border-black dark:border-slate-800 flex justify-center">
+                                    <Link href="/checklist" className="text-[10px] font-bold text-foreground uppercase tracking-widest hover:underline">
                                         View {checklist.length - 5} More Tasks
                                     </Link>
                                 </div>
@@ -246,47 +246,47 @@ export default function DashboardPage() {
                         <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleInitializeScribe}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:border-foreground hover:shadow-sm transition-all group bg-card"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-black dark:border-border hover:bg-black hover:text-white dark:hover:border-foreground transition-all group bg-white dark:bg-card"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-black border border-black dark:text-slate-400 bg-white dark:bg-slate-800 group-hover:bg-white group-hover:text-black transition-all shrink-0">
                                     <Wand2 className="h-5 w-5" />
                                 </div>
                                 <div className="text-left py-2">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Voice Protocol</p>
-                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-black dark:group-hover:text-white">Launch AI Scribe</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-black/60 dark:text-slate-500 mb-1 group-hover:text-white/60">Voice Protocol</p>
+                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-white">Launch AI Scribe</p>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => setShowAICreator(true)}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:border-foreground hover:shadow-sm transition-all group bg-card"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-black dark:border-border hover:bg-black hover:text-white dark:hover:border-foreground transition-all group bg-white dark:bg-card"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-black border border-black dark:text-slate-400 bg-white dark:bg-slate-800 group-hover:bg-white group-hover:text-black transition-all shrink-0">
                                     <Plus className="h-5 w-5" />
                                 </div>
                                 <div className="text-left py-2">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Patient Database</p>
-                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-black dark:group-hover:text-white">Add New Patient</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-black/60 dark:text-slate-500 mb-1 group-hover:text-white/60">Patient Database</p>
+                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-white">Add New Patient</p>
                                 </div>
                             </button>
                         </div>
 
                         {/* System Health Module */}
-                        <div className="pt-8 border-t border-slate-100 dark:border-slate-800 mt-auto space-y-5">
+                        <div className="pt-8 border-t border-black dark:border-slate-800 mt-auto space-y-5">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">System Integrity</span>
+                                    <div className="h-1.5 w-1.5 rounded-full bg-black dark:bg-emerald-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">System Integrity</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-500/20">Nominal</span>
+                                <span className="text-[10px] font-bold text-black dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-black dark:border-emerald-500/20">Nominal</span>
                             </div>
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                                     <span>Sync Latency</span>
                                     <span>24ms</span>
                                 </div>
-                                <div className="h-1 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                                    <div className="h-full w-full bg-slate-300 dark:bg-slate-700 rounded-full w-[2%]" />
+                                <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full w-full bg-border rounded-full w-[2%]" />
                                 </div>
                             </div>
                         </div>

@@ -57,10 +57,8 @@ export default function DashboardLayout({
     // Gate removed
 
     return (
-        <div className="flex bg-mesh min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none fixed" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none fixed" />
+        <div className="flex bg-background min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
+            {/* Ambient Background Glows Removed for high contrast */}
 
             {/* Mobile Sidebar Overlay */}
             {isMobileMenuOpen && (

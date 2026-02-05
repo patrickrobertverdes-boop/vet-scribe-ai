@@ -24,7 +24,7 @@ export function MobileNav() {
 
 
     return (
-        <div className="lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 safe-bottom shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.03)] transition-transform duration-300">
+        <div className="lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 bg-white dark:bg-slate-950 border-t border-black dark:border-slate-800 safe-bottom shadow-none transition-transform duration-300">
             <nav className="h-[4.5rem] grid grid-cols-4 w-full">
                 {navigation.map((item) => {
                     const isActive = item.activeMatch
@@ -37,7 +37,7 @@ export function MobileNav() {
                             href={item.href}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-1 w-full h-full active:scale-95 transition-all text-center select-none",
-                                isActive ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                                isActive ? "text-black dark:text-white" : "text-black dark:text-slate-500"
                             )}
                         >
                             <item.icon className={cn(
