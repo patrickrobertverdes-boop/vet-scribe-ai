@@ -137,8 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, [isLoggingIn, isSigningUp]);
 
-    const signup = async (email: string, password: string, firstName: string, lastName: string) => {
+    const signup = async (emailRaw: string, password: string, firstName: string, lastName: string) => {
         if (!auth || !db) throw new Error("Firebase configuration missing");
+        const email = emailRaw.toLowerCase().trim();
 
         setIsSigningUp(true);
         const correlationId = `signup_client_${Date.now()}`;
@@ -181,6 +182,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             console.log(`[STAGE: WEBHOOK-SUCCESS] [${correlationId}] Server confirmed webhook dispatch`);
+
+            // 4. Immediate Provisioning (Ensure UI works even if n8n is slow)
+            console.log(`[STAGE: PROVISION] [${correlationId}] Auto-provisioning profile...`);
+            const idToken = await user.getIdToken();
+            await fetch('/api/auth/provision', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ displayName: `${firstName} ${lastName}`, uid: user.uid })
+            }).catch(e => console.warn("Background auto-provisioning failed:", e));
 
             // 5. Finalize UI
             toast.success('Registration successful.');
@@ -234,8 +247,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const login = async (email: string, password: string) => {
+    const login = async (emailRaw: string, password: string) => {
         if (!auth) throw new Error("Firebase auth not initialized");
+        const email = emailRaw.toLowerCase().trim();
         const correlationId = `login_client_${Date.now()}`;
         console.log(`[STAGE: LOGIN-START] [${correlationId}] Attempting entry for: ${email}`);
 
@@ -312,9 +326,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
 
             let message = error.message;
-            if (error.code === 'auth/user-not-found') message = 'Account not found in registry.';
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') message = 'Access Key invalid.';
-            if (error.code === 'auth/too-many-requests') message = 'Account locked due to attempts. Resend link or try later.';
+            const code = error.code;
+
+            console.error(`[AUTH-ERROR-CODE] ${code}`);
+
+            if (code === 'auth/user-not-found') message = 'Account not found in registry.';
+            else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+                message = 'Access Key invalid. If you registered with Google, please use the Google Workspace button.';
+            }
+            else if (code === 'auth/too-many-requests') message = 'Account locked due to attempts. Resend link or try later.';
+            else if (code === 'auth/invalid-email') message = 'Email format invalid.';
 
             toast.error(message);
             throw new Error(message);
