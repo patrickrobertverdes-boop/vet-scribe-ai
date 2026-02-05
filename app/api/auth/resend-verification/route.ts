@@ -15,8 +15,12 @@ export async function POST(req: NextRequest) {
 
         console.log(`[Auth-Webhook] [${correlationId}] Generating verification link for: ${email}`);
 
+        const appUrl = process.env.NODE_ENV === 'production'
+            ? 'https://vets-scribe.web.app'
+            : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+
         const actionCodeSettings = {
-            url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://vets-scribe.web.app'}/login`,
+            url: `${appUrl}/login`,
         };
 
         const firebaseLink = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings);
@@ -30,7 +34,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Failed to generate security token', correlationId }, { status: 500 });
         }
 
-        const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vets-scribe.web.app'}/auth/verify?oobCode=${oobCode}`;
+        const verificationLink = `${appUrl}/auth/verify?oobCode=${oobCode}`;
 
         // Resend verification webhook (PROD) - DISTINCT from signup
         const n8nWebhookUrl = "https://vbintelligenceblagaverde.app.n8n.cloud/webhook/2da4cd33-aee8-422c-bc07-d5826e915e7c";

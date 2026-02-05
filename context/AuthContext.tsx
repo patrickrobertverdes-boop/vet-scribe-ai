@@ -259,6 +259,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            // CRITICAL FOR MOBILE: Force-refresh the user token to get latest claims (like emailVerified)
+            console.log(`[Auth-Flow] [${user.uid}] Reloading user profile for latest verification status...`);
+            await user.reload();
+
             // Extra safety: double check providerData after signin
             const hasGoogleProvider = user.providerData.some(p => p.providerId.includes('google'));
             if (hasGoogleProvider) {
@@ -269,6 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             if (!user.emailVerified) {
+                console.warn(`[Auth-Flow] [${user.uid}] Login blocked: Email not verified.`);
                 toast.error('Please verify your email first.');
                 router.push('/verify-email');
                 return;
