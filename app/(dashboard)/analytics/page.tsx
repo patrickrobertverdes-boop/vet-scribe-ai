@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
         // In a real app, this would fetch fresh data from Firebase
         await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay for better UX
         setIsRefreshing(false);
-        toast.success('Statistical matrix synchronized');
+        toast.success('Statistical data synchronized');
     };
 
     const handleExport = () => {
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded-md bg-slate-900/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest border border-slate-200/50">
-                            Performance Intelligence Matrix
+                            Performance Intelligence
                         </span>
                     </div>
                     <h1 className="text-4xl font-bold text-foreground tracking-tight leading-none">

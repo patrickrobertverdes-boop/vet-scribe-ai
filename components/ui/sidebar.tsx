@@ -60,7 +60,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     </div>
                     <div>
                         <span className="text-base font-serif font-medium tracking-tight text-foreground leading-none block">VetScribe</span>
-                        <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.1em] mt-1 block">Clinical Data Matrix</span>
+                        <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.1em] mt-1 block">Veterinary Assistant</span>
                     </div>
                 </div>
 
@@ -72,7 +72,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                 </button>
             </div>
 
-            {/* Navigation Matrix */}
+            {/* Navigation */}
             <nav className="flex-1 px-3 py-6 overflow-y-auto custom-scrollbar space-y-0.5">
                 {navigation.map((item, index) => {
                     const isActive = item.activeMatch

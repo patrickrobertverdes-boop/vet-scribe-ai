@@ -3,11 +3,14 @@ import toast from 'react-hot-toast';
 
 interface UseDeepgramReturn {
     isListening: boolean;
+    isPaused: boolean;
     transcript: string;
     interimTranscript: string;
     startListening: () => void;
     stopListening: () => void;
+    togglePause: (paused: boolean) => void;
     resetTranscript: () => void;
+    setTranscript: (text: string) => void;
     clearError: () => void;
     error: string | null;
     connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' | 'finished';
@@ -16,7 +19,8 @@ interface UseDeepgramReturn {
 
 export function useDeepgram(): UseDeepgramReturn {
     const [isListening, setIsListening] = useState(false);
-    const [transcript, setTranscript] = useState('');
+    const [isPaused, setIsPaused] = useState(false);
+    const [transcript, setInternalTranscript] = useState('');
     const [interimTranscript, setInterimTranscript] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error' | 'finished'>('disconnected');
@@ -29,11 +33,12 @@ export function useDeepgram(): UseDeepgramReturn {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const finalTextRef = useRef('');
     const statusRef = useRef<'disconnected' | 'connecting' | 'connected' | 'error' | 'finished'>('disconnected');
+    const isPausedRef = useRef(false);
 
-    const updateStatus = (newStatus: typeof connectionStatus) => {
+    const updateStatus = useCallback((newStatus: typeof connectionStatus) => {
         statusRef.current = newStatus;
         setConnectionStatus(newStatus);
-    };
+    }, []);
 
     const cleanup = useCallback(() => {
         console.log('[Scribe] 🧹 Cleaning up session...');
@@ -76,8 +81,16 @@ export function useDeepgram(): UseDeepgramReturn {
         console.log('[Scribe] 🛑 Stopping...');
         cleanup();
         setIsListening(false);
+        setIsPaused(false);
+        isPausedRef.current = false;
         updateStatus('finished');
-    }, [cleanup]);
+    }, [cleanup, updateStatus]);
+
+    const togglePause = useCallback((paused: boolean) => {
+        console.log(`[Scribe] ${paused ? '⏸️ Pausing' : '▶️ Resuming'}...`);
+        setIsPaused(paused);
+        isPausedRef.current = paused;
+    }, []);
 
     const startListening = useCallback(async () => {
         if (statusRef.current === 'connecting' || statusRef.current === 'connected') return;
@@ -86,9 +99,12 @@ export function useDeepgram(): UseDeepgramReturn {
         cleanup();
         setError(null);
         updateStatus('connecting');
-        setTranscript('');
+        // Removed setInternalTranscript('') and finalTextRef.current = '' 
+        // to prevent clearing data on reconnection/resume.
+        // Consumer should call resetTranscript() when starting a fresh session.
         setInterimTranscript('');
-        finalTextRef.current = '';
+        setIsPaused(false);
+        isPausedRef.current = false;
 
         // Connection Timeout Safety
         const connectionTimeout = setTimeout(() => {
@@ -113,18 +129,17 @@ export function useDeepgram(): UseDeepgramReturn {
 
             const audioStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
                 }
             });
-            console.log('[Scribe] ✅ Microphone access granted (Raw PCM Capture)');
+            console.log('[Scribe] ✅ Microphone access granted');
 
             setStream(audioStream);
             streamRef.current = audioStream;
 
             const isPcmCapable = !!(window.AudioWorklet && !/iPhone|iPad|iPod|Safari/i.test(navigator.userAgent));
-            console.log(`[Scribe] Mode: ${isPcmCapable ? 'PCM (Optimized)' : 'MediaRecorder (Universal)'}`);
 
             // 3. Setup Audio Handler (Hybrid)
             if (isPcmCapable) {
@@ -166,7 +181,6 @@ export function useDeepgram(): UseDeepgramReturn {
 
             connectionRef.current = ws;
 
-            // --- KeepAlive mechanism ---
             const keepAlive = setInterval(() => {
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ type: 'KeepAlive' }));
@@ -176,12 +190,12 @@ export function useDeepgram(): UseDeepgramReturn {
             ws.onopen = () => {
                 clearTimeout(connectionTimeout);
                 console.log('🟢 [Scribe] Link established');
-                toast.success(isPcmCapable ? 'Connected (PCM)' : 'Connected (Opus)');
                 updateStatus('connected');
                 setIsListening(true);
 
                 if (isPcmCapable && workletNodeRef.current) {
                     workletNodeRef.current.port.onmessage = (event) => {
+                        if (isPausedRef.current) return;
                         const pcmData = event.data;
                         if (ws.readyState === WebSocket.OPEN && pcmData instanceof ArrayBuffer) {
                             ws.send(pcmData);
@@ -193,14 +207,13 @@ export function useDeepgram(): UseDeepgramReturn {
                     });
                     mediaRecorderRef.current = mediaRecorder;
                     mediaRecorder.ondataavailable = (e) => {
+                        if (isPausedRef.current) return;
                         if (e.data.size > 0 && ws.readyState === WebSocket.OPEN) {
                             ws.send(e.data);
                         }
                     };
                     mediaRecorder.start(250);
                 }
-
-                console.log(`[Scribe] 📡 Streaming audio (${isPcmCapable ? 'PCM' : 'Opus'})...`);
             };
 
             ws.onmessage = (event) => {
@@ -211,11 +224,9 @@ export function useDeepgram(): UseDeepgramReturn {
 
                     if (text && text.length > 0) {
                         const isFinal = data.is_final === true;
-                        console.log(`[Scribe] DG Message: "${text}" (final: ${isFinal})`);
-
                         if (isFinal) {
                             finalTextRef.current = (finalTextRef.current + ' ' + text).trim();
-                            setTranscript(finalTextRef.current);
+                            setInternalTranscript(finalTextRef.current);
                             setInterimTranscript('');
                         } else {
                             setInterimTranscript(text);
@@ -223,35 +234,37 @@ export function useDeepgram(): UseDeepgramReturn {
                     } else if (data.is_final) {
                         setInterimTranscript('');
                     }
-                } catch (e) {
-                    console.error('[Scribe] Error parsing message:', e);
-                }
+                } catch (e) { /* ignore */ }
             };
 
             ws.onerror = (err) => {
-                console.error('🔴 [Scribe] Stream Error:', err);
-                setError('Connection validation failed.');
                 updateStatus('error');
             };
 
             ws.onclose = (ev) => {
                 clearInterval(keepAlive);
-                console.log('🟡 [Scribe] Link closed:', ev.code, ev.reason);
                 if (statusRef.current === 'connected') updateStatus('finished');
                 setIsListening(false);
             };
 
         } catch (err: any) {
-            clearTimeout(connectionTimeout); // Clear timeout if init fails immediately
-            console.error('❌ [Scribe] Fatal Error:', err);
-            const msg = err.message || 'Initialization failed';
-            setError(msg);
-            toast.error(`Error: ${msg}`);
+            clearTimeout(connectionTimeout);
             updateStatus('error');
             cleanup();
-            setIsListening(false); // Ensure UI resets
+            setIsListening(false);
         }
-    }, [cleanup]);
+    }, [cleanup, updateStatus]);
+
+    const resetTranscript = useCallback(() => {
+        setInternalTranscript('');
+        setInterimTranscript('');
+        finalTextRef.current = '';
+    }, []);
+
+    const setTranscript = useCallback((text: string) => {
+        finalTextRef.current = text;
+        setInternalTranscript(text);
+    }, []);
 
     useEffect(() => {
         return () => cleanup();
@@ -259,17 +272,16 @@ export function useDeepgram(): UseDeepgramReturn {
 
     return {
         isListening,
+        isPaused,
         transcript,
         interimTranscript,
         startListening,
         stopListening,
-        resetTranscript: () => {
-            setTranscript('');
-            setInterimTranscript('');
-            finalTextRef.current = '';
-        },
+        togglePause,
+        resetTranscript,
+        setTranscript,
         error,
-        clearError: () => setError(null),
+        clearError: useCallback(() => setError(null), []),
         connectionStatus,
         stream
     };

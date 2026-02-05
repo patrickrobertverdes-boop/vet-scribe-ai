@@ -141,7 +141,7 @@ export default function PatientProfilePage() {
                 </div>
                 <h2 className="text-xl font-serif font-medium text-foreground mb-3">Patient Record Deficit</h2>
                 <p className="max-w-xs text-muted-foreground mb-8">
-                    The requested identifier <span className="font-mono text-foreground">{params.id}</span> does not exist within the primary data matrix.
+                    The requested identifier <span className="font-mono text-foreground">{params.id}</span> does not exist within the primary data registry.
                 </p>
                 <Link href="/patients" className="btn-premium bg-primary text-primary-foreground">
                     <ArrowLeft className="h-4 w-4 mr-2" /> Return to Directory
@@ -193,7 +193,7 @@ export default function PatientProfilePage() {
                 </div>
             </div>
 
-            {/* Structural Profile Matrix */}
+            {/* Structural Profile */}
             <div className="surface p-6 sm:p-10 flex flex-col lg:flex-row gap-8 items-center lg:items-center relative bg-card">
                 <div className="relative group shrink-0">
                     <div
@@ -314,7 +314,7 @@ export default function PatientProfilePage() {
                                     <div className="h-0.5 flex-1 bg-white/10 rounded-full overflow-hidden">
                                         <div className="h-full w-2/3 bg-primary" />
                                     </div>
-                                    <span className="text-[8px] font-medium text-white uppercase tracking-widest opacity-60">Live Matrix</span>
+                                    <span className="text-[8px] font-medium text-white uppercase tracking-widest opacity-60">Live Status</span>
                                 </div>
                             </div>
                         </div>

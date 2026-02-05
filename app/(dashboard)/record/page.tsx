@@ -46,16 +46,23 @@ function RecordPageContent() {
     const { clinicalModel } = useDesignStore();
 
     // Hooks
-    const { isListening, transcript, interimTranscript, startListening, stopListening, resetTranscript, error: micError, clearError: clearMicError, connectionStatus, stream } = useDeepgram();
+    const {
+        isListening,
+        isPaused,
+        transcript,
+        interimTranscript,
+        startListening,
+        stopListening,
+        togglePause,
+        resetTranscript,
+        setTranscript,
+        error: micError,
+        clearError: clearMicError,
+        connectionStatus,
+        stream
+    } = useDeepgram();
 
-    // Debug logging to verify UI state connection
-    useEffect(() => {
-        if (isListening) {
-            console.log('[UI Debug] Interim:', interimTranscript);
-            console.log('[UI Debug] Final:', transcript);
-        }
-    }, [interimTranscript, transcript, isListening]);
-
+    const [sessionActive, setSessionActive] = useState(false);
     const [generatedSoap, setGeneratedSoap] = useState<SoapNote | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [geminiError, setGeminiError] = useState<string | null>(null);
@@ -67,26 +74,61 @@ function RecordPageContent() {
     const [patient, setPatient] = useState<any>(null);
     const [allPatients, setAllPatients] = useState<Patient[]>([]);
 
+    // Load draft on mount
     useEffect(() => {
-        const initData = async () => {
-            if (!user) return;
+        const initFromDraft = async () => {
+            const draftTranscript = localStorage.getItem('scribe_draft_transcript');
+            const draftActive = localStorage.getItem('scribe_draft_active') === 'true';
+            const draftPatientId = localStorage.getItem('scribe_draft_patient_id');
 
-            // 1. If Patient ID is in URL, fetch that specific patient
-            if (urlPatientId) {
-                const data = await firebaseService.getPatient(user.uid, urlPatientId);
-                if (data) setPatient(data);
-                else toast.error("Specified patient record not found.");
+            if (draftActive && draftTranscript) {
+                setTranscript(draftTranscript);
+                setSessionActive(true);
+
+                // If we have a patient, try to reconnect immediately for seamless resume
+                if (user && draftPatientId) {
+                    const data = await firebaseService.getPatient(user.uid, draftPatientId);
+                    if (data) {
+                        setPatient(data);
+                        // Auto-start listening if it was active
+                        startListening();
+                        toast.success('Restoring active session...');
+                    }
+                }
             }
+        };
 
-            // 2. Always fetch list for the selector if we don't have a patient yet (or even if we do, to allow switching)
-            // Optimization: Only fetch if we might need to switch or select
+        initFromDraft();
+    }, [user, setTranscript, startListening]);
+
+    // Save draft on change
+    useEffect(() => {
+        if (sessionActive || transcript) {
+            localStorage.setItem('scribe_draft_transcript', transcript);
+            localStorage.setItem('scribe_draft_active', sessionActive.toString());
+            if (patient?.id) {
+                localStorage.setItem('scribe_draft_patient_id', patient.id);
+            }
+        } else if (!isGenerating && !generatedSoap) {
+            localStorage.removeItem('scribe_draft_transcript');
+            localStorage.removeItem('scribe_draft_active');
+            localStorage.removeItem('scribe_draft_patient_id');
+        }
+    }, [transcript, sessionActive, patient, isGenerating, generatedSoap]);
+
+    useEffect(() => {
+        const initPatients = async () => {
+            if (!user) return;
             const patientsList = await firebaseService.getPatients(user.uid);
             setAllPatients(patientsList);
 
-            // 3. Fallback: If no URL ID, but we have patients, don't auto-select yet. Let user choose.
-            // Unless we want to be helpful? No, explicit choice is better for safety.
+            // If URL patient ID is present, it takes priority over draft
+            if (urlPatientId) {
+                const data = await firebaseService.getPatient(user.uid, urlPatientId);
+                if (data) setPatient(data);
+            }
         };
-        initData();
+        initPatients();
     }, [urlPatientId, user]);
 
     const handlePatientSelect = (patientId: string) => {
@@ -99,82 +141,75 @@ function RecordPageContent() {
 
     // Prevent body scroll when recording to avoid jumpy behavior
     useEffect(() => {
-        if (isListening) {
+        if (isListening && !isPaused) {
             document.body.classList.add('modal-open');
         } else {
             document.body.classList.remove('modal-open');
         }
         return () => document.body.classList.remove('modal-open');
-    }, [isListening]);
+    }, [isListening, isPaused]);
 
     const sanitizeTranscript = (text: string) => {
-        // Redact words that might trigger AI safety filters (clinical context)
         return text.replace(/\b(nigger|faggot|retard)\b/gi, "[redacted]");
     };
 
     useEffect(() => {
-        // Trigger auto-workflow when recording stops
         if (connectionStatus === 'finished' && !isGenerating && !generatedSoap) {
-            if (transcript && transcript.length > 5) { // Minimum length threshold
+            if (transcript && transcript.length > 5) {
                 handleAutoWorkflow();
             }
         }
     }, [connectionStatus]);
 
-    const toggleRecording = () => {
-        if (!isListening && !patient) {
-            toast.error("Please select a patient before starting the recording.");
+    const beginSession = () => {
+        if (!patient) {
+            toast.error("Please select a patient before starting the session.");
             return;
         }
+        setGeneratedSoap(null);
+        setSaveStatus('idle');
+        setGeminiError(null);
+        resetTranscript();
+        startListening();
+        setSessionActive(true);
+        toast.success('Capture initialized. System is transcribing.');
+    };
 
-        if (isListening) {
-            stopListening();
-            toast.success('Recording stopped. AI is preparing your SOAP note.');
-        } else {
-            setGeneratedSoap(null);
-            setSaveStatus('idle');
-            setGeminiError(null);
-            resetTranscript();
-            startListening();
-            toast.success('Microphone active. Real-time medical analysis started.');
+    const handlePauseResume = () => {
+        if (!isListening) {
+            startListening(); // Reconnect if refresh/dropped
+            toast.success('Attempting to re-establish secure link...');
+            return;
         }
+        togglePause(!isPaused);
+        if (!isPaused) toast.success('Capture paused.');
+        else toast.success('Resuming capture.');
+    };
+
+    const endSession = () => {
+        stopListening();
+        setSessionActive(false);
+        // localStorage will be cleared after generation/save
     };
 
     const handleAutoWorkflow = async () => {
         const fullTranscript = (transcript + ' ' + (interimTranscript || '')).trim();
-        console.log('📝 Current full transcript for generation:', fullTranscript);
-
-        if (!fullTranscript || fullTranscript.length < 5) {
-            console.warn('[RecordPage] Transcript too short or empty, skipping generation');
-            return;
-        }
+        if (!fullTranscript || fullTranscript.length < 5) return;
 
         setIsGenerating(true);
         setGeminiError(null);
 
         try {
-            console.log('📤 Sending to Gemini API...');
             const safeTranscript = sanitizeTranscript(fullTranscript);
-
-            // 1. Generate SOAP via AI (using the lib helper which calls /api/gemini)
             const soap = await callGemini(safeTranscript, clinicalModel);
-            console.log('✅ SOAP Note Generated:', soap);
             setGeneratedSoap(soap);
 
-            // 2. Automatically Save if patient is selected
             if (user && (urlPatientId || patient?.id)) {
-                const targetId = urlPatientId || patient?.id;
-                console.log('[RecordPage] Patient selected, performing auto-save to:', targetId);
-                await performAutoSave(targetId, fullTranscript, soap);
-            } else {
-                toast.success('SOAP generated. Select a patient to save.');
-                console.log('[RecordPage] No patient selected, awaiting manual save');
+                await performAutoSave(urlPatientId || patient?.id, fullTranscript, soap);
             }
         } catch (err: any) {
-            console.error('❌ SOAP Generation Error:', err);
-            const errorMessage = err.message || "Failed to generate notes.";
-            setGeminiError(errorMessage);
-            toast.error(`AI Error: ${errorMessage}`);
+            setGeminiError(err.message || "Failed to generate notes.");
+            toast.error(`AI Error: ${err.message}`);
         } finally {
             setIsGenerating(false);
         }
@@ -183,7 +218,6 @@ function RecordPageContent() {
     const performAutoSave = async (patientId: string, finalTranscript: string, soap: SoapNote) => {
         setSaveStatus('saving');
         try {
-            // Ensure we have metadata even if state is slightly lagged
             let metaName = patient?.name;
             let metaImage = patient?.image;
 
@@ -210,95 +244,51 @@ function RecordPageContent() {
             });
 
             setSaveStatus('saved');
-            toast.success('Record saved automatically.');
+            toast.success('Clinical record auto-saved successfully.');
         } catch (err) {
-            console.error("Auto-save failed:", err);
-            toast.error("Auto-save failed. Please use manual save.");
+            toast.error("Auto-save failed. Manual entry required.");
             setSaveStatus('idle');
         }
     };
-
 
     const handleSave = async () => {
-        if (!generatedSoap) {
-            toast.error("No SOAP note generated to save.");
-            return;
-        }
-
-        if (!user) {
-            toast.error("You must be logged in to save.");
-            return;
-        }
-
+        if (!generatedSoap || !user) return;
         setSaveStatus('saving');
-
         try {
-            // Priority: URL Patient ID > Loaded Patient ID > Selected Patient State
-            let targetPatientId = urlPatientId || patient?.id;
+            const targetPatientId = urlPatientId || patient?.id;
+            if (!targetPatientId) return;
 
-            if (!targetPatientId) {
-                // If no patient selected at all, we can't save to "individual" patient
-                // We should try to find if there's any patient, but better to ask user
-                const patients = await firebaseService.getPatients(user.uid);
-                if (patients.length > 0) {
-                    targetPatientId = patients[0].id;
-                    toast.error("No patient selected. Auto-assigning to first patient: " + patients[0].name);
-                }
-            }
-
-            if (!targetPatientId) {
-                setGeminiError("No patient identity found for record. Please select a patient first.");
-                setSaveStatus('idle');
-                toast.error("Please select a patient before saving.");
-                // trigger selector visibility if we can (by clearing patient if it was strangely null but not detected?)
-                // Actually, if targetPatientId is null, it means we are in the "Select Patient" state already or failed to match.
-                return;
-            }
+            await firebaseService.createConsultation(user.uid, targetPatientId, {
+                transcript,
+                soap: generatedSoap,
+                status: 'completed',
+                date: new Date().toISOString(),
+                soapPreview: generatedSoap.subjective?.slice(0, 100),
+                patientName: patient?.name,
+                patientImage: patient?.image
+            });
 
             setSaveStatus('saved');
-            toast.success(`Record successfully saved to patient ${targetPatientId}`);
-
-            // 2. Fire and forget parallel writes
-            // We use Promise.all to ensure they both run, but we don't block the UI *indefinitely* if one hangs.
-            // Actually, we should probably await them for a split second to ensure they started, 
-            // but for "INSTANT" feel, we trust safeWrite (or standard promise) and redirect.
-
-            // Ensure we have metadata
-            let metaName = patient?.name;
-            let metaImage = patient?.image;
-
-            if (!metaName && user) {
-                const pData = await firebaseService.getPatient(user.uid, targetPatientId);
-                if (pData) {
-                    metaName = pData.name;
-                    metaImage = pData.image;
-                }
-            }
-
-            const savePromises = [
-                firebaseService.createConsultation(user.uid, targetPatientId, {
-                    transcript,
-                    soap: generatedSoap,
-                    status: 'completed',
-                    date: new Date().toISOString(),
-                    soapPreview: generatedSoap.subjective?.slice(0, 100),
-                    patientName: metaName,
-                    patientImage: metaImage
-                }),
-                firebaseService.updatePatient(user.uid, targetPatientId, {
-                    lastVisit: new Date().toISOString().split('T')[0]
-                })
-            ];
-
-            await Promise.all(savePromises);
-            console.log('✅ Save successful');
+            toast.success('Changes committed to clinical registry.');
         } catch (err) {
-            console.error("Save Error:", err);
-            setGeminiError("Failed to initiate save.");
             setSaveStatus('idle');
-            toast.error("Failed to save record.");
+            toast.error("Failed to commit changes.");
         }
     };
+
+    // Derived Status
+    const isEstablishing = connectionStatus === 'connecting';
+
+    let sessionStatusLabel: 'IDLE' | 'CONNECTING' | 'LISTENING' | 'PAUSED' | 'STANDBY' = 'IDLE';
+    if (!sessionActive) {
+        sessionStatusLabel = 'IDLE';
+    } else if (isEstablishing) {
+        sessionStatusLabel = 'CONNECTING';
+    } else if (isListening) {
+        sessionStatusLabel = isPaused ? 'PAUSED' : 'LISTENING';
+    } else {
+        sessionStatusLabel = 'STANDBY';
+    }
 
     return (
         <div className="flex flex-col flex-1 min-h-[calc(100dvh-140px)] xl:h-[calc(100dvh-8rem)] pb-28 sm:pb-10 xl:pb-4 overflow-y-auto xl:overflow-hidden px-1">
@@ -309,47 +299,70 @@ function RecordPageContent() {
                         <Link href="/" className="h-9 w-9 border border-border rounded flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-all active:scale-95 shrink-0">
                             <LayoutDashboard className="h-4 w-4" />
                         </Link>
-                        <span className="text-[10px] font-medium text-white uppercase tracking-[0.2em] border border-white/20 px-2 py-0.5 rounded">
-                            System Standby
-                        </span>
+                        <div className={cn(
+                            "text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded transition-colors duration-500",
+                            sessionStatusLabel === 'LISTENING' ? "bg-emerald-500 text-white" :
+                                sessionStatusLabel === 'CONNECTING' ? "bg-blue-500 text-white animate-pulse" :
+                                    sessionStatusLabel === 'PAUSED' ? "bg-amber-500 text-white" :
+                                        sessionStatusLabel === 'STANDBY' ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600" :
+                                            "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                        )}>
+                            {sessionStatusLabel}
+                        </div>
                     </div>
                     <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight">
-                        AI <span className="text-primary">Scribe</span>
+                        Clinical <span className="text-primary">Capture</span>
                     </h1>
                 </div>
 
-                <div className="flex items-center gap-6">
-                    <div className="hidden lg:flex flex-col items-end opacity-60">
-                        <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest mb-1">Protocol Security</p>
-                        <div className="flex items-center gap-2 px-2 py-0.5 border border-emerald-100 dark:border-emerald-900/50 rounded bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400">
-                            <ShieldCheck className="h-3 w-3" />
-                            <span className="text-[9px] font-medium uppercase tracking-widest">End-to-End</span>
+                <div className="flex items-center gap-3">
+                    {!sessionActive ? (
+                        <button
+                            onClick={beginSession}
+                            className="btn-premium px-8 h-11 bg-black dark:bg-white text-white dark:text-black flex items-center gap-3"
+                        >
+                            <Mic className="h-4 w-4" />
+                            <span>Begin Capture</span>
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handlePauseResume}
+                                disabled={isEstablishing}
+                                className={cn(
+                                    "h-11 px-6 rounded border flex items-center gap-3 font-bold text-xs uppercase tracking-widest transition-all",
+                                    (isPaused || !isListening)
+                                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200"
+                                        : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200",
+                                    isEstablishing && "opacity-50 cursor-not-allowed"
+                                )}
+                            >
+                                {isEstablishing ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <span>Setting Up...</span>
+                                    </>
+                                ) : (isPaused || !isListening) ? (
+                                    <>
+                                        <Play className="h-4 w-4" />
+                                        <span>Resume</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <MicOff className="h-4 w-4" />
+                                        <span>Pause</span>
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={endSession}
+                                className="h-11 px-6 rounded bg-rose-500 text-white flex items-center gap-3 font-bold text-xs uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/10"
+                            >
+                                <Square className="h-3.5 w-3.5 fill-white" />
+                                <span>End & Generate</span>
+                            </button>
                         </div>
-                    </div>
-
-                    <button
-                        onClick={toggleRecording}
-                        className={cn(
-                            "btn-premium px-8 h-11 flex items-center gap-3 transition-all",
-                            isListening
-                                ? "bg-background text-rose-500 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50/50"
-                                : "bg-primary text-primary-foreground"
-                        )}
-                    >
-                        {isListening ? (
-                            <>
-                                <MicOff className="h-4 w-4 opacity-80" />
-                                <span className="hidden sm:inline">Terminate Session</span>
-                                <span className="sm:hidden">Stop</span>
-                            </>
-                        ) : (
-                            <>
-                                <Mic className="h-4 w-4" />
-                                <span className="hidden sm:inline">Initialize Scribe</span>
-                                <span className="sm:hidden">Record</span>
-                            </>
-                        )}
-                    </button>
+                    )}
                 </div>
             </div>
 
@@ -362,22 +375,30 @@ function RecordPageContent() {
                             <div className="flex items-center gap-2">
                                 <div className={cn(
                                     "h-1.5 w-1.5 rounded-full",
-                                    isListening ? "bg-rose-500 animate-pulse" : "bg-slate-300 dark:bg-slate-700"
+                                    sessionStatusLabel === 'LISTENING' ? "bg-emerald-500 animate-pulse" :
+                                        sessionStatusLabel === 'CONNECTING' ? "bg-blue-500 animate-pulse" :
+                                            sessionStatusLabel === 'PAUSED' ? "bg-amber-500" :
+                                                "bg-slate-300 dark:bg-slate-700"
                                 )} />
                                 <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                                    {isListening ? 'Bio-Acoustic Stream Active' : 'System Standby'}
+                                    {sessionStatusLabel === 'LISTENING' ? 'Acoustic Stream Active' :
+                                        sessionStatusLabel === 'CONNECTING' ? 'Initializing Secure Link' :
+                                            sessionStatusLabel === 'PAUSED' ? 'Capture Suspended' :
+                                                sessionStatusLabel === 'STANDBY' ? 'Session Persistent (Offline)' : 'System Ready'}
                                 </span>
                             </div>
                         </div>
 
                         {/* Visual Domain */}
                         <div className="h-24 bg-slate-950 overflow-hidden relative border-b border-divider">
-                            <AudioVisualizer isRecording={isListening} stream={stream} />
-                            {connectionStatus === 'connecting' && (
+                            <AudioVisualizer isRecording={isListening && !isPaused} stream={stream} />
+                            {(connectionStatus === 'connecting' || (sessionActive && !isListening)) && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm z-20">
                                     <div className="flex flex-col items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                        <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/50">Establishing...</span>
+                                        <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/50">
+                                            {connectionStatus === 'connecting' ? 'Establishing Sink...' : 'Reconnecting...'}
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -388,12 +409,14 @@ function RecordPageContent() {
                             {patient ? (
                                 <div className="relative group">
                                     <PatientContext patient={patient} />
-                                    <button
-                                        onClick={() => setPatient(null)}
-                                        className="absolute top-4 right-4 text-[9px] uppercase font-medium text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        Reassign Entity
-                                    </button>
+                                    {!sessionActive && (
+                                        <button
+                                            onClick={() => setPatient(null)}
+                                            className="absolute top-4 right-4 text-[9px] uppercase font-medium text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            Reassign Entity
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="p-10 flex flex-col items-center justify-center gap-6 text-center">
@@ -402,7 +425,7 @@ function RecordPageContent() {
                                     </div>
                                     <div className="space-y-1.5">
                                         <h3 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Clinical Subject Required</h3>
-                                        <p className="text-[11px] text-muted-foreground/60 max-w-[240px] leading-relaxed">Identity association is mandatory for automated SOAP synthesis and ledger archival.</p>
+                                        <p className="text-[11px] text-muted-foreground/60 max-w-[240px] leading-relaxed">Identity association is mandatory for automated SOAP synthesis.</p>
                                     </div>
 
                                     <div className="w-full max-w-xs relative z-20">
@@ -414,13 +437,6 @@ function RecordPageContent() {
                                             className="w-full"
                                         />
                                     </div>
-
-                                    <button
-                                        onClick={() => router.push('/patients?new=true')}
-                                        className="text-[10px] font-medium uppercase tracking-widest text-primary hover:underline"
-                                    >
-                                        Add New Patient
-                                    </button>
                                 </div>
                             )}
                         </div>
@@ -454,15 +470,6 @@ function RecordPageContent() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {saveStatus === 'saved' && (
-                                    <button
-                                        onClick={() => router.push(`/patients/${urlPatientId || patient?.id}`)}
-                                        className="h-8 px-4 border border-border rounded text-[9px] font-medium uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all"
-                                    >
-                                        Access Profile
-                                    </button>
-                                )}
-
                                 {generatedSoap && (
                                     <button
                                         onClick={handleSave}
@@ -471,11 +478,11 @@ function RecordPageContent() {
                                             "h-8 px-5 rounded text-[9px] font-medium uppercase tracking-widest transition-all",
                                             saveStatus === 'saved'
                                                 ? "bg-emerald-500 text-white"
-                                                : "bg-primary text-primary-foreground"
+                                                : "bg-black dark:bg-white text-white dark:text-black"
                                         )}
                                     >
                                         {saveStatus === 'saving' ? 'Archiving...' :
-                                            saveStatus === 'saved' ? 'Archived' : 'Commit to Ledger'}
+                                            saveStatus === 'saved' ? 'Archived' : 'Commit Changes'}
                                     </button>
                                 )}
                             </div>
@@ -489,7 +496,7 @@ function RecordPageContent() {
                                         <div className="h-16 w-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                                         <Zap className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40" />
                                     </div>
-                                    <h3 className="text-sm font-medium text-foreground uppercase tracking-widest">Processing Synthesis</h3>
+                                    <h3 className="text-sm font-bold uppercase tracking-widest">Processing Synthesis</h3>
                                     <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.2em] mt-2 animate-pulse">
                                         Awaiting neural model response...
                                     </p>
@@ -506,51 +513,34 @@ function RecordPageContent() {
                                     <div className="h-16 w-16 bg-slate-50 dark:bg-transparent dark:border dark:border-white/20 border border-border rounded flex items-center justify-center mb-8">
                                         <Binary className="h-6 w-6 text-muted-foreground/20" />
                                     </div>
-                                    <h3 className="text-sm font-medium text-foreground uppercase tracking-widest">
-                                        {isListening ? (interimTranscript ? 'Decoding Stream...' : 'Listening...') : 'Awaiting Protocol Entry'}
+                                    <h3 className="text-sm font-bold uppercase tracking-widest">
+                                        {sessionStatusLabel === 'LISTENING' ? (interimTranscript ? 'Decoding Stream...' : 'Listening...') :
+                                            sessionStatusLabel === 'PAUSED' ? 'Capture Paused' : 'Awaiting Entry'}
                                     </h3>
                                     <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-[0.2em] mt-3 mb-10 max-w-[280px] leading-relaxed">
                                         {interimTranscript ? (
                                             <span className="text-primary">"{interimTranscript}..."</span>
+                                        ) : sessionActive ? (
+                                            'Microphone buffered. Awaiting clinical input.'
                                         ) : (
                                             'Neural synthesis standby.'
                                         )}
                                     </p>
-
-                                    {transcript && !isListening && (
-                                        <button
-                                            onClick={handleAutoWorkflow}
-                                            disabled={isGenerating}
-                                            className="mb-8 btn-premium h-9 px-6 bg-primary text-primary-foreground"
-                                        >
-                                            <Sparkles className="h-3.5 w-3.5 mr-2" />
-                                            Manual Synthesis
-                                        </button>
-                                    )}
-
-                                    <div className="max-w-[320px] p-5 border border-divider rounded bg-slate-50/50 dark:bg-slate-900/10">
-                                        <div className="flex items-start gap-3">
-                                            <ShieldCheck className="h-4 w-4 text-primary/40 shrink-0" />
-                                            <p className="text-[10px] leading-relaxed text-left font-normal text-muted-foreground">
-                                                Protocol active. Speak normally to influence the neural model synthesis. All data encrypted.
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             )}
                         </div>
 
                         {/* Diagnostic Alerts */}
                         {(micError || geminiError) && (
-                            <div className="p-4 bg-rose-50/50 border-t border-rose-100 flex items-start gap-4">
+                            <div className="p-4 bg-rose-50 border-t border-rose-100 flex items-start gap-4">
                                 <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                                 <div className="flex-1">
-                                    <p className="text-[9px] font-medium text-rose-900 uppercase tracking-widest">Diagnostic Alert</p>
+                                    <p className="text-[9px] font-bold text-rose-900 uppercase tracking-widest">Diagnostic Alert</p>
                                     <p className="text-[11px] text-rose-600 font-normal leading-relaxed mt-1">{micError || geminiError}</p>
                                 </div>
                                 <button
                                     onClick={() => { setGeminiError(null); clearMicError(); }}
-                                    className="text-[9px] font-medium uppercase tracking-widest text-rose-500 hover:underline"
+                                    className="text-[9px] font-bold uppercase tracking-widest text-rose-500 hover:underline"
                                 >
                                     Dismiss
                                 </button>

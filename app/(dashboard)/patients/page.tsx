@@ -118,9 +118,7 @@ export default function PatientsPage() {
             <div className="flex flex-col gap-6">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em] border border-border px-2 py-0.5 rounded">
-                            Archive Matrix
-                        </span>
+
                     </div>
                     <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight">
                         Clinical <span className="text-primary">Directory</span>
@@ -152,7 +150,7 @@ export default function PatientsPage() {
                 />
             )}
 
-            {/* Clinical Search Matrix */}
+            {/* Clinical Search */}
             <div className="relative group max-w-2xl">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-60" />
                 <input

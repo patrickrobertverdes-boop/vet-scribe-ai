@@ -91,7 +91,7 @@ export default function DashboardPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-black dark:text-white uppercase tracking-[0.22em] border border-black dark:border-white px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-bold text-black dark:text-white uppercase tracking-[0.22em] border border-black dark:border-white px-2 py-0.5 rounded bg-white dark:bg-black">
                             System Standby
                         </span>
                     </div>
@@ -130,7 +130,7 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            {/* Performance Matrix */}
+            {/* Performance Stats */}
             <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
                 {[
                     { label: 'Active Clinic', value: '01', trend: 'Local', icon: Stethoscope, color: 'text-black dark:text-white' },
