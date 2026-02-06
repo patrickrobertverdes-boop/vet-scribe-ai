@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "998512816404-jv9m54jnqs30tetoo4jdo4mj6b0df7id.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vetscribe.app",
+            "certificate_hash": "ad2d0164f83993c7e481a4ac32c3cca9d8241ae4"
+          }
+        },
+        {
           "client_id": "998512816404-id0k006rkg711e3nv4gr78t4uj4vqgt9.apps.googleusercontent.com",
           "client_type": 3
         }

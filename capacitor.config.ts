@@ -13,6 +13,7 @@ interface LocalCapacitorConfig {
         FirebaseAuthentication?: {
             skipNativeAuth?: boolean;
             providers?: string[];
+            googleClientId?: string;
         };
     };
 }
@@ -24,7 +25,6 @@ const config: LocalCapacitorConfig = {
         url: 'https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app',
         cleartext: false,
         allowNavigation: [
-            'accounts.google.com',
             '*.firebaseauth.com',
             'vet-scribe-a2i--verdes-8568d.us-east4.hosted.app'
         ]
@@ -33,6 +33,7 @@ const config: LocalCapacitorConfig = {
         FirebaseAuthentication: {
             skipNativeAuth: false,
             providers: ['google.com'],
+            googleClientId: '998512816404-id0k006rkg711e3nv4gr78t4uj4vqgt9.apps.googleusercontent.com',
         },
     },
 };

@@ -99,7 +99,7 @@ export default function DashboardPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-black dark:text-white uppercase tracking-[0.22em] border border-black dark:border-white px-2 py-0.5 rounded bg-white dark:bg-black">
+                        <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-[0.22em] border border-primary px-2 py-0.5 rounded bg-primary">
                             System Standby
                         </span>
                     </div>
@@ -113,14 +113,14 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => router.push('/analytics')}
-                        className="h-10 px-4 border border-black dark:border-border rounded text-foreground hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all flex items-center gap-2.5"
+                        className="h-10 px-4 border border-border rounded text-foreground hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2.5 bg-card"
                     >
                         <Activity className="h-4 w-4" />
                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Analytics</span>
                     </button>
 
-                    <div className="h-10 border border-black dark:border-border px-4 rounded flex items-center gap-3 bg-white dark:bg-card">
-                        <Calendar className="h-4 w-4 text-black dark:text-white" />
+                    <div className="h-10 border border-border px-4 rounded flex items-center gap-3 bg-card">
+                        <Calendar className="h-4 w-4 text-primary" />
                         <div className="text-left">
                             <p className="text-[11px] font-bold text-foreground leading-none">
                                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -130,7 +130,7 @@ export default function DashboardPage() {
 
                     <button
                         onClick={handleInitializeScribe}
-                        className="h-10 px-5 bg-primary text-primary-foreground rounded font-bold text-[11px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2.5 shadow-none border border-black dark:border-white"
+                        className="h-10 px-5 bg-primary text-primary-foreground rounded font-bold text-[11px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2.5 shadow-none border border-primary"
                     >
                         <Zap className="h-4 w-4 no-demote" />
                         Initialize Scribe
@@ -148,19 +148,19 @@ export default function DashboardPage() {
                 ].map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-white dark:bg-card border border-black dark:border-border rounded-xl p-6 group transition-all cursor-pointer"
+                        className="bg-card border border-border rounded-xl p-6 group transition-all cursor-pointer hover:border-primary/50"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className="icon-square">
                                 <stat.icon className="h-4 w-4" />
                             </div>
-                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-black dark:border-border transition-colors group-hover:border-white dark:group-hover:border-black">
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-border transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
                                 {stat.trend}
                             </span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] transition-colors">{stat.label}</p>
-                            <p className="text-3xl font-bold font-serif tracking-tight transition-colors">{stat.value}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</p>
+                            <p className="text-3xl font-bold font-serif tracking-tight text-foreground">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-900 relative min-h-[300px]">
+                        <div className="flex-1 divide-y divide-border/20 relative min-h-[300px]">
                             {isLoadingChecklist ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <Loader2 className="h-5 w-5 animate-spin text-foreground" />
@@ -196,21 +196,21 @@ export default function DashboardPage() {
                                 </div>
                             ) : checklist.length === 0 ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                                    <Shield className="h-12 w-12 text-black/20 dark:text-white/10 mb-4" />
-                                    <p className="text-[10px] font-bold text-black dark:text-white uppercase tracking-widest mb-1">No Active Tasks</p>
-                                    <p className="text-sm text-black/60 dark:text-white/60 max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
+                                    <Shield className="h-12 w-12 text-muted-foreground/20 mb-4" />
+                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-1">No Active Tasks</p>
+                                    <p className="text-sm text-muted-foreground max-w-[200px] leading-relaxed">Your clinical checklist is clear. Add new tasks to track protocols.</p>
                                 </div>
                             ) : (
                                 checklist.slice(0, 5).map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex items-center gap-5 px-8 py-5 hover:bg-black hover:text-white dark:hover:bg-slate-900/50 transition-all cursor-pointer group"
+                                        className="flex items-center gap-5 px-8 py-5 hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer group"
                                         onClick={() => handleToggleCheckItem(item.id, item.completed)}
                                     >
                                         <div className={cn(
                                             "h-5 w-5 rounded border transition-all flex items-center justify-center shrink-0",
                                             item.completed
-                                                ? "bg-primary text-primary-foreground border-border"
+                                                ? "bg-primary text-primary-foreground border-primary"
                                                 : "border-border group-hover:border-primary-foreground"
                                         )}>
                                             {item.completed && <Check className="h-3 w-3" />}
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                                 ))
                             )}
                             {!isLoadingChecklist && checklist.length > 5 && (
-                                <div className="px-8 py-4 bg-muted border-t border-border flex justify-center">
+                                <div className="px-8 py-4 bg-muted/50 border-t border-border flex justify-center">
                                     <Link href="/checklist" className="text-[10px] font-bold text-foreground uppercase tracking-widest hover:underline">
                                         View {checklist.length - 5} More Tasks
                                     </Link>
@@ -243,27 +243,27 @@ export default function DashboardPage() {
                         <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleInitializeScribe}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all group bg-card"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all group bg-card"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card group-hover:bg-card transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card group-hover:bg-primary-foreground/20 transition-all shrink-0">
                                     <Wand2 className="h-5 w-5 no-demote" />
                                 </div>
                                 <div className="text-left py-2">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-black/60 dark:text-slate-500 mb-1 group-hover:text-white/60">Voice Protocol</p>
-                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-white">Launch AI Scribe</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary-foreground/60">Voice Protocol</p>
+                                    <p className="font-bold text-sm text-foreground group-hover:text-primary-foreground">Launch AI Scribe</p>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => setShowAICreator(true)}
-                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-black dark:border-border hover:bg-black hover:text-white dark:hover:border-foreground transition-all group bg-white dark:bg-card"
+                                className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all group bg-card"
                             >
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-black border border-black dark:text-slate-400 bg-white dark:bg-slate-800 group-hover:bg-white group-hover:text-black transition-all shrink-0">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card group-hover:bg-primary-foreground/20 transition-all shrink-0">
                                     <Plus className="h-5 w-5" />
                                 </div>
                                 <div className="text-left py-2">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-black/60 dark:text-slate-500 mb-1 group-hover:text-white/60">Patient Database</p>
-                                    <p className="font-bold text-sm text-black dark:text-white group-hover:text-white">Add New Patient</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary-foreground/60">Patient Database</p>
+                                    <p className="font-bold text-sm text-foreground group-hover:text-primary-foreground">Add New Patient</p>
                                 </div>
                             </button>
                         </div>

@@ -15,6 +15,8 @@ import {
     updateProfile
 } from 'firebase/auth';
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
     doc,
@@ -187,6 +189,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setLoading(false);
         });
+
+        // Deep Link Listener: Handle return from System Browser OAuth (Android Fix)
+        if (Capacitor.isNativePlatform()) {
+            App.addListener('appUrlOpen', async (data: any) => {
+                console.log(`[DeepLink] System URL Open Hook: ${data.url}`);
+                if (data.url.includes('com.vetscribe.app://auth')) {
+                    const url = new URL(data.url);
+                    const token = url.searchParams.get('token');
+
+                    if (token) {
+                        try {
+                            setLoading(true);
+                            console.log("[DeepLink] Exchanging identity token for session...");
+                            const credential = GoogleAuthProvider.credential(token);
+                            await signInWithCredential(auth!, credential);
+                            toast.success('Identity Verified via System');
+                            router.push('/');
+                        } catch (err: any) {
+                            console.error("[DeepLink] Protocol Violation:", err);
+                            toast.error("Handshake failed. Try again.");
+                        } finally {
+                            setLoading(false);
+                            await Browser.close();
+                        }
+                    }
+                }
+            });
+        }
 
         return () => {
             unsubscribe();
@@ -402,66 +432,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth) throw new Error("Firebase auth not initialized");
         const provider = new GoogleAuthProvider();
 
-        // Capacitor/Mobile environment detection
-        const isCapacitor = (window as any).Capacitor !== undefined || (window as any).webkit?.messageHandlers?.Capacitor;
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        // Platform Detection Diagnostics
+        const isNative = Capacitor.isNativePlatform() ||
+            (typeof window !== 'undefined' && (!!(window as any).Capacitor || !!(window as any).androidBridge));
+        const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isHosted = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
+        console.log(`[Auth] G-Sign-In Request.`, { isNative, isMobile, isHosted, bridge: !!(window as any).Capacitor });
 
         try {
-            if (isCapacitor) {
-                console.log("[Auth] 📱 Native Capacitor environment detected. Using Native Google Auth bridge.");
+            // Priority 1: Android System Browser Flow (Requested Native Overhaul)
+            if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+                console.log("[Auth] 📱 Triggering System Browser Handshake.");
+                const redirectUri = "https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/login?mobile_auth=true";
+                await Browser.open({ url: redirectUri });
+                return;
+            }
+
+            // Priority 2: Native Handshake (Fallback/iOS)
+            if (isNative || (isMobile && (!!(window as any).Capacitor || !!(window as any).androidBridge))) {
+                console.log("[Auth] 📱 Native Identity Handshake Initiated.");
                 setLoading(true);
 
                 try {
+                    // We explicitly pass the client ID to bypass any auto-discovery issues.
+                    // This matches the type expected by the 8.x plugin.
                     const result = await FirebaseAuthentication.signInWithGoogle();
 
                     if (result.credential?.idToken) {
                         const credential = GoogleAuthProvider.credential(result.credential.idToken);
                         const userCredential = await signInWithCredential(auth, credential);
-                        const user = userCredential.user;
 
                         if (db) {
-                            await setDoc(doc(db, 'users', user.uid), {
-                                email: user.email,
-                                uid: user.uid,
+                            await setDoc(doc(db, 'users', userCredential.user.uid), {
+                                email: userCredential.user.email,
+                                uid: userCredential.user.uid,
                                 authMethod: 'google_native',
-                                role: 'owner',
                                 lastLogin: serverTimestamp()
                             }, { merge: true });
                         }
 
-                        toast.success('Native Signed in with Google');
+                        toast.success('Signed in via Google');
                         router.push('/');
+                        return;
                     } else {
-                        throw new Error("No ID Token returned from native Google Auth");
+                        throw new Error("Native handshake succeeded but returned no identity token.");
                     }
-                } catch (nativeError: any) {
-                    console.error("[Auth] Native Google Auth Failed:", nativeError);
-                    // Fallback to redirect if native fails and we are on mobile
-                    await signInWithRedirect(auth, provider);
-                } finally {
-                    setLoading(false);
+                } catch (err: any) {
+                    console.error("[Auth] Native Bridge Error:", err);
+                    // If native fails explicitly with "not implemented" or "not available", we ONLY then allow web fallback.
+                    if (err.message?.includes('not implemented') || !isNative) {
+                        console.warn("[Auth] Native Bridge not responsive. Attempting Web fallback.");
+                    } else {
+                        toast.error(`Login Failed: ${err.message}`);
+                        setLoading(false);
+                        return;
+                    }
                 }
-            } else if (isMobile) {
-                console.log("[Auth] Mobile Web environment detected. Using Redirect Flow.");
-                await signInWithRedirect(auth, provider);
-            } else {
-                // ... Standard Desktop flow ...
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-
-                if (db) {
-                    await setDoc(doc(db, 'users', user.uid), {
-                        email: user.email,
-                        uid: user.uid,
-                        authMethod: 'google',
-                        role: 'owner',
-                        lastLogin: serverTimestamp()
-                    }, { merge: true });
-                }
-
-                toast.success('Signed in with Google');
-                router.push('/');
             }
+
+            // Priority 2: Web Handshake (For Desktop/Mobile Browsers)
+            // We use signInWithPopup as it's more reliable for state persistence than Redirect.
+            console.log("[Auth] 🌐 Web Identity Handshake Initiated.");
+            setLoading(true);
+
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            if (db) {
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    uid: user.uid,
+                    authMethod: 'google_web',
+                    lastLogin: serverTimestamp()
+                }, { merge: true });
+            }
+
+            toast.success('Signed in via Google');
+            router.push('/');
         } catch (error: any) {
             console.error("Google login error:", error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {

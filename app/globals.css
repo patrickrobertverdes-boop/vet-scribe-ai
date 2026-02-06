@@ -117,17 +117,15 @@
    PREMIUM CLINICAL DESIGN SYSTEM 
 */
 
-/* Buttons - NO MORE BLACK INVERSION ON PRESS IN LIGHT MODE */
+/* Buttons - DYNAMIC THEMING ENABLED */
 button,
 .btn {
   @apply rounded-xl font-bold transition-all duration-200 outline-none select-none;
 }
 
-/* MANDATORY BUTTON COLORS: FULL WHITE BACKGROUND, BLACK TEXT */
+/* MANDATORY BUTTON COLORS: Now reacts to Accent Color Settings */
 @utility btn-premium {
-  @apply bg-white text-black border border-black/10 shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2;
-  background-color: white !important;
-  color: black !important;
+  @apply bg-primary text-primary-foreground border border-black/10 shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2;
   opacity: 1 !important;
 }
 
@@ -140,9 +138,9 @@ button:active:not(.bg-primary):not(.btn-premium) {
 }
 
 .bg-primary {
-  @apply border border-black/10;
-  background-color: white !important;
-  color: black !important;
+  @apply border border-black/10 shadow-sm transition-all;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 .bg-primary:hover {

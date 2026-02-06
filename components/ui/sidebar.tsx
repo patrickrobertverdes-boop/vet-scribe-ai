@@ -66,7 +66,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-10 w-10 border border-black dark:border-border rounded-xl flex items-center justify-center text-foreground hover:bg-black hover:text-white transition-all bg-card"
+                    className="h-10 w-10 border border-border rounded-xl flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-all bg-card"
                 >
                     {isCollapsed ? <ChevronRight className="h-4 w-4 no-demote" /> : <ChevronLeft className="h-4 w-4 no-demote" />}
                 </button>
@@ -82,21 +82,21 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     return (
                         <div key={item.name}>
                             {/* Structural Separator for grouping (visual anchor) */}
-                            {index === 3 && <div className="h-px bg-black dark:bg-border/40 mx-3 my-4" />}
+                            {index === 3 && <div className="h-px bg-border/40 mx-3 my-4" />}
 
                             <Link
                                 href={item.href}
                                 onClick={onNavigate}
                                 className={cn(
-                                    "group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative",
+                                    "group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative border border-transparent",
                                     isActive
-                                        ? "bg-muted border border-black/10"
+                                        ? "bg-primary/5 border-primary/20 text-primary"
                                         : "text-foreground hover:bg-muted transition-all"
                                 )}
                             >
                                 <item.icon className={cn(
                                     "h-5 w-5 shrink-0 transition-all",
-                                    isActive ? "stroke-[3px]" : "stroke-[2px]"
+                                    isActive ? "stroke-[3px] text-primary" : "stroke-[2px]"
                                 )} />
 
                                 {!isCollapsed && (
@@ -106,6 +106,9 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                                     )}>
                                         {item.name}
                                     </span>
+                                )}
+                                {isActive && (
+                                    <div className="absolute left-1 h-1.5 w-1.5 rounded-full bg-primary" />
                                 )}
                             </Link>
                         </div>
@@ -119,10 +122,10 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-bold text-foreground dark:text-muted-foreground uppercase tracking-[0.12em] leading-none">System Load</span>
-                            <div className="h-1 w-1 rounded-full bg-black dark:bg-emerald-500/80" />
+                            <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
                         </div>
-                        <div className="h-0.5 w-full bg-white border border-black dark:border-none dark:bg-muted rounded-full overflow-hidden">
-                            <div className="h-full w-[92%] bg-black dark:bg-border" />
+                        <div className="h-0.5 w-full bg-background border border-border rounded-full overflow-hidden">
+                            <div className="h-full w-[92%] bg-primary" />
                         </div>
                     </div>
                 ) : (

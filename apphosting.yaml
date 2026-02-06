@@ -31,7 +31,7 @@ env:
 
   # Firebase Public Configuration (Safe to expose)
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: AIzaSyBUo6O5hpqaQPitXi9PKu7QT1vo4pX4zNA
+    value: AIzaSyBqY2eYTf7iOOrxU5bGdne6pBMKiUWFvVU
     availability:
       - BUILD
       - RUNTIME

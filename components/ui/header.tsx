@@ -51,16 +51,18 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
 
     return (
         <header className={cn(
-            "sticky top-0 z-30 flex items-center justify-between px-6 border-b border-border/60 transition-all duration-300",
-            isPatientProfile ? "h-11 sm:h-12 bg-white text-black" : "h-12 sm:h-14 bg-background shadow-none"
+            "sticky top-0 z-30 flex items-center justify-between px-6 border-b border-border/60 transition-all duration-300 bg-background",
+            isPatientProfile ? "h-11 sm:h-12 border-primary/20" : "h-12 sm:h-14 shadow-none"
         )}>
             {/* Infrastructure Access */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
                 <button
                     onClick={onAIAssistantClick}
                     className={cn(
-                        "h-10 w-10 flex items-center justify-center rounded-xl transition-all shadow-sm",
-                        isPatientProfile ? "bg-white text-black border border-black" : "text-foreground border border-black dark:border-border bg-card hover:bg-black hover:text-white"
+                        "h-10 w-10 flex items-center justify-center rounded-xl transition-all shadow-sm border",
+                        isPatientProfile
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground"
                     )}
                 >
                     <Brain className="h-5 w-5" />
@@ -68,8 +70,10 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                 <button
                     onClick={onMenuClick}
                     className={cn(
-                        "lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all shadow-sm",
-                        isPatientProfile ? "bg-white text-black border border-black" : "text-foreground border border-black dark:border-border bg-card hover:bg-black hover:text-white"
+                        "lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all shadow-sm border",
+                        isPatientProfile
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground"
                     )}
                 >
                     <Menu className="h-5 w-5" />
@@ -82,8 +86,8 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                         className={cn(
                             "w-full h-10 border rounded-xl pl-10 pr-10 text-sm focus:ring-1 outline-none transition-all shadow-sm",
                             isPatientProfile
-                                ? "bg-white border-black text-black placeholder:text-zinc-400 focus:ring-black"
-                                : "bg-white border-black dark:bg-card dark:border-border text-foreground placeholder:text-muted-foreground/60 focus:ring-black"
+                                ? "bg-card border-primary text-foreground placeholder:text-zinc-400 focus:ring-primary"
+                                : "bg-card border-border text-foreground placeholder:text-muted-foreground/60 focus:ring-primary"
                         )}
                         placeholder="Clinical directory query..."
                         onKeyDown={(e) => {
@@ -99,7 +103,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
             {/* System Controls */}
             <div className="flex items-center gap-3">
                 <div className="hidden xl:flex items-center gap-2 mr-4">
-                    <div className={cn("h-1 w-1 rounded-full", isPatientProfile ? "bg-black" : "bg-black dark:bg-emerald-500")} />
+                    <div className={cn("h-1 w-1 rounded-full bg-primary animate-pulse")} />
                     <span className="text-[9px] font-bold text-foreground uppercase tracking-[0.15em]">Secure Node</span>
                 </div>
 
@@ -107,8 +111,10 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                     <button
                         onClick={() => router.push('/notifications')}
                         className={cn(
-                            "h-10 w-10 flex items-center justify-center rounded-xl transition-all",
-                            isPatientProfile ? "bg-white text-black border border-black" : "text-foreground border border-black dark:border-border bg-card hover:bg-black hover:text-white"
+                            "h-10 w-10 flex items-center justify-center rounded-xl transition-all border",
+                            isPatientProfile
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground"
                         )}
                     >
                         <Bell className="h-4 w-4" />
@@ -123,10 +129,12 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                             onClick={() => router.push('/settings')}
                             className={cn(
                                 "flex items-center gap-3 pl-2 pr-4 h-10 border rounded-xl transition-all max-w-[220px]",
-                                isPatientProfile ? "bg-white text-black border-black" : "border-black dark:border-border bg-card hover:bg-black hover:text-white"
+                                isPatientProfile
+                                    ? "bg-card text-foreground border-primary"
+                                    : "border-border bg-card hover:bg-primary hover:text-primary-foreground"
                             )}
                         >
-                            <div className="h-7 w-7 bg-white dark:bg-black border border-black dark:border-white/20 rounded-lg flex items-center justify-center text-black dark:text-white shrink-0 overflow-hidden">
+                            <div className="h-7 w-7 bg-background border border-border rounded-lg flex items-center justify-center text-foreground shrink-0 overflow-hidden">
                                 {profile?.image ? (
                                     <img
                                         src={profile.image}
@@ -149,8 +157,10 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                         <button
                             onClick={logout}
                             className={cn(
-                                "h-10 w-10 flex items-center justify-center rounded-xl transition-all",
-                                isPatientProfile ? "bg-white text-black border border-black" : "text-foreground border border-black dark:border-border bg-card hover:bg-black hover:text-white dark:hover:bg-rose-600"
+                                "h-10 w-10 flex items-center justify-center rounded-xl transition-all border",
+                                isPatientProfile
+                                    ? "bg-card text-foreground border-primary"
+                                    : "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground"
                             )}
                         >
                             <LogOut className="h-4 w-4" />

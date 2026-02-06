@@ -24,9 +24,24 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (user) {
-            router.replace('/');
+            const isMobileAuth = searchParams.get('mobile_auth') === 'true';
+            if (isMobileAuth) {
+                const triggerNativeReturn = async () => {
+                    try {
+                        const token = await user.getIdToken();
+                        console.log("[NativeReturn] Handing off identity to system scheme...");
+                        window.location.href = `com.vetscribe.app://auth?token=${token}`;
+                    } catch (err) {
+                        console.error("[NativeReturn] Token retrieval failed:", err);
+                        router.replace('/');
+                    }
+                };
+                triggerNativeReturn();
+            } else {
+                router.replace('/');
+            }
         }
-    }, [user, router]);
+    }, [user, router, searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
