@@ -20,7 +20,6 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   title: 'VetScribe Pro | Advanced Clinical Intelligence',
   description: 'AI-powered Veterinary Clinical Documentation & Scribe System',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

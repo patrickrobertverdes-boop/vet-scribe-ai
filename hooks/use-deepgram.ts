@@ -90,6 +90,15 @@ export function useDeepgram(): UseDeepgramReturn {
         console.log(`[Scribe] ${paused ? '⏸️ Pausing' : '▶️ Resuming'}...`);
         setIsPaused(paused);
         isPausedRef.current = paused;
+
+        // Manual restart on resume for MediaRecorder compatibility on mobile
+        if (!paused && mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
+            console.log('[Scribe] 🔄 Restarting MediaRecorder on resume...');
+            try { mediaRecorderRef.current.start(250); } catch (e) { }
+        } else if (paused && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            console.log('[Scribe] ⏹️ Stopping MediaRecorder on pause...');
+            try { mediaRecorderRef.current.stop(); } catch (e) { }
+        }
     }, []);
 
     const startListening = useCallback(async () => {
@@ -143,7 +152,8 @@ export function useDeepgram(): UseDeepgramReturn {
             // and often requires a user gesture for each start.
             const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
             const isCapacitor = (window as any).Capacitor !== undefined;
-            const isPcmCapable = !!(window.AudioWorklet && !isSafari);
+            // Force MediaRecorder fallback for Capacitor/APK as AudioWorklet PCM is often unstable in WebViews
+            const isPcmCapable = !!(window.AudioWorklet && !isSafari && !isCapacitor);
 
             // 3. Setup Audio Handler (Hybrid)
             if (isPcmCapable) {
@@ -152,7 +162,9 @@ export function useDeepgram(): UseDeepgramReturn {
                 });
                 audioContextRef.current = audioContext;
 
-                await audioContext.resume();
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
                 await audioContext.audioWorklet.addModule('/pcm-processor.js');
 
                 const source = audioContext.createMediaStreamSource(audioStream);
@@ -208,12 +220,12 @@ export function useDeepgram(): UseDeepgramReturn {
                 } else {
                     // iOS/Safari & WebView Fallback
                     // Safari 14.1+ supports MediaRecorder but not 'audio/webm'
-                    let mimeType = 'audio/webm;codecs=opus';
-                    if (!MediaRecorder.isTypeSupported(mimeType)) {
-                        mimeType = 'audio/mp4'; // iOS/Safari fallback
+                    let mimeType = 'audio/mp4';
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        mimeType = 'audio/webm;codecs=opus';
                     }
 
-                    console.log(`[Scribe] 📱 Using Mobile Recorder: ${mimeType}`);
+                    console.log(`[Scribe] 📱 Mobile/APK Recorder Init: ${mimeType}`);
                     const mediaRecorder = new MediaRecorder(audioStream, {
                         mimeType: mimeType
                     });

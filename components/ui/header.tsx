@@ -16,7 +16,6 @@ import {
     LogOut,
     Download
 } from 'lucide-react';
-import { InstallPWA } from './install-pwa';
 import { cn } from '@/lib/utils';
 import { AIAssistant } from '@/components/ai/ai-assistant';
 import toast from 'react-hot-toast';
@@ -53,7 +52,7 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
     return (
         <header className={cn(
             "sticky top-0 z-30 flex items-center justify-between px-6 border-b border-border/60 transition-all duration-300",
-            isPatientProfile ? "h-12 bg-white text-black" : "h-14 bg-background shadow-none"
+            isPatientProfile ? "h-11 sm:h-12 bg-white text-black" : "h-12 sm:h-14 bg-background shadow-none"
         )}>
             {/* Infrastructure Access */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -103,8 +102,6 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
                     <div className={cn("h-1 w-1 rounded-full", isPatientProfile ? "bg-black" : "bg-black dark:bg-emerald-500")} />
                     <span className="text-[9px] font-bold text-foreground uppercase tracking-[0.15em]">Secure Node</span>
                 </div>
-
-                <InstallPWA />
 
                 <div className="flex items-center gap-2">
                     <button

@@ -27,12 +27,12 @@ export function MobileNav() {
         <div className={cn(
             "lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 border-t transition-all duration-300 safe-bottom shadow-none",
             isPatientProfile
-                ? "bg-white border-black text-black h-[4rem]"
-                : "bg-white dark:bg-card border-black dark:border-border h-[5rem]"
+                ? "bg-white border-black text-black h-[3.5rem]"
+                : "bg-white dark:bg-card border-black dark:border-border h-[4rem]"
         )}>
             <nav className={cn(
                 "grid grid-cols-4 w-full px-2 items-center",
-                isPatientProfile ? "h-[4rem]" : "h-[5rem]"
+                isPatientProfile ? "h-[3.5rem]" : "h-[4rem]"
             )}>
                 {navigation.map((item) => {
                     const isActive = item.activeMatch

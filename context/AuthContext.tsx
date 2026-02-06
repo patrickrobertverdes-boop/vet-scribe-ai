@@ -13,6 +13,7 @@ import {
     getRedirectResult,
     updateProfile
 } from 'firebase/auth';
+import { App } from '@capacitor/app';
 import {
     doc,
     setDoc,
@@ -115,12 +116,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
+        let handledRedirect = false;
+
+        // 1. Deep link listener for Capacitor Mobile Redirects
+        const setupDeepLink = async () => {
+            App.addListener('appUrlOpen', async (data: any) => {
+                if (handledRedirect) return;
+                console.log('[Auth] Deep link received:', data.url);
+                if (data.url.includes('com.vetscribe.app://auth')) {
+                    handledRedirect = true;
+                    // Logic to handle return from redirect
+                    try {
+                        if (auth) {
+                            const result = await getRedirectResult(auth);
+                            if (result?.user) {
+                                setUser(result.user);
+                                initializeUserBackground(result.user);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("[Auth] Redirect Result Error:", e);
+                    }
+                }
+            });
+        };
+        setupDeepLink();
+
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             // Check for redirect result on initialization (crucial for Capacitor/Mobile)
-            if (!currentUser && auth) {
+            if (!currentUser && auth && !handledRedirect) {
                 try {
                     const result = await getRedirectResult(auth);
                     if (result?.user) {
+                        handledRedirect = true;
                         console.log("[Auth] Captured redirect login result");
                         setUser(result.user);
                         initializeUserBackground(result.user);
@@ -137,11 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            // Auth state logs removed for security
-
             if (currentUser) {
-                // For returning sessions, we do a quick background sync to avoid stale claims on mobile
-                // but we don't block the initial UI if it's already verified
                 setUser(currentUser);
                 initializeUserBackground(currentUser);
             } else {
@@ -151,7 +175,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+        };
     }, [isLoggingIn, isSigningUp]);
 
     const signup = async (emailRaw: string, password: string, firstName: string, lastName: string) => {
@@ -363,12 +389,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth) throw new Error("Firebase auth not initialized");
         const provider = new GoogleAuthProvider();
 
-        // Capacitor/Mobile requires Redirect flow to avoid popup blocking/orphan windows
-        const isCapacitor = (window as any).Capacitor !== undefined || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        // Capacitor/Mobile environment detection
+        const isCapacitor = (window as any).Capacitor !== undefined || (window as any).webkit?.messageHandlers?.Capacitor;
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         try {
-            if (isCapacitor) {
-                console.log("[Auth] Mobile environment detected, using Redirect Flow");
+            if (isCapacitor || isMobile) {
+                console.log("[Auth] Mobile APK environment detected, using Redirect Flow with Custom Scheme fallback");
+                // Ensure com.vetscribe.app://auth is handled in AndroidManifest
                 await signInWithRedirect(auth, provider);
             } else {
                 const result = await signInWithPopup(auth, provider);
@@ -389,7 +417,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (error: any) {
             console.error("Google login error:", error);
-            toast.error(error.message);
+            // Fallback for extremely restrictive WebViews if popup fails
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/operation-not-supported-in-this-environment') {
+                console.log("[Auth] Switching to redirect due to environment restriction...");
+                await signInWithRedirect(auth, provider);
+            } else {
+                toast.error(error.message);
+            }
         }
     };
 

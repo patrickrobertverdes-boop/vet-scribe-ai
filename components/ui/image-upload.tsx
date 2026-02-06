@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Camera, X, Loader2, Binary } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -20,6 +20,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
     const { user } = useAuth();
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const compressImage = (file: File): Promise<Blob> => {
@@ -31,8 +32,8 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    const MAX_HEIGHT = 1200;
+                    const MAX_WIDTH = 1280;
+                    const MAX_HEIGHT = 1280;
                     let width = img.width;
                     let height = img.height;
 
@@ -67,6 +68,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
 
         setIsUploading(true);
         onUploading?.(true);
+        setProgress(0);
         try {
             // Compress on client for mobile performance
             const compressedBlob = await compressImage(file);
@@ -77,8 +79,19 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
             const path = `users/${user.uid}/profile-images/${timestamp}_${safeName}`;
             const storageRef = ref(storage, path);
 
-            // Upload the compressed blob
-            await uploadBytes(storageRef, compressedBlob);
+            // Upload the compressed blob using resumable for progress tracking
+            const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
+
+            await new Promise((resolve, reject) => {
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        setProgress(Math.round(p));
+                    },
+                    (error) => reject(error),
+                    () => resolve(null)
+                );
+            });
 
             // Get the download URL
             const url = await getDownloadURL(storageRef);
@@ -92,6 +105,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
         } finally {
             setIsUploading(false);
             onUploading?.(false);
+            setProgress(0);
         }
     };
 
@@ -128,16 +142,21 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 )}
             >
                 {isUploading ? (
-                    <div className="flex flex-col items-center gap-2 text-primary">
+                    <div className="flex flex-col items-center gap-3 text-black">
                         <Loader2 className="h-8 w-8 animate-spin" />
-                        <span className="text-[8px] font-bold uppercase tracking-widest">Uploading...</span>
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-black uppercase tracking-widest">{progress}%</span>
+                            <div className="w-16 h-1.5 bg-zinc-100 rounded-full mt-2 overflow-hidden border border-black/5">
+                                <div className="h-full bg-black transition-all duration-300" style={{ width: `${progress}%` }} />
+                            </div>
+                        </div>
                     </div>
                 ) : isUrl ? (
                     <img src={value} alt="Clinical Identity" className="h-full w-full object-cover animate-in fade-in zoom-in duration-500" />
                 ) : (
-                    <div className="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-500 text-slate-300 group-hover:text-primary/60">
+                    <div className="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-500 text-zinc-300 group-hover:text-black">
                         {value && !isUrl ? (
-                            <span className="text-4xl">{value}</span>
+                            <span className="text-4xl text-black">{value}</span>
                         ) : (
                             <>
                                 <Binary className="h-10 w-10 mb-1" />
@@ -161,7 +180,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                         e.stopPropagation();
                         onChange('');
                     }}
-                    className="absolute -top-3 -right-3 h-8 w-8 bg-slate-900 border border-white/20 text-white rounded-xl shadow-2xl flex items-center justify-center hover:bg-rose-500 hover:scale-110 active:scale-95 transition-all z-10"
+                    className="absolute -top-3 -right-3 h-8 w-8 bg-white border border-black text-black rounded-xl shadow-2xl flex items-center justify-center hover:bg-black hover:text-white hover:scale-110 active:scale-95 transition-all z-10"
                 >
                     <X className="h-4 w-4" />
                 </button>
