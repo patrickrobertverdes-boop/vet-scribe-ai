@@ -134,36 +134,36 @@ button:active:not(.bg-primary) {
 }
 
 /* Icon Containers */
-.icon-square {
+@utility icon-square {
   @apply h-11 w-11 rounded-xl flex items-center justify-center border border-black bg-white text-black shrink-0 transition-all;
-}
 
-.dark .icon-square {
-  @apply border-border bg-card text-white;
+  .dark & {
+    @apply border-border bg-card text-white;
+  }
 }
 
 /* Input Fields - FIX OVERLAY ISSUES */
-.input-premium {
+@utility input-premium {
   @apply w-full h-12 px-5 rounded-xl border border-black bg-white text-foreground font-bold outline-none transition-all placeholder:text-muted-foreground focus:ring-1 focus:ring-black;
+
+  .dark & {
+    @apply border-border bg-card focus:ring-white;
+  }
 }
 
-.dark .input-premium {
-  @apply border-border bg-card focus:ring-white;
-}
-
-.search-container {
+@utility search-container {
   @apply relative flex items-center w-full;
 }
 
-.search-icon {
+@utility search-icon {
   @apply absolute left-4 h-5 w-5 text-black pointer-events-none z-10;
+
+  .dark & {
+    @apply text-white;
+  }
 }
 
-.dark .search-icon {
-  @apply text-white;
-}
-
-.search-input {
+@utility search-input {
   @apply input-premium pl-12;
 }
 
@@ -181,17 +181,17 @@ button:active:not(.bg-primary) {
 /* Surfaces */
 @utility surface {
   @apply rounded-xl border border-black bg-white shadow-sm;
-}
 
-.dark .surface {
-  @apply border-border bg-card shadow-none;
+  .dark & {
+    @apply border-border bg-card shadow-none;
+  }
 }
 
 /* Mobile Close Button (X) */
-.mobile-close-btn {
+@utility mobile-close-btn {
   @apply h-12 w-12 flex items-center justify-center rounded-xl border border-black bg-white text-black shadow-lg z-[100] active:scale-75 transition-all;
-}
 
-.dark .mobile-close-btn {
-  @apply border-border bg-card text-white;
+  .dark & {
+    @apply border-border bg-card text-white;
+  }
 }

@@ -7,10 +7,16 @@ runConfig:
   maxInstances: 10
   concurrency: 80
   cpu: 1
-  memoryMiB: 1024
+  memoryMiB: 2048
 
 # Environment variables and secrets
 env:
+  # App Base URL for generated links
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app
+    availability:
+      - BUILD
+      - RUNTIME
   # Deepgram API Key (Secret - Server-side only)
   - variable: DEEPGRAM_API_KEY
     secret: deepgram-api-key
