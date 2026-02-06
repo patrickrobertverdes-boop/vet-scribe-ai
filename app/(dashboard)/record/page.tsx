@@ -21,7 +21,8 @@ import {
     Binary,
     Zap,
     Users,
-    Plus
+    Plus,
+    Search
 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { AudioVisualizer } from '@/components/scribe/audio-visualizer';
@@ -73,6 +74,7 @@ function RecordPageContent() {
     const urlPatientId = searchParams.get('patientId');
     const [patient, setPatient] = useState<any>(null);
     const [allPatients, setAllPatients] = useState<Patient[]>([]);
+    const [patientSearch, setPatientSearch] = useState('');
 
     // Load draft on mount
     useEffect(() => {
@@ -291,7 +293,7 @@ function RecordPageContent() {
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-[calc(100dvh-140px)] xl:h-[calc(100dvh-8rem)] pb-28 sm:pb-10 xl:pb-4 overflow-y-auto xl:overflow-hidden px-1">
+        <div className="flex flex-col flex-1 min-h-[calc(100dvh-140px)] xl:h-[calc(100dvh-8rem)] pb-28 sm:pb-10 xl:pb-4 overflow-y-auto xl:overflow-hidden px-0 sm:px-1">
             {/* Protocol Header */}
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
@@ -310,27 +312,27 @@ function RecordPageContent() {
                             {sessionStatusLabel}
                         </div>
                     </div>
-                    <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
                         Clinical <span className="text-primary">Capture</span>
                     </h1>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                     {!sessionActive ? (
                         <button
                             onClick={beginSession}
-                            className="btn-premium px-8 h-11 bg-black dark:bg-white text-white dark:text-black flex items-center gap-3"
+                            className="btn-premium w-full sm:w-auto px-4 sm:px-8 h-11 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center gap-3"
                         >
                             <Mic className="h-4 w-4" />
                             <span>Begin Capture</span>
                         </button>
                     ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                             <button
                                 onClick={handlePauseResume}
                                 disabled={isEstablishing}
                                 className={cn(
-                                    "h-11 px-6 rounded border flex items-center gap-3 font-bold text-xs uppercase tracking-widest transition-all",
+                                    "flex-1 sm:flex-none h-11 px-4 sm:px-6 rounded border flex items-center justify-center gap-2 sm:gap-3 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all",
                                     (isPaused || !isListening)
                                         ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200"
                                         : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200",
@@ -340,7 +342,7 @@ function RecordPageContent() {
                                 {isEstablishing ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Setting Up...</span>
+                                        <span>Set Up</span>
                                     </>
                                 ) : (isPaused || !isListening) ? (
                                     <>
@@ -356,10 +358,11 @@ function RecordPageContent() {
                             </button>
                             <button
                                 onClick={endSession}
-                                className="h-11 px-6 rounded bg-rose-500 text-white flex items-center gap-3 font-bold text-xs uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/10"
+                                className="flex-1 sm:flex-none h-11 px-4 sm:px-6 rounded bg-rose-500 text-white flex items-center justify-center gap-2 sm:gap-3 font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/10"
                             >
                                 <Square className="h-3.5 w-3.5 fill-white" />
-                                <span>End & Generate</span>
+                                <span className="hidden xs:inline">End & Generate</span>
+                                <span className="xs:hidden">Finish</span>
                             </button>
                         </div>
                     )}
@@ -405,37 +408,81 @@ function RecordPageContent() {
                         </div>
 
                         {/* Subject Identity Context */}
-                        <div className="border-b border-divider transition-all">
+                        <div className="flex-1 flex flex-col min-h-0 overflow-hidden border-b border-divider">
                             {patient ? (
-                                <div className="relative group">
+                                <div className="relative group p-4 border-b border-divider bg-slate-50/30">
                                     <PatientContext patient={patient} />
                                     {!sessionActive && (
                                         <button
                                             onClick={() => setPatient(null)}
-                                            className="absolute top-4 right-4 text-[9px] uppercase font-medium text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-4 right-4 text-[9px] uppercase font-bold text-primary hover:underline"
                                         >
-                                            Reassign Entity
+                                            Switch Patient
                                         </button>
                                     )}
                                 </div>
                             ) : (
-                                <div className="p-10 flex flex-col items-center justify-center gap-6 text-center">
-                                    <div className="h-14 w-14 bg-slate-50 dark:bg-transparent dark:border dark:border-white/20 border border-border rounded flex items-center justify-center text-muted-foreground/30">
-                                        <Users className="h-6 w-6 dark:text-white" />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <h3 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Clinical Subject Required</h3>
-                                        <p className="text-[11px] text-muted-foreground/60 max-w-[240px] leading-relaxed">Identity association is mandatory for automated SOAP synthesis.</p>
+                                <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-card">
+                                    <div className="p-6 border-b border-divider space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Patient Repository</h3>
+                                                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Select target subject</p>
+                                            </div>
+                                            <Users className="h-4 w-4 text-muted-foreground/30" />
+                                        </div>
+
+                                        <div className="search-container">
+                                            <Search className="search-icon" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search clinical directory..."
+                                                value={patientSearch}
+                                                onChange={(e) => setPatientSearch(e.target.value)}
+                                                className="search-input h-11"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="w-full max-w-xs relative z-20">
-                                        <CustomSelect
-                                            value=""
-                                            onChange={handlePatientSelect}
-                                            options={allPatients.map(p => ({ label: p.name, value: p.id }))}
-                                            placeholder={allPatients.length > 0 ? "Query active directory..." : "Database initializing..."}
-                                            className="w-full"
-                                        />
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                                        {allPatients
+                                            .filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase()))
+                                            .map((p) => (
+                                                <button
+                                                    key={p.id}
+                                                    onClick={() => handlePatientSelect(p.id)}
+                                                    className="w-full flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-black hover:bg-slate-50 dark:hover:bg-slate-900 group/item transition-all"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-10 w-10 border border-black dark:border-border rounded-lg bg-white dark:bg-black p-0.5 flex-shrink-0">
+                                                            {p.image ? (
+                                                                <img src={p.image} className="h-full w-full object-cover rounded shadow-sm" alt="" />
+                                                            ) : (
+                                                                <div className="h-full w-full flex items-center justify-center text-xs font-serif font-black">{p.name[0]}</div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <p className="text-[11px] font-black uppercase tracking-widest text-foreground">{p.name}</p>
+                                                            <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">{p.species || 'Unknown Entity'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-all group-hover/item:translate-x-1 group-hover/item:text-primary" />
+                                                </button>
+                                            ))}
+
+                                        {allPatients.length > 0 && allPatients.filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase())).length === 0 && (
+                                            <div className="p-10 text-center space-y-4">
+                                                <Search className="h-8 w-8 text-black/5 mx-auto" />
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No matching subjects found</p>
+                                            </div>
+                                        )}
+
+                                        {allPatients.length === 0 && (
+                                            <div className="p-10 text-center animate-pulse">
+                                                <Loader2 className="h-6 w-6 animate-spin mx-auto text-black/20" />
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-4">Accessing Database...</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

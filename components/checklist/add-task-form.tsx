@@ -58,22 +58,25 @@ export function AddTaskForm() {
     };
 
     return (
-        <form onSubmit={handleAddItem} className="search-container group w-full">
-            <input
-                ref={inputRef}
-                type="text"
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                placeholder="Initialize New Protocol Task..."
-                disabled={isSubmitting}
-                className="w-full h-14 pl-6 pr-32 bg-white border border-black rounded-2xl text-sm font-bold focus:shadow-xl outline-none transition-all placeholder:text-muted-foreground text-foreground disabled:opacity-50"
-            />
+        <form onSubmit={handleAddItem} className="flex flex-col sm:flex-row items-stretch gap-3 w-full">
+            <div className="search-container flex-1">
+                <Plus className="search-icon text-muted-foreground/40" />
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={newItemText}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    placeholder="Initialize New Protocol Task..."
+                    disabled={isSubmitting}
+                    className="search-input !pl-12"
+                />
+            </div>
             <button
                 type="submit"
                 disabled={isSubmitting}
                 className={cn(
-                    "absolute right-2 top-2 h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2",
-                    isSubmitting ? "bg-muted text-muted-foreground" : "bg-black text-white hover:scale-105 active:scale-95 shadow-lg",
+                    "h-14 sm:h-12 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shrink-0 shadow-lg",
+                    isSubmitting ? "bg-muted text-muted-foreground" : "bg-black text-white hover:scale-[1.02] active:scale-95",
                 )}
             >
                 {isSubmitting ? (
@@ -81,7 +84,7 @@ export function AddTaskForm() {
                 ) : (
                     <Plus className="h-4 w-4 stroke-[3px]" />
                 )}
-                <span>Initialize</span>
+                <span>Initialize Task</span>
             </button>
         </form>
     );

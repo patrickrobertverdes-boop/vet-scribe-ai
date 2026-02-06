@@ -69,15 +69,15 @@ function ChecklistContent() {
     const pendingCount = items.filter(i => !i.completed).length;
 
     return (
-        <div className="space-y-10 pb-20 max-w-7xl mx-auto">
+        <div className="space-y-6 sm:space-y-10 pb-20 w-full mx-auto px-1 sm:px-0">
             {/* Header */}
-            <div className="flex flex-col gap-6">
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-serif font-black text-foreground tracking-tighter leading-tight">
+            <div className="flex flex-col gap-4 sm:gap-6">
+                <div className="space-y-3">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-foreground tracking-tighter leading-tight">
                         Daily Workflow Checklist
                     </h1>
-                    <p className="text-lg text-muted-foreground font-medium mt-3">
-                        Monitor and manage surgical protocols and clinical tasks.
+                    <p className="text-base sm:text-lg text-muted-foreground font-medium max-w-2xl">
+                        Monitor and manage surgical protocols and clinical tasks with real-time synchronization.
                     </p>
                 </div>
             </div>
@@ -91,15 +91,20 @@ function ChecklistContent() {
                             <AddTaskForm />
 
                             {/* Filters & Actions */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-black/10 pb-6">
-                                <p className="text-xs font-black uppercase tracking-widest text-foreground">
-                                    {pendingCount} Tasks Awaiting Completion
-                                </p>
-                                <div className="search-container max-w-xs">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-black/10 pb-6">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-black uppercase tracking-widest text-foreground">
+                                        Protocol Registry
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                                        {pendingCount} Tasks Awaiting Completion
+                                    </p>
+                                </div>
+                                <div className="search-container w-full md:max-w-xs">
                                     <Search className="search-icon" />
                                     <input
                                         type="text"
-                                        placeholder="Search protocol..."
+                                        placeholder="Search protocol index..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="search-input"
