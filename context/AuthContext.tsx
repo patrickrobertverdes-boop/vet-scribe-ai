@@ -195,24 +195,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             App.addListener('appUrlOpen', async (data: any) => {
                 console.log(`[DeepLink] System URL Open Hook: ${data.url}`);
                 if (data.url.includes('com.vetscribe.app://auth')) {
-                    const url = new URL(data.url);
-                    const token = url.searchParams.get('token');
+                    try {
+                        console.log("[DeepLink] Protocol capture confirmed. Extracting identity...");
 
-                    if (token) {
-                        try {
+                        // Robust parsing for custom schemes (avoids new URL() constructor edge cases)
+                        const tokenMatch = data.url.match(/[?&]token=([^&]+)/);
+                        const token = tokenMatch ? tokenMatch[1] : null;
+
+                        if (token) {
                             setLoading(true);
                             console.log("[DeepLink] Exchanging identity token for session...");
                             const credential = GoogleAuthProvider.credential(token);
                             await signInWithCredential(auth!, credential);
                             toast.success('Identity Verified via System');
                             router.push('/');
-                        } catch (err: any) {
-                            console.error("[DeepLink] Protocol Violation:", err);
-                            toast.error("Handshake failed. Try again.");
-                        } finally {
-                            setLoading(false);
-                            await Browser.close();
+                        } else {
+                            console.error("[DeepLink] Handshake failed: Token missing from protocol string.");
                         }
+                    } catch (err: any) {
+                        console.error("[DeepLink] Protocol Violation:", err);
+                        toast.error("Handshake failed. Try again.");
+                    } finally {
+                        setLoading(false);
+                        try { await Browser.close(); } catch (e) { /* silent close */ }
                     }
                 }
             });
@@ -441,75 +446,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`[Auth] G-Sign-In Request.`, { isNative, isMobile, isHosted, bridge: !!(window as any).Capacitor });
 
         try {
-            // Priority 1: Android System Browser Flow (Requested Native Overhaul)
+            // Android-ONLY specialized handover logic
             if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
-                console.log("[Auth] 📱 Triggering System Browser Handshake.");
-                const redirectUri = "https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/login?mobile_auth=true";
-                await Browser.open({ url: redirectUri });
-                return;
-            }
+                console.log("[Auth] 📱 Android Platform Detected. Initiating System Browser OAuth.");
 
-            // Priority 2: Native Handshake (Fallback/iOS)
-            if (isNative || (isMobile && (!!(window as any).Capacitor || !!(window as any).androidBridge))) {
-                console.log("[Auth] 📱 Native Identity Handshake Initiated.");
-                setLoading(true);
+                // We point the Browser to our hosted login page with the mobile auth flag
+                const redirectUri = "https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/login?mobile_auth=true";
 
                 try {
-                    // We explicitly pass the client ID to bypass any auto-discovery issues.
-                    // This matches the type expected by the 8.x plugin.
-                    const result = await FirebaseAuthentication.signInWithGoogle();
-
-                    if (result.credential?.idToken) {
-                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
-                        const userCredential = await signInWithCredential(auth, credential);
-
-                        if (db) {
-                            await setDoc(doc(db, 'users', userCredential.user.uid), {
-                                email: userCredential.user.email,
-                                uid: userCredential.user.uid,
-                                authMethod: 'google_native',
-                                lastLogin: serverTimestamp()
-                            }, { merge: true });
-                        }
-
-                        toast.success('Signed in via Google');
-                        router.push('/');
-                        return;
-                    } else {
-                        throw new Error("Native handshake succeeded but returned no identity token.");
-                    }
-                } catch (err: any) {
-                    console.error("[Auth] Native Bridge Error:", err);
-                    // If native fails explicitly with "not implemented" or "not available", we ONLY then allow web fallback.
-                    if (err.message?.includes('not implemented') || !isNative) {
-                        console.warn("[Auth] Native Bridge not responsive. Attempting Web fallback.");
-                    } else {
-                        toast.error(`Login Failed: ${err.message}`);
-                        setLoading(false);
-                        return;
-                    }
+                    await Browser.open({ url: redirectUri });
+                    return; // Early exit, the rest is handled by the Deep Link Listener
+                } catch (pluginErr) {
+                    console.error("[Auth] Browser Plugin failure on Android:", pluginErr);
+                    // Critical fallback if plugin itself is missing from APK bridge
+                    window.location.assign(redirectUri);
+                    return;
                 }
             }
 
-            // Priority 2: Web Handshake (For Desktop/Mobile Browsers)
-            // We use signInWithPopup as it's more reliable for state persistence than Redirect.
-            console.log("[Auth] 🌐 Web Identity Handshake Initiated.");
+            // Web/Other Platform standard flow
+            console.log("[Auth] 🌐 Non-Android Platform Detected. Using standard handshake.");
             setLoading(true);
 
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
+            // Try popup first as it is most premium experience for web
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
 
-            if (db) {
-                await setDoc(doc(db, 'users', user.uid), {
-                    email: user.email,
-                    uid: user.uid,
-                    authMethod: 'google_web',
-                    lastLogin: serverTimestamp()
-                }, { merge: true });
+                if (db) {
+                    await setDoc(doc(db, 'users', user.uid), {
+                        email: user.email,
+                        uid: user.uid,
+                        authMethod: 'google_web',
+                        lastLogin: serverTimestamp()
+                    }, { merge: true });
+                }
+
+                toast.success('Signed in via Google');
+                router.push('/');
+            } catch (popupErr: any) {
+                console.warn("[Auth] Popup blocked or failed, falling back to Redirect.");
+                // Fallback to redirect if popup is blocked
+                await signInWithRedirect(auth, provider);
             }
-
-            toast.success('Signed in via Google');
-            router.push('/');
         } catch (error: any) {
             console.error("Google login error:", error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
