@@ -143,15 +143,15 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                         {/* Header */}
                         <div className="px-5 sm:px-10 py-3 sm:py-5 border-b border-black dark:border-white/10 flex items-center justify-between sticky top-0 z-20 !bg-white dark:!bg-slate-900 !text-black dark:!text-white shadow-sm">
                             <div className="flex items-center gap-4 sm:gap-6">
-                                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-white text-black rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm shrink-0 border border-black dark:border-white/20">
+                                <div className="h-10 w-10 sm:h-12 sm:w-12 !bg-white !text-black rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm shrink-0 border border-black">
                                     <Sparkles className="h-5 w-5 sm:h-7 sm:w-7" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-lg sm:text-2xl font-serif font-black text-black dark:text-white tracking-tight leading-none uppercase truncate">Registry Entry</h2>
-                                    <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-[0.2em] mt-1">Clinical Protocol Initiation</p>
+                                    <h2 className="text-lg sm:text-2xl font-serif font-black !text-black tracking-tight leading-none uppercase truncate">Registry Entry</h2>
+                                    <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1">Clinical Protocol Initiation</p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="h-10 w-10 border border-black dark:border-white/20 flex items-center justify-center rounded-xl hover:bg-black hover:text-white transition-all text-black dark:text-white active:scale-95 shrink-0 ml-2 bg-white dark:bg-slate-900">
+                            <button onClick={onClose} className="h-10 w-10 border border-black flex items-center justify-center rounded-xl hover:bg-black hover:text-white transition-all !text-black active:scale-95 shrink-0 ml-2 !bg-white">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>

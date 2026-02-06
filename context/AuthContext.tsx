@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            console.log(`[Auth-State] Change detected. User: ${currentUser?.uid}`);
+            // Auth state logs removed for security
 
             if (currentUser) {
                 // For returning sessions, we do a quick background sync to avoid stale claims on mobile

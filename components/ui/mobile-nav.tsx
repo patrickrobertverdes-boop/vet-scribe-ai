@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 export function MobileNav() {
     const pathname = usePathname();
+    const isPatientProfile = pathname.includes('/patients/') && pathname.split('/').pop() !== 'patients';
 
     const navigation = [
         { name: 'Home', href: '/', icon: LayoutDashboard },
@@ -22,10 +23,17 @@ export function MobileNav() {
         { name: 'History', href: '/history', icon: History },
     ];
 
-
     return (
-        <div className="lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 bg-white dark:bg-card border-t border-black dark:border-border safe-bottom shadow-none">
-            <nav className="h-[5rem] grid grid-cols-4 w-full px-2">
+        <div className={cn(
+            "lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 border-t transition-all duration-300 safe-bottom shadow-none",
+            isPatientProfile
+                ? "bg-white border-black text-black h-[4rem]"
+                : "bg-white dark:bg-card border-black dark:border-border h-[5rem]"
+        )}>
+            <nav className={cn(
+                "grid grid-cols-4 w-full px-2 items-center",
+                isPatientProfile ? "h-[4rem]" : "h-[5rem]"
+            )}>
                 {navigation.map((item) => {
                     const isActive = item.activeMatch
                         ? pathname.startsWith(item.activeMatch)
@@ -36,16 +44,20 @@ export function MobileNav() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex flex-col items-center justify-center gap-1.5 w-full h-full active:scale-90 transition-all text-center select-none rounded-2xl",
-                                isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50"
+                                "flex flex-col items-center justify-center gap-1 w-full h-full active:scale-90 transition-all text-center select-none rounded-2xl",
+                                isActive
+                                    ? (isPatientProfile ? "bg-zinc-100 text-black" : "bg-muted text-foreground")
+                                    : (isPatientProfile ? "text-zinc-500" : "text-muted-foreground hover:bg-muted/50")
                             )}
                         >
                             <item.icon className={cn(
-                                "h-6 w-6 transition-all duration-300",
+                                "transition-all duration-300",
+                                isPatientProfile ? "h-5 w-5" : "h-6 w-6",
                                 isActive ? "stroke-[3px] scale-110" : "stroke-[2px]"
                             )} />
                             <p className={cn(
-                                "text-[11px] font-black tracking-widest leading-none uppercase transition-all",
+                                "font-black tracking-widest leading-none uppercase transition-all",
+                                isPatientProfile ? "text-[9px]" : "text-[11px]",
                                 isActive ? "opacity-100" : "opacity-0 scale-75"
                             )}>
                                 {item.name}
