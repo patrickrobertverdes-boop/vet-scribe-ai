@@ -9,6 +9,8 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     updateProfile
 } from 'firebase/auth';
 import {
@@ -114,6 +116,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            // Check for redirect result on initialization (crucial for Capacitor/Mobile)
+            if (!currentUser && auth) {
+                try {
+                    const result = await getRedirectResult(auth);
+                    if (result?.user) {
+                        console.log("[Auth] Captured redirect login result");
+                        setUser(result.user);
+                        initializeUserBackground(result.user);
+                        return;
+                    }
+                } catch (err) {
+                    console.error("[Auth] Redirect result error:", err);
+                }
+            }
+
             // If we are in a manual flow (login/signup), we let those functions handle loading/navigation
             if (isLoggingIn || isSigningUp) {
                 setUser(currentUser);
@@ -344,23 +361,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signInWithGoogle = async () => {
         if (!auth) throw new Error("Firebase auth not initialized");
+        const provider = new GoogleAuthProvider();
+
+        // Capacitor/Mobile requires Redirect flow to avoid popup blocking/orphan windows
+        const isCapacitor = (window as any).Capacitor !== undefined || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
         try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
+            if (isCapacitor) {
+                console.log("[Auth] Mobile environment detected, using Redirect Flow");
+                await signInWithRedirect(auth, provider);
+            } else {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
 
-            if (db) {
-                await setDoc(doc(db, 'users', user.uid), {
-                    email: user.email,
-                    uid: user.uid,
-                    authMethod: 'google',
-                    role: 'owner',
-                    lastLogin: serverTimestamp()
-                }, { merge: true });
+                if (db) {
+                    await setDoc(doc(db, 'users', user.uid), {
+                        email: user.email,
+                        uid: user.uid,
+                        authMethod: 'google',
+                        role: 'owner',
+                        lastLogin: serverTimestamp()
+                    }, { merge: true });
+                }
+
+                toast.success('Signed in with Google');
+                router.push('/');
             }
-
-            toast.success('Signed in with Google');
-            router.push('/');
         } catch (error: any) {
             console.error("Google login error:", error);
             toast.error(error.message);

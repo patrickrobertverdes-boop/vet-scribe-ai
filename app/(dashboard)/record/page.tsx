@@ -321,10 +321,10 @@ function RecordPageContent() {
                     {!sessionActive ? (
                         <button
                             onClick={beginSession}
-                            className="btn-premium w-full sm:w-auto px-4 sm:px-8 h-11 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center gap-3"
+                            className="btn-premium w-full sm:w-auto px-6 sm:px-10 h-12"
                         >
                             <Mic className="h-4 w-4" />
-                            <span>Begin Capture</span>
+                            <span>Begin Capture Protocol</span>
                         </button>
                     ) : (
                         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -332,10 +332,7 @@ function RecordPageContent() {
                                 onClick={handlePauseResume}
                                 disabled={isEstablishing}
                                 className={cn(
-                                    "flex-1 sm:flex-none h-11 px-4 sm:px-6 rounded border flex items-center justify-center gap-2 sm:gap-3 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all",
-                                    (isPaused || !isListening)
-                                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200"
-                                        : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200",
+                                    "btn-premium flex-1 sm:flex-none h-12 px-6",
                                     isEstablishing && "opacity-50 cursor-not-allowed"
                                 )}
                             >
@@ -358,10 +355,10 @@ function RecordPageContent() {
                             </button>
                             <button
                                 onClick={endSession}
-                                className="flex-1 sm:flex-none h-11 px-4 sm:px-6 rounded bg-rose-500 text-white flex items-center justify-center gap-2 sm:gap-3 font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/10"
+                                className="btn-premium flex-1 sm:flex-none h-12 px-6"
                             >
-                                <Square className="h-3.5 w-3.5 fill-white" />
-                                <span className="hidden xs:inline">End & Generate</span>
+                                <Square className="h-3.5 w-3.5 fill-black" />
+                                <span className="hidden xs:inline">Terminate & Sync</span>
                                 <span className="xs:hidden">Finish</span>
                             </button>
                         </div>

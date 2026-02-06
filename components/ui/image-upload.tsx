@@ -22,39 +22,73 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const compressImage = (file: File): Promise<Blob> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1200;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        resolve(blob || file);
+                    }, 'image/jpeg', 0.8);
+                };
+            };
+        });
+    };
+
     const uploadToStorage = async (file: File) => {
         if (!storage || !user) {
             toast.error('Storage not available. Please try again.');
             return;
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image too large. Maximum size is 5MB.');
-            return;
-        }
-
         setIsUploading(true);
         onUploading?.(true);
         try {
+            // Compress on client for mobile performance
+            const compressedBlob = await compressImage(file);
+
             // Create unique path for this image
             const timestamp = Date.now();
-            const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').split('.')[0] + '.jpg';
             const path = `users/${user.uid}/profile-images/${timestamp}_${safeName}`;
             const storageRef = ref(storage, path);
 
-            // Upload the file
-            await uploadBytes(storageRef, file);
+            // Upload the compressed blob
+            await uploadBytes(storageRef, compressedBlob);
 
             // Get the download URL
             const url = await getDownloadURL(storageRef);
 
             // Pass the URL (not base64) to the parent
             onChange(url);
-            toast.success('Image uploaded!');
+            toast.success('Identity verified and uploaded!');
         } catch (error) {
             console.error('Upload error:', error);
-            toast.error('Failed to upload image.');
+            toast.error('Failed to process image.');
         } finally {
             setIsUploading(false);
             onUploading?.(false);

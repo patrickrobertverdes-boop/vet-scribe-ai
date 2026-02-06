@@ -139,7 +139,11 @@ export function useDeepgram(): UseDeepgramReturn {
             setStream(audioStream);
             streamRef.current = audioStream;
 
-            const isPcmCapable = !!(window.AudioWorklet && !/iPhone|iPad|iPod|Safari/i.test(navigator.userAgent));
+            // iOS/Safari & Capacitor WebView specific: AudioContext must be resumed after state 'suspended'
+            // and often requires a user gesture for each start.
+            const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
+            const isCapacitor = (window as any).Capacitor !== undefined;
+            const isPcmCapable = !!(window.AudioWorklet && !isSafari);
 
             // 3. Setup Audio Handler (Hybrid)
             if (isPcmCapable) {
@@ -202,8 +206,16 @@ export function useDeepgram(): UseDeepgramReturn {
                         }
                     };
                 } else {
+                    // iOS/Safari & WebView Fallback
+                    // Safari 14.1+ supports MediaRecorder but not 'audio/webm'
+                    let mimeType = 'audio/webm;codecs=opus';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/mp4'; // iOS/Safari fallback
+                    }
+
+                    console.log(`[Scribe] 📱 Using Mobile Recorder: ${mimeType}`);
                     const mediaRecorder = new MediaRecorder(audioStream, {
-                        mimeType: 'audio/webm;codecs=opus'
+                        mimeType: mimeType
                     });
                     mediaRecorderRef.current = mediaRecorder;
                     mediaRecorder.ondataavailable = (e) => {

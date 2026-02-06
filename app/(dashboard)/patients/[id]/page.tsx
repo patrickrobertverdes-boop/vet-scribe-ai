@@ -151,9 +151,9 @@ export default function PatientProfilePage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-20">
+        <div className="max-w-7xl mx-auto space-y-6 pb-32">
             {/* Clinical Record Header */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.push('/patients')}
@@ -162,42 +162,42 @@ export default function PatientProfilePage() {
                         <ArrowLeft className="h-4 w-4" />
                     </button>
                     <div className="space-y-0.5">
-                        <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                            <button onClick={() => router.push('/patients')} className="hover:text-primary transition-colors">Patients</button>
+                        <div className="flex items-center gap-2 text-[9px] font-medium text-muted-foreground uppercase tracking-widest">
+                            <button onClick={() => router.push('/patients')} className="hover:text-primary transition-colors">Registry</button>
                             <span>/</span>
-                            <span className="text-foreground">{patient.name}</span>
+                            <span className="text-foreground truncate max-w-[120px]">{patient.name}</span>
                         </div>
-                        <h1 className="text-2xl font-serif font-medium text-foreground">Clinical Profile</h1>
+                        <h1 className="text-xl sm:text-2xl font-serif font-medium text-foreground tracking-tight">Clinical Profile</h1>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-transparent dark:border dark:border-emerald-500/20 border border-border text-[10px] font-medium text-muted-foreground uppercase tracking-widest rounded">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 opacity-70" /> Integrity Verified
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <div className="hidden xs:flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-transparent dark:border dark:border-emerald-500/10 border border-border text-[9px] font-medium text-muted-foreground uppercase tracking-widest rounded">
+                        <ShieldCheck className="h-3 w-3 text-emerald-600 opacity-70" /> Verified
                     </div>
                     <button
                         onClick={() => setShowEditModal(true)}
-                        className="h-9 px-4 border border-border rounded text-muted-foreground font-medium text-xs hover:bg-muted transition-all flex items-center gap-2"
+                        className="h-9 px-3 border border-border rounded text-muted-foreground font-bold text-[10px] uppercase tracking-widest hover:bg-muted transition-all flex items-center gap-2"
                     >
-                        <Edit3 className="h-3.5 w-3.5" /> Modify Parameters
+                        <Edit3 className="h-3.5 w-3.5" /> Modify
                     </button>
                     <button
                         onClick={() => {
-                            toast.success(`Initializing AI Scribe for ${patient.name}`);
+                            toast.success(`Initializing Scribe for ${patient.name}`);
                             router.push(`/record?patientId=${patient.id}`);
                         }}
-                        className="btn-premium bg-primary text-primary-foreground ml-auto"
+                        className="btn-premium h-9 px-4 ml-auto sm:ml-0"
                     >
-                        <Mic className="h-4 w-4 mr-2" /> Initialize AI Scribe
+                        <Mic className="h-3.5 w-3.5 mr-2" /> Initialize
                     </button>
                 </div>
             </div>
 
             {/* Structural Profile */}
-            <div className="surface p-6 sm:p-10 flex flex-col lg:flex-row gap-8 items-center lg:items-center relative bg-card">
+            <div className="surface p-5 sm:p-10 flex flex-col lg:flex-row gap-6 lg:gap-8 items-center lg:items-center relative bg-card">
                 <div className="relative group shrink-0">
                     <div
-                        className="h-32 w-32 sm:h-40 sm:w-40 bg-slate-50 border border-border rounded flex items-center justify-center relative overflow-hidden cursor-pointer"
+                        className="h-28 w-28 sm:h-40 sm:w-40 bg-slate-50 border border-border rounded-xl flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm"
                         onClick={() => setShowEditModal(true)}
                     >
                         {patient.image?.startsWith('data:') || patient.image?.startsWith('http') ? (
@@ -208,40 +208,40 @@ export default function PatientProfilePage() {
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).style.display = 'none';
                                     const parent = (e.target as HTMLImageElement).parentElement;
-                                    if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+                                    if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
                                 }}
                             />
                         ) : (
-                            <Binary className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
+                            <Binary className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground/30" />
                         )}
                         <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Camera className="h-6 w-6 text-white" />
+                            <Camera className="h-5 w-5 text-white" />
                         </div>
                     </div>
-                    <div className="absolute -bottom-2 -right-2 bg-card border border-border px-2.5 py-1 rounded text-[9px] font-medium text-emerald-700 flex items-center gap-1.5 shadow-sm uppercase tracking-widest">
-                        <Activity className="h-3 w-3 text-emerald-500" /> Operational
+                    <div className="absolute bottom-1 right-1 sm:-bottom-2 sm:-right-2 bg-white dark:bg-black border border-emerald-500/30 px-2 py-0.5 rounded text-[8px] font-black text-emerald-600 flex items-center gap-1 shadow-md uppercase tracking-widest z-10">
+                        <Activity className="h-2.5 w-2.5" /> Operational
                     </div>
                 </div>
 
-                <div className="flex-1 space-y-6 text-center lg:text-left w-full">
+                <div className="flex-1 space-y-4 text-center lg:text-left w-full">
                     <div>
-                        <div className="flex flex-col sm:flex-row items-baseline gap-3 mb-4">
-                            <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight leading-none">{patient.name}</h1>
-                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest border border-border px-2 py-0.5 rounded">ID: {patient.id.slice(0, 8)}</span>
+                        <div className="flex flex-col sm:flex-row items-center lg:items-baseline gap-2 mb-3">
+                            <h1 className="text-2xl sm:text-3xl font-serif font-black text-foreground tracking-tight leading-none uppercase">{patient.name}</h1>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest border border-black/10 px-2 py-0.5 rounded bg-slate-50/50">ID: {patient.id.slice(0, 8)}</span>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 justify-center lg:justify-start">
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center lg:justify-start">
                             {[
                                 { label: 'Breed', value: patient.breed, icon: Heart, color: 'text-rose-600' },
                                 { label: 'Species', value: patient.species, icon: Activity, color: 'text-indigo-600' },
                                 { label: 'Age', value: `${patient.age}Y ${patient.age_months}M`, icon: Calendar, color: 'text-amber-600' },
                                 { label: 'Weight', value: `${patient.weight} lbs`, icon: Scale, color: 'text-slate-600' },
                             ].map((item, i) => (
-                                <div key={i} className="flex items-center gap-3 bg-slate-50 dark:bg-transparent dark:border dark:border-white/20 border border-border px-4 py-2.5 rounded shadow-none min-w-[120px]">
-                                    <item.icon className={cn("h-3.5 w-3.5 shrink-0 opacity-70", item.color)} />
+                                <div key={i} className="flex items-center gap-2 bg-slate-50 dark:bg-card border border-black/5 px-3 py-2 rounded shadow-none min-w-[100px] sm:min-w-[120px]">
+                                    <item.icon className={cn("h-3 w-3 shrink-0 opacity-70", item.color)} />
                                     <div className="min-w-0 text-left">
-                                        <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">{item.label}</p>
-                                        <p className="text-xs font-medium text-foreground tracking-tight truncate">{item.value}</p>
+                                        <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">{item.label}</p>
+                                        <p className="text-[10px] font-bold text-foreground tracking-tight truncate uppercase">{item.value}</p>
                                     </div>
                                 </div>
                             ))}
