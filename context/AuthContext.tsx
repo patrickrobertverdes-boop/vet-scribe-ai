@@ -11,9 +11,11 @@ import {
     signInWithPopup,
     signInWithRedirect,
     getRedirectResult,
+    signInWithCredential,
     updateProfile
 } from 'firebase/auth';
 import { App } from '@capacitor/app';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
     doc,
     setDoc,
@@ -116,26 +118,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
+        // 0. Set Persistence for Mobile Reliability
+        import('firebase/auth').then(({ setPersistence, indexedDBLocalPersistence }) => {
+            setPersistence(auth!, indexedDBLocalPersistence).catch(e => console.error("Persistence error:", e));
+        });
+
         let handledRedirect = false;
 
         // 1. Deep link listener for Capacitor Mobile Redirects
         const setupDeepLink = async () => {
             App.addListener('appUrlOpen', async (data: any) => {
                 if (handledRedirect) return;
-                console.log('[Auth] Deep link received:', data.url);
-                if (data.url.includes('com.vetscribe.app://auth')) {
+
+                const url = data.url;
+                console.log('[Auth] Deep link/App Link received:', url);
+
+                // Catch both custom scheme and the hosted domain redirects
+                if (url.includes('com.vetscribe.app://auth') ||
+                    url.includes('vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/__/auth/handler')) {
+
                     handledRedirect = true;
-                    // Logic to handle return from redirect
+                    setLoading(true);
+
                     try {
-                        if (auth) {
-                            const result = await getRedirectResult(auth);
-                            if (result?.user) {
-                                setUser(result.user);
-                                initializeUserBackground(result.user);
-                            }
+                        const result = await getRedirectResult(auth!);
+                        if (result?.user) {
+                            console.log("[Auth] Redirect result identified from URL event");
+                            setUser(result.user);
+                            initializeUserBackground(result.user);
+                        } else {
+                            console.log("[Auth] No user in redirect result from URL event");
                         }
                     } catch (e) {
                         console.error("[Auth] Redirect Result Error:", e);
+                    } finally {
+                        setLoading(false);
                     }
                 }
             });
@@ -149,9 +166,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     const result = await getRedirectResult(auth);
                     if (result?.user) {
                         handledRedirect = true;
-                        console.log("[Auth] Captured redirect login result");
+                        console.log("[Auth] Captured redirect login result during init");
                         setUser(result.user);
                         initializeUserBackground(result.user);
+                        setLoading(false);
                         return;
                     }
                 } catch (err) {
@@ -159,12 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             }
 
-            // If we are in a manual flow (login/signup), we let those functions handle loading/navigation
-            if (isLoggingIn || isSigningUp) {
-                setUser(currentUser);
-                return;
-            }
-
+            // Normal Auth State Handling
             if (currentUser) {
                 setUser(currentUser);
                 initializeUserBackground(currentUser);
@@ -178,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
             unsubscribe();
         };
-    }, [isLoggingIn, isSigningUp]);
+    }, []);
 
     const signup = async (emailRaw: string, password: string, firstName: string, lastName: string) => {
         if (!auth || !db) throw new Error("Firebase configuration missing");
@@ -394,11 +407,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         try {
-            if (isCapacitor || isMobile) {
-                console.log("[Auth] Mobile APK environment detected, using Redirect Flow with Custom Scheme fallback");
-                // Ensure com.vetscribe.app://auth is handled in AndroidManifest
+            if (isCapacitor) {
+                console.log("[Auth] 📱 Native Capacitor environment detected. Using Native Google Auth bridge.");
+                setLoading(true);
+
+                try {
+                    const result = await FirebaseAuthentication.signInWithGoogle();
+
+                    if (result.credential?.idToken) {
+                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                        const userCredential = await signInWithCredential(auth, credential);
+                        const user = userCredential.user;
+
+                        if (db) {
+                            await setDoc(doc(db, 'users', user.uid), {
+                                email: user.email,
+                                uid: user.uid,
+                                authMethod: 'google_native',
+                                role: 'owner',
+                                lastLogin: serverTimestamp()
+                            }, { merge: true });
+                        }
+
+                        toast.success('Native Signed in with Google');
+                        router.push('/');
+                    } else {
+                        throw new Error("No ID Token returned from native Google Auth");
+                    }
+                } catch (nativeError: any) {
+                    console.error("[Auth] Native Google Auth Failed:", nativeError);
+                    // Fallback to redirect if native fails and we are on mobile
+                    await signInWithRedirect(auth, provider);
+                } finally {
+                    setLoading(false);
+                }
+            } else if (isMobile) {
+                console.log("[Auth] Mobile Web environment detected. Using Redirect Flow.");
                 await signInWithRedirect(auth, provider);
             } else {
+                // ... Standard Desktop flow ...
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
 
@@ -417,9 +464,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (error: any) {
             console.error("Google login error:", error);
-            // Fallback for extremely restrictive WebViews if popup fails
-            if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/operation-not-supported-in-this-environment') {
-                console.log("[Auth] Switching to redirect due to environment restriction...");
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
                 await signInWithRedirect(auth, provider);
             } else {
                 toast.error(error.message);
