@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "998512816404",
+    "project_id": "verdes-8568d",
+    "storage_bucket": "verdes-8568d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998512816404:android:27b7b3a9bcca9bf5a35201",
+        "android_client_info": {
+          "package_name": "com.vetscribe.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "998512816404-id0k006rkg711e3nv4gr78t4uj4vqgt9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqY2eYTf7iOOrxU5bGdne6pBMKiUWFvVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "998512816404-id0k006rkg711e3nv4gr78t4uj4vqgt9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
