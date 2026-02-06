@@ -137,26 +137,26 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
             {typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 h-[100dvh] animate-in fade-in duration-500">
                     {/* Backdrop */}
-                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl transition-opacity" onClick={onClose} />
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-xl transition-opacity" onClick={onClose} />
 
-                    <div className="w-full max-w-2xl overflow-hidden flex flex-col relative z-10 rounded-[1.25rem] shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-6 duration-500 max-h-[92dvh] bg-white dark:bg-slate-900 border border-black dark:border-white/20">
+                    <div className="w-full max-w-2xl overflow-hidden flex flex-col relative z-10 rounded-[1.25rem] shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-6 duration-500 max-h-[92dvh] bg-white border border-black">
                         {/* Header */}
-                        <div className="px-5 sm:px-10 py-3 sm:py-5 border-b border-black dark:border-white/10 flex items-center justify-between sticky top-0 z-20 !bg-white dark:!bg-slate-900 !text-black dark:!text-white shadow-sm">
+                        <div className="px-5 sm:px-10 py-3 sm:py-5 border-b border-black flex items-center justify-between sticky top-0 z-20 bg-white text-black shadow-sm">
                             <div className="flex items-center gap-4 sm:gap-6">
-                                <div className="h-10 w-10 sm:h-12 sm:w-12 !bg-white !text-black rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm shrink-0 border border-black">
+                                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-white text-black rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm shrink-0 border border-black">
                                     <Sparkles className="h-5 w-5 sm:h-7 sm:w-7" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-lg sm:text-2xl font-serif font-black !text-black tracking-tight leading-none uppercase truncate">Registry Entry</h2>
+                                    <h2 className="text-lg sm:text-2xl font-serif font-black text-black tracking-tight leading-none uppercase truncate">Registry Entry</h2>
                                     <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1">Clinical Protocol Initiation</p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="h-10 w-10 border border-black flex items-center justify-center rounded-xl hover:bg-black hover:text-white transition-all !text-black active:scale-95 shrink-0 ml-2 !bg-white">
+                            <button onClick={onClose} className="h-10 w-10 border border-black flex items-center justify-center rounded-xl hover:bg-black hover:text-white transition-all text-black active:scale-95 shrink-0 ml-2 bg-white">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-10 space-y-8 sm:space-y-12 bg-white dark:bg-card">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-10 space-y-8 sm:space-y-12 bg-white">
                             {/* Visual Identity & Manual Entry */}
                             <div className="flex flex-col md:flex-row gap-8 sm:gap-10 items-center md:items-start">
                                 <div className="shrink-0 flex flex-col items-center gap-4">
@@ -227,8 +227,8 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                         </h3>
                                         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Optional background analysis</p>
                                     </div>
-                                    <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center border border-black/5">
-                                        <Binary className="h-4 w-4 text-primary" />
+                                    <div className="h-8 w-8 rounded-full bg-zinc-100 flex items-center justify-center border border-black/5">
+                                        <Binary className="h-4 w-4 text-black" />
                                     </div>
                                 </div>
 
@@ -237,7 +237,7 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                         value={prompt}
                                         onChange={(e) => setPrompt(e.target.value)}
                                         placeholder="Paste clinical data or type a description..."
-                                        className="w-full border border-black/20 dark:border-white/20 p-5 sm:p-8 rounded-xl sm:rounded-2xl text-[13px] font-bold text-foreground placeholder:text-muted-foreground placeholder:opacity-70 min-h-[140px] focus:border-black dark:focus:border-white outline-none transition-all shadow-sm resize-none leading-relaxed tracking-tight bg-slate-50 dark:bg-slate-950/50"
+                                        className="w-full border border-black/20 p-5 sm:p-8 rounded-xl sm:rounded-2xl text-[13px] font-bold text-black placeholder:text-zinc-400 min-h-[140px] focus:border-black outline-none transition-all shadow-sm resize-none leading-relaxed tracking-tight bg-zinc-50"
                                     />
                                     <div className="flex justify-end">
                                         <button
@@ -260,8 +260,8 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                             )}
 
                             {/* Info Box */}
-                            <div className="p-6 sm:p-8 bg-muted border border-black dark:border-border rounded-2xl flex items-start gap-5">
-                                <div className="h-10 w-10 bg-white dark:bg-card rounded-xl flex items-center justify-center text-foreground shrink-0 border border-black dark:border-border shadow-sm">
+                            <div className="p-6 sm:p-8 bg-zinc-50 border border-black rounded-2xl flex items-start gap-5">
+                                <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-black shrink-0 border border-black shadow-sm">
                                     <Info className="h-5 w-5" />
                                 </div>
                                 <div className="space-y-2">
@@ -272,10 +272,10 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                         </div>
 
                         {/* Actions */}
-                        <div className="px-5 sm:px-10 py-4 sm:py-6 border-t border-black dark:border-white/10 !bg-white dark:!bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-0 z-20 !text-black dark:!text-white border-t">
+                        <div className="px-5 sm:px-10 py-4 sm:py-6 border-t border-black bg-white flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-0 z-20 text-black border-t">
                             <button
                                 onClick={onClose}
-                                className="h-12 px-8 text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest hover:text-black dark:hover:text-white transition-all rounded-xl w-full sm:w-auto order-2 sm:order-1"
+                                className="h-12 px-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-black transition-all rounded-xl w-full sm:w-auto order-2 sm:order-1"
                             >
                                 Cancel Operation
                             </button>
