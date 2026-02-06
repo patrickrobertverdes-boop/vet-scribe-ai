@@ -141,7 +141,7 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
 
                     <div className="w-full max-w-2xl overflow-hidden flex flex-col relative z-10 rounded-[1.25rem] shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-6 duration-500 max-h-[92dvh] bg-white dark:bg-slate-900 border border-black dark:border-white/20">
                         {/* Header */}
-                        <div className="px-5 sm:px-10 py-5 sm:py-8 border-b border-black dark:border-white/10 flex items-center justify-between sticky top-0 z-20 bg-white dark:bg-slate-900 text-black dark:text-white">
+                        <div className="px-5 sm:px-10 py-5 sm:py-8 border-b border-black dark:border-white/10 flex items-center justify-between sticky top-0 z-20 !bg-white dark:!bg-slate-900 !text-black dark:!text-white">
                             <div className="flex items-center gap-4 sm:gap-6">
                                 <div className="h-10 w-10 sm:h-14 sm:w-14 bg-black dark:bg-white text-white dark:text-black rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shrink-0 border border-black dark:border-white/20">
                                     <Sparkles className="h-5 w-5 sm:h-7 sm:w-7" />
@@ -272,7 +272,7 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                         </div>
 
                         {/* Actions */}
-                        <div className="px-5 sm:px-10 py-6 sm:py-10 border-t border-black dark:border-white/10 bg-white dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-0 z-20 text-black dark:text-white">
+                        <div className="px-5 sm:px-10 py-6 sm:py-10 border-t border-black dark:border-white/10 !bg-white dark:!bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-0 z-20 !text-black dark:!text-white">
                             <button
                                 onClick={onClose}
                                 className="h-12 px-8 text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest hover:text-black dark:hover:text-white transition-all rounded-xl w-full sm:w-auto order-2 sm:order-1"
