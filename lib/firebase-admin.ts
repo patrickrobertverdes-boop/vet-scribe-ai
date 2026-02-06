@@ -5,19 +5,22 @@ function getAdminApp() {
 
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
-    // 1. Try Service Account File (Local Development)
-    try {
-        const saPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'service-account.json';
-        if (require('fs').existsSync(saPath)) {
-            const sa = JSON.parse(require('fs').readFileSync(saPath, 'utf8'));
-            console.log(`[Firebase-Admin] Initializing with Service Account: ${projectId}`);
-            return admin.initializeApp({
-                credential: admin.credential.cert(sa),
-                projectId
-            });
+    // 1. Try Service Account File (Local Development Only)
+    // We skip this if running on Cloud Run/Firebase App Hosting (detected via K_SERVICE)
+    if (!process.env.K_SERVICE) {
+        try {
+            const saPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'service-account.json';
+            if (require('fs').existsSync(saPath)) {
+                const sa = JSON.parse(require('fs').readFileSync(saPath, 'utf8'));
+                console.log(`[Firebase-Admin] Initializing with Service Account: ${projectId}`);
+                return admin.initializeApp({
+                    credential: admin.credential.cert(sa),
+                    projectId
+                });
+            }
+        } catch (e) {
+            // Silent fail on local file check
         }
-    } catch (e) {
-        // Silent fail on local file check
     }
 
     // 2. Try Environment Variable Service Account

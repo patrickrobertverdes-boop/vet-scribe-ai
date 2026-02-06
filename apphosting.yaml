@@ -3,11 +3,11 @@
 
 # Cloud Run service configuration
 runConfig:
-  minInstances: 0
+  minInstances: 1
   maxInstances: 10
   concurrency: 80
-  cpu: 1
-  memoryMiB: 2048
+  cpu: 2
+  memoryMiB: 4096
 
 # Environment variables and secrets
 env:
@@ -26,12 +26,6 @@ env:
   # Gemini API Key (Secret - Server-side only)
   - variable: GEMINI_API_KEY
     secret: gemini-api-key
-    availability:
-      - RUNTIME
-
-  # AssemblyAI API Key (Secret - Server-side only)
-  - variable: ASSEMBLYAI_API_KEY
-    secret: assemblyai-api-key
     availability:
       - RUNTIME
 
