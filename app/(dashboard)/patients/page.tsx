@@ -6,21 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Search,
     Filter,
-    MoreHorizontal,
     Plus,
     ChevronRight,
-    Wand2,
     Activity,
     Layers,
-    ArrowUpRight,
-    Users,
-    Stethoscope,
-    FileText,
-    History,
     Shield,
     Database,
     Binary,
-    Zap,
     Mic
 } from 'lucide-react';
 import { Patient } from '@/lib/types';

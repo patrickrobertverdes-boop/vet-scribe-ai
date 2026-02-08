@@ -7,19 +7,14 @@ import {
     MessageSquare,
     Video,
     Phone,
-    Mail,
-    Calendar,
     CheckCircle2,
-    Clock,
     Send,
     Paperclip,
     UserPlus,
     Filter,
     Megaphone,
     User,
-    Settings,
-    Search,
-    PlusCircle
+    Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { firebaseService } from '@/lib/firebase-service';

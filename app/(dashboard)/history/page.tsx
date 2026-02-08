@@ -1,24 +1,17 @@
 'use client';
 
 import {
-    Calendar,
     FileText,
     Search,
-    Filter,
     Clock,
     Activity,
-    ChevronRight,
     ArrowUpRight,
     PlusCircle,
-    LayoutGrid,
-    Users,
-    Stethoscope,
     Shield,
     Database,
     Binary,
     Zap,
-    Layers,
-    Loader2
+    Layers
 } from 'lucide-react';
 import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';

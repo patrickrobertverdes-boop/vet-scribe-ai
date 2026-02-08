@@ -8,12 +8,9 @@ import {
     Share2,
     Download,
     FileText,
-    History,
     Activity,
     ShieldCheck,
     Zap,
-    Binary,
-    Database,
     Clock,
     User,
     ArrowLeft
