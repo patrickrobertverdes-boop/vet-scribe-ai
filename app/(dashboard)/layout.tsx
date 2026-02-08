@@ -70,18 +70,18 @@ export default function DashboardLayout({
                 fixed inset-y-0 left-0 right-0 z-50 transform transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] lg:hidden
                 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}
             `}>
-                <div className="flex flex-col w-full h-full relative bg-background mobile-solid safe-top">
-                    {/* Close Button - Premium Square */}
+                <div className="flex flex-col w-full h-full relative bg-background mobile-solid">
+                    {/* Close Button - Premium Square Box */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="absolute right-6 top-6 h-12 w-12 flex items-center justify-center border-2 border-slate-200 dark:border-slate-800 rounded-xl z-[100] active:scale-95 transition-all"
+                        className="absolute right-6 top-8 h-12 w-12 flex items-center justify-center border-2 border-slate-200 dark:border-slate-800 rounded-xl z-[110] active:scale-95 transition-all bg-background/80 backdrop-blur-sm shadow-sm"
                         aria-label="Close menu"
                     >
                         <X className="h-6 w-6 text-foreground" />
                     </button>
 
-                    {/* Sidebar Content with bottom padding for mobile nav */}
-                    <div className="flex-1 overflow-y-auto pb-48">
+                    {/* Sidebar Content with top padding for button and bottom for nav */}
+                    <div className="flex-1 overflow-y-auto pt-24 pb-48">
                         <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} className="w-full border-none h-full" />
                     </div>
                 </div>
