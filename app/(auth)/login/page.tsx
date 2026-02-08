@@ -5,15 +5,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, ArrowRight, Zap } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, login } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isMobileAuth = searchParams.get('mobile_auth') === 'true';
@@ -43,16 +41,6 @@ export default function LoginPage() {
         }
     }, [user, router, searchParams, isMobileAuth]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        try {
-            await login(email, password);
-        } catch (error: any) {
-            toast.error(error.message);
-            setIsSubmitting(false);
-        }
-    };
 
     // Specialist Handoff UI for APK users
     if (user && isMobileAuth) {

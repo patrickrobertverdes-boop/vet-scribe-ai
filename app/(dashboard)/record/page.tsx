@@ -4,24 +4,16 @@ import { Suspense, useState, useEffect } from 'react';
 import {
     Play,
     Square,
-    Wand2,
-    Save,
     AlertCircle,
     Mic,
     ChevronRight,
-    Activity,
-    ShieldCheck,
-    History,
     LayoutDashboard,
     Loader2,
     Sparkles,
     MicOff,
-    CheckCircle,
-    Database,
     Binary,
     Zap,
     Users,
-    Plus,
     Search
 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
