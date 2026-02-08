@@ -53,7 +53,7 @@ export default function SettingsPage() {
 
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<SettingTab>('User Profile');
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [profile, setProfile] = useState<any>({ name: '', specialty: '', image: '' });
     const [isUploading, setIsUploading] = useState(false);
 
@@ -76,10 +76,15 @@ export default function SettingsPage() {
         if (!user) return;
         try {
             // Map 'name' back to 'displayName' for consistency with provisioning/Auth
-            const dataToSave = { ...newData };
+            const dataToSave: any = { ...newData };
             if (newData.name) dataToSave.displayName = newData.name;
 
+            // 1. Update Firebase Auth Profile (Real-time sync)
+            await updateUser(dataToSave);
+
+            // 2. Update Firestore Profile
             await firebaseService.updateUserProfile(user.uid, dataToSave);
+
             toast.success("Profile synchronized with clinical vault.");
         } catch (e) {
             toast.error("Failed to update profile.");
@@ -284,31 +289,37 @@ export default function SettingsPage() {
                                                     type="text"
                                                     value={profile.name}
                                                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                                    onBlur={() => handleUpdateProfile(profile)}
                                                     placeholder="e.g. Dr. Sarah Gahra, DVM"
                                                     className="w-full h-12 bg-muted/30 border border-border rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Medical Specialty</label>
-                                                <div className="max-w-md">
-                                                    <CustomSelect
-                                                        value={profile.specialty}
-                                                        onChange={(val) => {
-                                                            const newP = { ...profile, specialty: val };
-                                                            setProfile(newP);
-                                                            handleUpdateProfile(newP);
-                                                        }}
-                                                        options={[
-                                                            { label: "General Practice", value: "GP" },
-                                                            { label: "Surgical Specialist", value: "Surgery" },
-                                                            { label: "Emergency Medicine", value: "ER" },
-                                                            { label: "Internal Medicine", value: "Internal" },
-                                                            { label: "Radiology", value: "Radiology" }
-                                                        ]}
-                                                        placeholder="Select clinical focus..."
-                                                    />
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Medical Specialty</label>
+                                                    <div className="max-w-md">
+                                                        <CustomSelect
+                                                            value={profile.specialty}
+                                                            onChange={(val) => {
+                                                                setProfile({ ...profile, specialty: val });
+                                                            }}
+                                                            options={[
+                                                                { label: "General Practice", value: "GP" },
+                                                                { label: "Surgical Specialist", value: "Surgery" },
+                                                                { label: "Emergency Medicine", value: "ER" },
+                                                                { label: "Internal Medicine", value: "Internal" },
+                                                                { label: "Radiology", value: "Radiology" }
+                                                            ]}
+                                                            placeholder="Select clinical focus..."
+                                                        />
+                                                    </div>
                                                 </div>
+
+                                                <button
+                                                    onClick={() => handleUpdateProfile(profile)}
+                                                    className="w-full md:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                                                >
+                                                    Synchronize Profile
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

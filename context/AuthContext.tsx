@@ -42,6 +42,7 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
     resendVerification: () => Promise<void>;
+    updateUser: (data: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -502,6 +503,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const updateUser = async (data: any) => {
+        if (!user) return;
+        try {
+            await updateProfile(user, data);
+            setUser({ ...user, ...data });
+        } catch (error) {
+            console.error("Update profile error:", error);
+            throw error;
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -512,7 +524,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             login,
             signInWithGoogle,
             logout,
-            resendVerification
+            resendVerification,
+            updateUser
         }}>
             {children}
         </AuthContext.Provider>

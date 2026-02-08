@@ -25,10 +25,10 @@ export function MobileNav() {
 
     return (
         <div className={cn(
-            "lg:hidden fixed bottom-6 left-4 right-4 z-[9999] border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl safe-bottom",
+            "lg:hidden fixed bottom-14 left-4 right-4 z-[9999] border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl safe-bottom",
             isPatientProfile
-                ? "bg-white text-black h-[4.5rem]"
-                : "bg-white dark:bg-card text-foreground h-[5rem]"
+                ? "bg-white text-black h-[5rem]"
+                : "bg-white dark:bg-card text-foreground h-[6rem]"
         )}>
             <nav className={cn(
                 "grid grid-cols-4 w-full h-full px-2 items-center",
@@ -51,7 +51,7 @@ export function MobileNav() {
                         >
                             <item.icon className={cn(
                                 "transition-all duration-300",
-                                isPatientProfile ? "h-6 w-6" : "h-7 w-7",
+                                isPatientProfile ? "h-7 w-7" : "h-8 w-8",
                                 isActive ? "stroke-[2.5px] fill-current/10" : "stroke-[1.5px]"
                             )} />
                             <p className={cn(

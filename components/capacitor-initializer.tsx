@@ -10,18 +10,28 @@ export function CapacitorInitializer() {
                     // Import dynamically to avoid SSR issues
                     const { StatusBar } = await import('@capacitor/status-bar');
 
-                    // 4. Use Capacitor Status Bar Properly (Android)
-                    // This makes layout behave like a normal Android app.
-                    await StatusBar.setOverlaysWebView({ overlay: false });
+                    // Immersive mode: Hide status bar for full-screen feel
+                    await StatusBar.hide();
 
-                    console.log('[Capacitor] Initialized Status Bar');
+                    // Overlay webview to prevent the status bar area from being a black box
+                    await StatusBar.setOverlaysWebView({ overlay: true });
+
+                    console.log('[Capacitor] Initialized Immersive Mode');
                 } catch (e) {
-                    console.warn('[Capacitor] Status Bar plugin not found or failed to init', e);
+                    console.warn('[Capacitor] Status Bar plugin issue', e);
                 }
             }
         };
 
+        const setupAndroidBridge = () => {
+            if (typeof window !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+                // Force full screen styling hints
+                document.documentElement.style.setProperty('--system-bar-height', '0px');
+            }
+        };
+
         initCapacitor();
+        setupAndroidBridge();
     }, []);
 
     return null;

@@ -58,14 +58,7 @@ export default function DashboardLayout({
         <div className="flex bg-background min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
             {/* Ambient Background Glows Removed for high contrast */}
 
-            {/* Mobile Sidebar Overlay */}
-            {isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-slate-900/80 backdrop-blur-sm lg:hidden transition-opacity duration-500"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    aria-label="Close menu overlay"
-                />
-            )}
+
 
             {/* Sidebar - Desktop (Fixed Height/Scroll internally handled by flex parent) */}
             <div className="hidden lg:flex w-80 flex-col border-r border-border bg-card relative z-20 shrink-0">
@@ -81,10 +74,10 @@ export default function DashboardLayout({
                     {/* Close Button - Premium Square */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="absolute right-6 top-6 p-2 z-[100]"
+                        className="absolute right-6 top-6 h-12 w-12 flex items-center justify-center border-2 border-slate-200 dark:border-slate-800 rounded-xl z-[100] active:scale-95 transition-all"
                         aria-label="Close menu"
                     >
-                        <X className="h-8 w-8 text-foreground" />
+                        <X className="h-6 w-6 text-foreground" />
                     </button>
 
                     {/* Sidebar Content with bottom padding for mobile nav */}
