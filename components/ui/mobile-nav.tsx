@@ -25,14 +25,13 @@ export function MobileNav() {
 
     return (
         <div className={cn(
-            "lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 border-t transition-all duration-300 safe-bottom shadow-none",
+            "lg:hidden fixed bottom-0 left-0 right-0 z-[100] border-t safe-bottom",
             isPatientProfile
-                ? "bg-white border-black text-black min-h-[3.5rem]"
-                : "bg-white dark:bg-card border-black dark:border-border min-h-[4rem]"
+                ? "bg-white border-black text-black h-[3.5rem]"
+                : "bg-white dark:bg-card border-black dark:border-border h-[4rem]"
         )}>
             <nav className={cn(
-                "grid grid-cols-4 w-full px-2 items-center",
-                isPatientProfile ? "h-[3.5rem]" : "h-[4rem]"
+                "grid grid-cols-4 w-full h-full px-2 items-center",
             )}>
                 {navigation.map((item) => {
                     const isActive = item.activeMatch
