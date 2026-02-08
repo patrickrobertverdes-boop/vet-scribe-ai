@@ -25,10 +25,10 @@ export function MobileNav() {
 
     return (
         <div className={cn(
-            "lg:hidden fixed bottom-0 left-0 right-0 z-[100] border-t safe-bottom",
+            "lg:hidden fixed bottom-6 left-4 right-4 z-[9999] border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl safe-bottom",
             isPatientProfile
-                ? "bg-white border-black text-black h-[3.5rem]"
-                : "bg-white dark:bg-card border-black dark:border-border h-[4rem]"
+                ? "bg-white text-black h-[4.5rem]"
+                : "bg-white dark:bg-card text-foreground h-[5rem]"
         )}>
             <nav className={cn(
                 "grid grid-cols-4 w-full h-full px-2 items-center",
@@ -43,21 +43,21 @@ export function MobileNav() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex flex-col items-center justify-center gap-1 w-full h-full active:scale-90 transition-all text-center select-none rounded-2xl",
+                                "flex flex-col items-center justify-center gap-1.5 w-full h-full active:scale-95 transition-all text-center select-none rounded-xl",
                                 isActive
-                                    ? (isPatientProfile ? "bg-zinc-100 text-black" : "bg-muted text-foreground")
-                                    : (isPatientProfile ? "text-zinc-500" : "text-muted-foreground hover:bg-muted/50")
+                                    ? "text-primary scale-105"
+                                    : "text-muted-foreground hover:bg-muted/30"
                             )}
                         >
                             <item.icon className={cn(
                                 "transition-all duration-300",
-                                isPatientProfile ? "h-5 w-5" : "h-6 w-6",
-                                isActive ? "stroke-[3px] scale-110" : "stroke-[2px]"
+                                isPatientProfile ? "h-6 w-6" : "h-7 w-7",
+                                isActive ? "stroke-[2.5px] fill-current/10" : "stroke-[1.5px]"
                             )} />
                             <p className={cn(
-                                "font-black tracking-widest leading-none uppercase transition-all",
-                                isPatientProfile ? "text-[9px]" : "text-[11px]",
-                                isActive ? "opacity-100" : "opacity-0 scale-75"
+                                "font-bold tracking-wider leading-none uppercase transition-all",
+                                isPatientProfile ? "text-[10px]" : "text-[11px]",
+                                isActive ? "opacity-100" : "opacity-70"
                             )}>
                                 {item.name}
                             </p>
