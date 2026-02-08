@@ -504,12 +504,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateUser = async (data: any) => {
-        if (!user) return;
+        if (!user) {
+            console.error("[Auth] Cannot update profile: No user session found.");
+            throw new Error("No active clinical session.");
+        }
         try {
-            await updateProfile(user, data);
-            setUser({ ...user, ...data });
-        } catch (error) {
-            console.error("Update profile error:", error);
+            console.log("[Auth] Initiating profile synchronization...", data);
+
+            // Map common fields to Firebase internal fields
+            const authUpdate: any = {};
+            if (data.displayName || data.name) authUpdate.displayName = data.displayName || data.name;
+            if (data.photoURL || data.image) authUpdate.photoURL = data.photoURL || data.image;
+
+            await updateProfile(user, authUpdate);
+
+            // CRITICAL: Force reload to sync internal token state
+            await user.reload();
+
+            // Get fresh user instance from auth to ensure reactive updates
+            const freshUser = auth?.currentUser;
+            if (freshUser) setUser({ ...freshUser });
+
+            console.log("[Auth] Profile synchronized successfully.");
+        } catch (error: any) {
+            console.error("[Auth] Profile update failed:", error);
             throw error;
         }
     };

@@ -100,13 +100,11 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
-                <main className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-32 lg:pb-10 relative z-10 w-full scroll-smooth">
+                <main className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-10 lg:pb-10 relative z-10 w-full scroll-smooth">
                     <div className="mx-auto max-w-[1600px] w-full">
                         {children}
                     </div>
                 </main>
-
-                <MobileNav />
             </div>
 
             <AIAssistant />

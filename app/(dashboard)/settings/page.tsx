@@ -86,8 +86,9 @@ export default function SettingsPage() {
             await firebaseService.updateUserProfile(user.uid, dataToSave);
 
             toast.success("Profile synchronized with clinical vault.");
-        } catch (e) {
-            toast.error("Failed to update profile.");
+        } catch (e: any) {
+            console.error("[Settings] Profile update error:", e);
+            toast.error(`Synchronization failed: ${e.message || 'Check connection'}`);
         }
     };
 
