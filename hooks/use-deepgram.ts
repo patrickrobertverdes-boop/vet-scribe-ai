@@ -177,9 +177,8 @@ export function useDeepgram(): UseDeepgramReturn {
 
             // iOS/Safari & Capacitor WebView specific: AudioContext must be resumed after state 'suspended'
             // and often requires a user gesture for each start.
-            const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
-            const isCapacitor = (window as any).Capacitor !== undefined;
             // Enable PCM for Capacitor as modern WebViews handle it well.
+            const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
             const isPcmCapable = !!(window.AudioWorklet && !isSafari);
 
             // 3. Setup Audio Handler (Hybrid)

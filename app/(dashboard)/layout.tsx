@@ -6,7 +6,6 @@ import { Header } from '@/components/ui/header';
 import { MobileNav } from '@/components/ui/mobile-nav';
 import { X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { AIAssistant } from '@/components/ai/ai-assistant';
 import { useChatStore } from '@/lib/chat-store';
 
@@ -15,8 +14,7 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, loading, isSigningUp, isLoggingIn } = useAuth();
-    const router = useRouter();
+    const { loading, isSigningUp, isLoggingIn } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Global Chat State

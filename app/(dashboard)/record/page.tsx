@@ -16,7 +16,6 @@ import {
     Users,
     Search
 } from 'lucide-react';
-import { CustomSelect } from '@/components/ui/custom-select';
 import { AudioVisualizer } from '@/components/scribe/audio-visualizer';
 import { TranscriptView } from '@/components/scribe/transcript-view';
 import { SoapEditor } from '@/components/soap/soap-editor';
