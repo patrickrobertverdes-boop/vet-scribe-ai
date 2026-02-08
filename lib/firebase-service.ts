@@ -1,5 +1,5 @@
 import { db, storage, isFirebaseConfigured } from './firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, uploadString } from 'firebase/storage';
 import {
     collection,
     addDoc,
@@ -198,25 +198,6 @@ export const firebaseService = {
         });
     },
 
-    uploadDocument: async (uid: string, patientId: string, file: File) => {
-        if (!storage) throw new Error("Storage not configured");
-        const path = `users/${uid}/patients/${patientId}/documents/${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, path);
-        const snapshot = await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(snapshot.ref);
-
-        const docData = {
-            patientId,
-            name: file.name,
-            url,
-            type: file.type.includes('pdf') ? 'pdf' : 'image',
-            size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-            uploadDate: new Date().toLocaleDateString(),
-            storagePath: path
-        };
-        await addDoc(collection(getFirestoreDb(), 'users', uid, 'patients', patientId, 'documents'), docData);
-        return docData;
-    },
 
     deleteDocument: async (uid: string, patientId: string, docId: string, url?: string) => {
         // Direct path delete - requires patientId
@@ -398,11 +379,80 @@ export const firebaseService = {
         await setDoc(docRef, { ...data, updatedAt: Timestamp.now() }, { merge: true });
     },
 
-    uploadProfileImage: async (uid: string, file: File) => {
+    uploadProfileImage: async (uid: string, file: Blob | Uint8Array | string) => {
         if (!storage) throw new Error("Storage not configured");
-        const path = `users/${uid}/profile/avatar_${Date.now()}`;
+
+        const timestamp = Date.now();
+        const path = `users/${uid}/profile/avatar_${timestamp}`;
         const storageRef = ref(storage, path);
-        const snapshot = await uploadBytes(storageRef, file);
-        return await getDownloadURL(snapshot.ref);
+
+        console.log(`[FirebaseService] Audit: Initiating profile upload for ${uid}`);
+        console.log(`[FirebaseService] Path: ${path}`);
+
+        try {
+            let snapshot;
+            if (typeof file === 'string') {
+                console.log(`[FirebaseService] Upload Mode: base64String`);
+                // Assume it might be a data URL or just raw base64
+                const format = file.startsWith('data:') ? 'data_url' : 'base64';
+                snapshot = await uploadString(storageRef, file, format);
+            } else {
+                console.log(`[FirebaseService] Upload Mode: binary (Blob/Uint8Array)`);
+                console.log(`[FirebaseService] Size: ${file instanceof Blob ? file.size : file.byteLength} bytes`);
+                snapshot = await uploadBytes(storageRef, file, {
+                    contentType: 'image/jpeg',
+                    customMetadata: {
+                        uploadedBy: uid,
+                        uploadTimestamp: timestamp.toString()
+                    }
+                });
+            }
+
+            console.log(`[FirebaseService] Upload Success:`, snapshot.metadata.fullPath);
+            const url = await getDownloadURL(snapshot.ref);
+            console.log(`[FirebaseService] Final URL: ${url}`);
+            return url;
+        } catch (error: any) {
+            console.error(`[FirebaseService] FATAL: Upload failed for ${uid}`);
+            console.error(`[FirebaseService] Error Code: ${error.code}`);
+            console.error(`[FirebaseService] Error Message: ${error.message}`);
+            if (error.serverResponse) {
+                console.error(`[FirebaseService] Server Response:`, error.serverResponse);
+            }
+            throw error;
+        }
+    },
+
+    uploadDocument: async (uid: string, patientId: string, file: File | Blob) => {
+        if (!storage) throw new Error("Storage not configured");
+
+        const timestamp = Date.now();
+        const fileName = (file as File).name || `upload_${timestamp}`;
+        const path = `users/${uid}/patients/${patientId}/documents/${timestamp}_${fileName}`;
+        const storageRef = ref(storage, path);
+
+        console.log(`[FirebaseService] Audit: Document upload for patient ${patientId}`);
+
+        try {
+            const snapshot = await uploadBytes(storageRef, file, {
+                contentType: (file as Blob).type || 'application/octet-stream'
+            });
+            const url = await getDownloadURL(snapshot.ref);
+
+            const docData = {
+                patientId,
+                name: fileName,
+                url,
+                type: (file as Blob).type?.includes('pdf') ? 'pdf' : 'image',
+                size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+                uploadDate: new Date().toLocaleDateString(),
+                storagePath: path
+            };
+            await addDoc(collection(getFirestoreDb(), 'users', uid, 'patients', patientId, 'documents'), docData);
+            return docData;
+        } catch (error: any) {
+            console.error(`[FirebaseService] Document upload failed:`, error.message);
+            throw error;
+        }
     }
 };

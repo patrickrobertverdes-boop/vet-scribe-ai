@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Header } from '@/components/ui/header';
 import { MobileNav } from '@/components/ui/mobile-nav';
 import { X, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { AIAssistant } from '@/components/ai/ai-assistant';
 import { useChatStore } from '@/lib/chat-store';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,18 @@ export default function DashboardLayout({
 }) {
     const { user, loading, isSigningUp, isLoggingIn } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const scrollContainerRef = useRef<HTMLElement>(null);
+
+    // AUTO-SCROLL: Ensure page starts at top on every navigation
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo(0, 0);
+        }
+        // Also scroll window for mobile/body-based scrolling
+        window.scrollTo(0, 0);
+    }, [pathname]);
 
     // Global Chat State
     const { isOpen: isAIAssistantOpen, setOpen: setAIAssistantOpen } = useChatStore();
@@ -123,7 +134,10 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
-                <main className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-10 lg:pb-10 relative z-10 w-full scroll-smooth">
+                <main
+                    ref={scrollContainerRef}
+                    className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-10 lg:pb-10 relative z-10 w-full scroll-smooth"
+                >
                     <div className="mx-auto max-w-[1600px] w-full">
                         {children}
                     </div>

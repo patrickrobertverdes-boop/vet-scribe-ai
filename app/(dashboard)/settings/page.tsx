@@ -142,19 +142,48 @@ export default function SettingsPage() {
             });
 
             if (image.base64String) {
+                console.log("[Settings] Native image captured. Format:", image.format);
                 setIsUploading(true);
-                const blob = await (await fetch(`data:image/jpeg;base64,${image.base64String}`)).blob();
-                const file = new File([blob], "profile.jpg", { type: "image/jpeg" });
 
-                const url = await firebaseService.uploadProfileImage(user.uid, file);
-                await firebaseService.updateUserProfile(user.uid, { image: url });
-                setProfile((prev: any) => ({ ...prev, image: url }));
+                // AUDIT: Retrieve fresh token for backend verification
+                const idToken = await user.getIdToken();
+                console.log("[Settings] Audit: Auth token retrieved.");
+
+                // Use the backend upload endpoint to ensure expectations (Base64) are met
+                console.log("[Settings] Syncing with backend upload endpoint...");
+                const response = await fetch('/api/user/upload-avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({
+                        image: image.base64String,
+                        mimeType: 'image/jpeg'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    console.error("[Settings] Backend Upload Error [Status: " + response.status + "]:", result);
+                    throw new Error(result.error || `Upload failed with status ${response.status}`);
+                }
+
+                console.log("[Settings] Backend Upload Success:", result.url);
+
+                // Update local auth state and sync with Firestore record
+                await updateUser({ image: result.url });
+
+                setProfile((prev: any) => ({ ...prev, image: result.url }));
                 toast.success("Profile photo synchronized.");
             }
         } catch (err: any) {
             if (err.message !== 'User cancelled photos app') {
-                console.error("Camera error:", err);
-                toast.error("Failed to capture image.");
+                console.error("[Settings] Camera/Upload Error:", err);
+                // Log the full error for debugging in Android Logcat/In-App DevTools
+                console.error("[Settings] Error Details:", JSON.stringify(err));
+                toast.error(`Sync Failed: ${err.message || 'Unknown error'}`);
             }
         } finally {
             setIsUploading(false);

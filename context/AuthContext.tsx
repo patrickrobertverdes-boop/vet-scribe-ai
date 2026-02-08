@@ -432,13 +432,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         console.log("[Auth] Native Google Sign-In Success:", result.user.uid);
 
                         // User is already signed into the Firebase JS SDK by the plugin.
-                        // We double cast to 'User' to bridge the slightly different type definitions.
                         const jsUser = result.user as unknown as User;
-                        setUser(jsUser);
-                        initializeUserBackground(jsUser);
 
-                        toast.success('Signed in with Google');
-                        router.push('/');
+                        // DEFER: Let native layer close modal before heavy app transition
+                        setTimeout(() => {
+                            setUser(jsUser);
+                            initializeUserBackground(jsUser);
+                            toast.success('Signed in with Google');
+                            router.push('/');
+                        }, 500);
                     } else {
                         throw new Error("Google sign-in returned no user");
                     }
