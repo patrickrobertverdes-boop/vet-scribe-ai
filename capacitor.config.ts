@@ -26,7 +26,8 @@ const config: LocalCapacitorConfig = {
         cleartext: false,
         allowNavigation: [
             '*.firebaseauth.com',
-            'vet-scribe-a2i--verdes-8568d.us-east4.hosted.app'
+            'vet-scribe-a2i--verdes-8568d.us-east4.hosted.app',
+            'api.deepgram.com'
         ]
     },
     plugins: {

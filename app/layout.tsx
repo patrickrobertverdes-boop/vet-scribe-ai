@@ -4,6 +4,8 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { CapacitorInitializer } from '@/components/capacitor-initializer';
+import { SafeAreaContainer } from '@/components/ui/safe-area-container';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,8 +37,9 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Often desired for app-like feel
-  themeColor: '#0ea5a4'
+  userScalable: false,
+  themeColor: '#0ea5a4',
+  viewportFit: 'cover'
 };
 
 export default function RootLayout({
@@ -49,8 +52,11 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
+            <CapacitorInitializer />
             <Toaster position="top-right" />
-            {children}
+            <SafeAreaContainer>
+              {children}
+            </SafeAreaContainer>
           </AuthProvider>
         </ThemeProvider>
       </body>

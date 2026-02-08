@@ -190,38 +190,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         });
 
-        // Deep Link Listener: Handle return from System Browser OAuth (Android Fix)
-        if (Capacitor.isNativePlatform()) {
-            App.addListener('appUrlOpen', async (data: any) => {
-                console.log(`[DeepLink] System URL Open Hook: ${data.url}`);
-                if (data.url.includes('com.vetscribe.app://auth')) {
-                    try {
-                        console.log("[DeepLink] Protocol capture confirmed. Extracting identity...");
-
-                        // Robust parsing for custom schemes (avoids new URL() constructor edge cases)
-                        const tokenMatch = data.url.match(/[?&]token=([^&]+)/);
-                        const token = tokenMatch ? tokenMatch[1] : null;
-
-                        if (token) {
-                            setLoading(true);
-                            console.log("[DeepLink] Exchanging identity token for session...");
-                            const credential = GoogleAuthProvider.credential(token);
-                            await signInWithCredential(auth!, credential);
-                            toast.success('Identity Verified via System');
-                            router.push('/');
-                        } else {
-                            console.error("[DeepLink] Handshake failed: Token missing from protocol string.");
-                        }
-                    } catch (err: any) {
-                        console.error("[DeepLink] Protocol Violation:", err);
-                        toast.error("Handshake failed. Try again.");
-                    } finally {
-                        setLoading(false);
-                        try { await Browser.close(); } catch (e) { /* silent close */ }
-                    }
-                }
-            });
-        }
+        // Deep link listener for custom URL schemes (if needed for other features)
+        // Removed Google Handshake logic from here as we now use native sign-in direct.
 
         return () => {
             unsubscribe();
@@ -448,19 +418,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             // Android-ONLY specialized handover logic
             if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
-                console.log("[Auth] 📱 Android Platform Detected. Initiating System Browser OAuth.");
-
-                // We point the Browser to our hosted login page with the mobile auth flag
-                const redirectUri = "https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/login?mobile_auth=true";
+                console.log("[Auth] 📱 Android Platform Detected. Initiating Native Google Sign-In.");
+                setLoading(true);
 
                 try {
-                    await Browser.open({ url: redirectUri });
-                    return; // Early exit, the rest is handled by the Deep Link Listener
-                } catch (pluginErr) {
-                    console.error("[Auth] Browser Plugin failure on Android:", pluginErr);
-                    // Critical fallback if plugin itself is missing from APK bridge
-                    window.location.assign(redirectUri);
+                    // Start native sign-in with auto-sync to Firebase JS SDK
+                    const result = await FirebaseAuthentication.signInWithGoogle({
+                        mode: 'signInWithCredential',
+                    } as any); // Cast to any to bypass potentially outdated type definitions
+
+                    if (result.user) {
+                        console.log("[Auth] Native Google Sign-In Success:", result.user.uid);
+
+                        // User is already signed into the Firebase JS SDK by the plugin.
+                        // We double cast to 'User' to bridge the slightly different type definitions.
+                        const jsUser = result.user as unknown as User;
+                        setUser(jsUser);
+                        initializeUserBackground(jsUser);
+
+                        toast.success('Signed in with Google');
+                        router.push('/');
+                    } else {
+                        throw new Error("Google sign-in returned no user");
+                    }
                     return;
+                } catch (pluginErr: any) {
+                    console.error("[Auth] Native Google Login failed:", pluginErr);
+                    // Handle cancellation gracefully
+                    if (pluginErr.message?.includes('cancel') || pluginErr.code === 'CANCELLED') {
+                        toast.error("Sign-in cancelled.");
+                    } else {
+                        toast.error(`Google Login Error: ${pluginErr.message || "Failed to authenticate"}`);
+                    }
+                    return;
+                } finally {
+                    setLoading(false);
                 }
             }
 

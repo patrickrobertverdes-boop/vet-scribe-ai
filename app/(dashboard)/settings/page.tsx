@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { firebaseService } from '@/lib/firebase-service';
 import { useDesignStore } from "@/lib/design-store";
@@ -31,11 +32,15 @@ import {
     Mail,
     Globe,
     FileJson,
-    RefreshCw
+    RefreshCw,
+    Scale,
+    FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
-type SettingTab = 'User Profile' | 'Appearance' | 'AI Assistant' | 'Security & Access' | 'Notifications' | 'Data & Integration';
+type SettingTab = 'User Profile' | 'Appearance' | 'AI Assistant' | 'Security & Access' | 'Notifications' | 'Data & Integration' | 'Legal & Compliance';
 
 export default function SettingsPage() {
     const {
@@ -46,6 +51,7 @@ export default function SettingsPage() {
         clinicalModel, setClinicalModel
     } = useDesignStore();
 
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<SettingTab>('User Profile');
     const { user } = useAuth();
     const [profile, setProfile] = useState<any>({ name: '', specialty: '', image: '' });
@@ -107,6 +113,38 @@ export default function SettingsPage() {
         }
     };
 
+    const handleNativeImagePick = async () => {
+        if (!user) return;
+
+        try {
+            const image = await Camera.getPhoto({
+                quality: 70, // Optimized compression
+                width: 500, // Resize locally for instant upload
+                allowEditing: true,
+                resultType: CameraResultType.Base64,
+                source: CameraSource.Prompt // Asks user: Gallery or Camera
+            });
+
+            if (image.base64String) {
+                setIsUploading(true);
+                const blob = await (await fetch(`data:image/jpeg;base64,${image.base64String}`)).blob();
+                const file = new File([blob], "profile.jpg", { type: "image/jpeg" });
+
+                const url = await firebaseService.uploadProfileImage(user.uid, file);
+                await firebaseService.updateUserProfile(user.uid, { image: url });
+                setProfile((prev: any) => ({ ...prev, image: url }));
+                toast.success("Profile photo synchronized.");
+            }
+        } catch (err: any) {
+            if (err.message !== 'User cancelled photos app') {
+                console.error("Camera error:", err);
+                toast.error("Failed to capture image.");
+            }
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const colors = [
         { name: 'Clinical Teal', value: '#075985', class: 'bg-[#075985]' },
         { name: 'Scribe Sky', value: '#0ea5e9', class: 'bg-[#0ea5e9]' },
@@ -131,6 +169,7 @@ export default function SettingsPage() {
         { label: 'Security & Access', icon: ShieldCheck },
         { label: 'Notifications', icon: Bell },
         { label: 'Data & Integration', icon: Database },
+        { label: 'Legal & Compliance', icon: Scale },
     ];
 
     return (
@@ -207,12 +246,22 @@ export default function SettingsPage() {
                                                         <RefreshCw className="h-6 w-6 text-white animate-spin" />
                                                     </div>
                                                 )}
-                                                <label className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer backdrop-blur-sm transition-opacity">
+                                                <label
+                                                    onClick={(e) => {
+                                                        if (Capacitor.isNativePlatform()) {
+                                                            e.preventDefault();
+                                                            handleNativeImagePick();
+                                                        }
+                                                    }}
+                                                    className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer backdrop-blur-sm transition-opacity"
+                                                >
                                                     <div className="flex flex-col items-center gap-1">
                                                         <RefreshCw className="h-6 w-6 text-white" />
                                                         <span className="text-[8px] font-bold text-white uppercase tracking-widest">Change</span>
                                                     </div>
-                                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                                    {!Capacitor.isNativePlatform() && (
+                                                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                                    )}
                                                 </label>
                                                 {!profile.image && !isUploading && (
                                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden text-muted-foreground/30">
@@ -640,6 +689,49 @@ export default function SettingsPage() {
                                             <FileJson className="h-4 w-4 text-muted-foreground" /> PDF Summaries
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'Legal & Compliance' && (
+                            <div className="space-y-12 animate-in fade-in duration-500">
+                                <div className="space-y-8">
+                                    <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-4">
+                                        <Scale className="h-4 w-4" /> Legal & Documentation
+                                    </h2>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {[
+                                            { title: 'Privacy Policy', desc: 'Veterinary clinical privacy standards.', path: '/privacy' },
+                                            { title: 'Terms of Service', desc: 'Clinical usage and service agreement.', path: '/terms' },
+                                            { title: 'Data Protection', desc: 'Security safeguards and ownership.', path: '/security' }
+                                        ].map((item, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => router.push(item.path)}
+                                                className="p-6 rounded-2xl bg-card border hover:border-primary transition-all flex items-center justify-between group"
+                                            >
+                                                <div className="flex items-center gap-5 text-left">
+                                                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                                                        <FileText className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-foreground uppercase tracking-wider">{item.title}</p>
+                                                        <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="p-8 rounded-2xl bg-muted/50 border border-border space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className="h-4 w-4 text-primary" />
+                                        <p className="text-xs font-bold text-foreground uppercase tracking-wider">Regulatory Compliance</p>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                        VetScribe is designed to comply with professional veterinary standards for clinical record-keeping and data sovereignty. We maintain rigorous standards for encryption and audit logging throughout our infrastructure.
+                                    </p>
                                 </div>
                             </div>
                         )}

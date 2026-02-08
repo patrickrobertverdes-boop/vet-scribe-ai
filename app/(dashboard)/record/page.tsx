@@ -60,6 +60,7 @@ function RecordPageContent() {
         error: micError,
         clearError: clearMicError,
         connectionStatus,
+        recordingState,
         stream
     } = useDeepgram();
 
@@ -156,12 +157,14 @@ function RecordPageContent() {
     };
 
     useEffect(() => {
-        if (connectionStatus === 'finished' && !isGenerating && !generatedSoap) {
+        // Clinical Safety: Only trigger synthesis if recordingState is explicitly FINISHED
+        if (recordingState === 'FINISHED' && !isGenerating && !generatedSoap && !sessionActive) {
             if (transcript && transcript.length > 5) {
+                console.log('[Scribe] 🤖 Triggering SOAP Synthesis (Session Finished)');
                 handleAutoWorkflow();
             }
         }
-    }, [connectionStatus]);
+    }, [recordingState, sessionActive, isGenerating, generatedSoap, transcript]);
 
     const beginSession = () => {
         if (!patient) {
@@ -183,9 +186,15 @@ function RecordPageContent() {
             toast.success('Attempting to re-establish secure link...');
             return;
         }
-        togglePause(!isPaused);
-        if (!isPaused) toast.success('Capture paused.');
-        else toast.success('Resuming capture.');
+
+        const willPause = !isPaused;
+        togglePause(willPause);
+
+        if (willPause) {
+            toast.success('Capture paused.');
+        } else {
+            toast.success('Resuming capture.');
+        }
     };
 
     const endSession = () => {
@@ -278,19 +287,14 @@ function RecordPageContent() {
         }
     };
 
-    // Derived Status
+    // Derived Status from single source of truth
     const isEstablishing = connectionStatus === 'connecting';
-
-    let sessionStatusLabel: 'IDLE' | 'CONNECTING' | 'LISTENING' | 'PAUSED' | 'STANDBY' = 'IDLE';
-    if (!sessionActive) {
-        sessionStatusLabel = 'IDLE';
-    } else if (isEstablishing) {
-        sessionStatusLabel = 'CONNECTING';
-    } else if (isListening) {
-        sessionStatusLabel = isPaused ? 'PAUSED' : 'LISTENING';
-    } else {
-        sessionStatusLabel = 'STANDBY';
-    }
+    const sessionStatusLabel: 'IDLE' | 'CONNECTING' | 'LISTENING' | 'PAUSED' | 'STANDBY' =
+        recordingState === 'IDLE' ? (isEstablishing ? 'CONNECTING' : 'IDLE') :
+            recordingState === 'RECORDING' ? 'LISTENING' :
+                recordingState === 'PAUSED' ? 'PAUSED' :
+                    recordingState === 'FINISHED' ? 'STANDBY' :
+                        recordingState === 'ERROR' ? 'PAUSED' : 'IDLE';
 
     return (
         <div className="flex flex-col flex-1 min-h-[calc(100dvh-140px)] xl:h-[calc(100dvh-8rem)] pb-28 sm:pb-10 xl:pb-4 overflow-y-auto xl:overflow-hidden px-0 sm:px-1">

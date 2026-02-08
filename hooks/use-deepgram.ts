@@ -1,5 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { Capacitor } from '@capacitor/core';
+import { KeepAwake } from '@capacitor-community/keep-awake';
+
+export type RecordingState = 'IDLE' | 'RECORDING' | 'PAUSED' | 'FINISHED' | 'ERROR';
 
 interface UseDeepgramReturn {
     isListening: boolean;
@@ -14,10 +18,12 @@ interface UseDeepgramReturn {
     clearError: () => void;
     error: string | null;
     connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' | 'finished';
+    recordingState: RecordingState;
     stream: MediaStream | null;
 }
 
 export function useDeepgram(): UseDeepgramReturn {
+    const [recordingState, setRecordingState] = useState<RecordingState>('IDLE');
     const [isListening, setIsListening] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [transcript, setInternalTranscript] = useState('');
@@ -75,29 +81,50 @@ export function useDeepgram(): UseDeepgramReturn {
             streamRef.current = null;
             setStream(null);
         }
+
+        // Release system lock
+        if (Capacitor.isNativePlatform()) {
+            KeepAwake.allowSleep().catch(() => { /* silent */ });
+        }
     }, []);
 
     const stopListening = useCallback(() => {
-        console.log('[Scribe] 🛑 Stopping...');
+        console.log('[Scribe] 🛑 Stopping and Finalizing...');
         cleanup();
         setIsListening(false);
         setIsPaused(false);
         isPausedRef.current = false;
         updateStatus('finished');
+        setRecordingState('FINISHED');
     }, [cleanup, updateStatus]);
 
     const togglePause = useCallback((paused: boolean) => {
         console.log(`[Scribe] ${paused ? '⏸️ Pausing' : '▶️ Resuming'}...`);
         setIsPaused(paused);
         isPausedRef.current = paused;
+        setRecordingState(paused ? 'PAUSED' : 'RECORDING');
 
-        // Manual restart on resume for MediaRecorder compatibility on mobile
-        if (!paused && mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-            console.log('[Scribe] 🔄 Restarting MediaRecorder on resume...');
-            try { mediaRecorderRef.current.start(250); } catch (e) { }
-        } else if (paused && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            console.log('[Scribe] ⏹️ Stopping MediaRecorder on pause...');
-            try { mediaRecorderRef.current.stop(); } catch (e) { }
+        if (mediaRecorderRef.current) {
+            try {
+                if (paused && mediaRecorderRef.current.state === 'recording') {
+                    console.log('[Scribe] ⏸️ Pausing MediaRecorder...');
+                    mediaRecorderRef.current.pause();
+                } else if (!paused && mediaRecorderRef.current.state === 'paused') {
+                    console.log('[Scribe] ▶️ Resuming MediaRecorder...');
+                    mediaRecorderRef.current.resume();
+                } else if (!paused && mediaRecorderRef.current.state === 'inactive') {
+                    // Fallback for unexpected inactive state
+                    console.log('[Scribe] 🔄 Restarting MediaRecorder...');
+                    mediaRecorderRef.current.start(250);
+                }
+            } catch (e) {
+                console.error('[Scribe] ❌ Toggle pause error:', e);
+            }
+        }
+
+        // Also handle AudioWorklet if it was active
+        if (workletNodeRef.current) {
+            // PCM Mode - we just rely on isPausedRef.current check in startListening's onmessage
         }
     }, []);
 
@@ -152,8 +179,8 @@ export function useDeepgram(): UseDeepgramReturn {
             // and often requires a user gesture for each start.
             const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
             const isCapacitor = (window as any).Capacitor !== undefined;
-            // Force MediaRecorder fallback for Capacitor/APK as AudioWorklet PCM is often unstable in WebViews
-            const isPcmCapable = !!(window.AudioWorklet && !isSafari && !isCapacitor);
+            // Enable PCM for Capacitor as modern WebViews handle it well.
+            const isPcmCapable = !!(window.AudioWorklet && !isSafari);
 
             // 3. Setup Audio Handler (Hybrid)
             if (isPcmCapable) {
@@ -207,6 +234,7 @@ export function useDeepgram(): UseDeepgramReturn {
                 clearTimeout(connectionTimeout);
                 console.log('🟢 [Scribe] Link established');
                 updateStatus('connected');
+                setRecordingState('RECORDING');
                 setIsListening(true);
 
                 if (isPcmCapable && workletNodeRef.current) {
@@ -219,13 +247,17 @@ export function useDeepgram(): UseDeepgramReturn {
                     };
                 } else {
                     // iOS/Safari & WebView Fallback
-                    // Safari 14.1+ supports MediaRecorder but not 'audio/webm'
-                    let mimeType = 'audio/mp4';
-                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                        mimeType = 'audio/webm;codecs=opus';
-                    }
+                    const supportedTypes = [
+                        'audio/webm;codecs=opus',
+                        'audio/webm',
+                        'audio/ogg;codecs=opus',
+                        'audio/mp4',
+                        'audio/aac'
+                    ];
 
+                    let mimeType = supportedTypes.find(type => MediaRecorder.isTypeSupported(type)) || 'audio/webm';
                     console.log(`[Scribe] 📱 Mobile/APK Recorder Init: ${mimeType}`);
+
                     const mediaRecorder = new MediaRecorder(audioStream, {
                         mimeType: mimeType
                     });
@@ -274,6 +306,7 @@ export function useDeepgram(): UseDeepgramReturn {
         } catch (err: any) {
             clearTimeout(connectionTimeout);
             updateStatus('error');
+            setRecordingState('ERROR');
             cleanup();
             setIsListening(false);
         }
@@ -307,6 +340,7 @@ export function useDeepgram(): UseDeepgramReturn {
         error,
         clearError: useCallback(() => setError(null), []),
         connectionStatus,
+        recordingState,
         stream
     };
 }

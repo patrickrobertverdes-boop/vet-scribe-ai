@@ -32,6 +32,7 @@ export default function DashboardLayout({
         return () => document.body.classList.remove('modal-open');
     }, [isMobileMenuOpen, isAIAssistantOpen]);
 
+    /* 
     useEffect(() => {
         // Only evaluate auth state once system is fully ready
         if (!loading && !isLoggingIn && !isSigningUp) {
@@ -40,6 +41,7 @@ export default function DashboardLayout({
             }
         }
     }, [user, loading, isLoggingIn, isSigningUp, router]);
+    */
 
     if (loading || isSigningUp || isLoggingIn) {
         return (
@@ -52,7 +54,7 @@ export default function DashboardLayout({
         );
     }
 
-    if (!user) return null;
+    // if (!user) return null;
 
     // Gate removed
 
@@ -79,7 +81,7 @@ export default function DashboardLayout({
                 fixed inset-y-0 left-0 right-0 z-50 transform transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] lg:hidden
                 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}
             `}>
-                <div className="flex flex-col w-full h-full relative bg-background mobile-solid">
+                <div className="flex flex-col w-full h-full relative bg-background mobile-solid safe-top">
                     {/* Close Button - Premium Square */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}

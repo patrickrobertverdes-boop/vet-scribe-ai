@@ -26,6 +26,8 @@ import {
     Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { AIProfileCreator } from '@/components/patient/ai-profile-creator';
 import { useAuth } from '@/context/AuthContext';
 import { firebaseService } from '@/lib/firebase-service';
@@ -77,7 +79,10 @@ export default function DashboardPage() {
         router.push('/patients');
     };
 
-    const handleInitializeScribe = () => {
+    const handleInitializeScribe = async () => {
+        if (Capacitor.isNativePlatform()) {
+            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
+        }
         toast.success('Opening recording...');
         router.push('/record');
     };
