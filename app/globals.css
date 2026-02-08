@@ -93,8 +93,7 @@
     touch-action: manipulation;
     /* Safe area handling is now moved to SafeAreaContainer component */
     overflow-x: hidden;
-    overscroll-behavior-y: none;
-    /* Prevent rubber-banding */
+    overflow-x: hidden;
   }
 
   h1,
