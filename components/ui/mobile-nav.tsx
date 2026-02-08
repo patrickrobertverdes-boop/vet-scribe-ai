@@ -24,16 +24,13 @@ export function MobileNav() {
     ];
 
     return (
-        <div className={cn(
-            "lg:hidden sticky bottom-0 left-0 right-0 w-full z-50 border-t transition-all duration-300 safe-bottom shadow-none",
+        <nav className={cn(
+            "lg:hidden fixed bottom-6 left-4 right-4 z-50 transition-all duration-300 safe-bottom shadow-2xl rounded-2xl overflow-hidden backdrop-blur-md border border-white/20",
             isPatientProfile
-                ? "bg-white border-black text-black min-h-[3.5rem]"
-                : "bg-white dark:bg-card border-black dark:border-border min-h-[4rem]"
+                ? "bg-white/90 border-black/10 text-black h-[4rem]"
+                : "bg-white/80 dark:bg-slate-900/80 border-white/20 dark:border-white/10 h-[4.5rem]"
         )}>
-            <nav className={cn(
-                "grid grid-cols-4 w-full px-2 items-center",
-                isPatientProfile ? "h-[3.5rem]" : "h-[4rem]"
-            )}>
+            <div className="grid grid-cols-4 w-full h-full items-center justify-items-center">
                 {navigation.map((item) => {
                     const isActive = item.activeMatch
                         ? pathname.startsWith(item.activeMatch)
@@ -65,7 +62,7 @@ export function MobileNav() {
                         </Link>
                     );
                 })}
-            </nav>
-        </div>
+            </div>
+        </nav>
     );
 }

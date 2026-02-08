@@ -6,6 +6,7 @@ import { Header } from '@/components/ui/header';
 import { MobileNav } from '@/components/ui/mobile-nav';
 import { X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { AIAssistant } from '@/components/ai/ai-assistant';
 import { useChatStore } from '@/lib/chat-store';
 
@@ -14,7 +15,8 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { loading, isSigningUp, isLoggingIn } = useAuth();
+    const { user, loading, isSigningUp, isLoggingIn } = useAuth();
+    const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Global Chat State
@@ -30,7 +32,6 @@ export default function DashboardLayout({
         return () => document.body.classList.remove('modal-open');
     }, [isMobileMenuOpen, isAIAssistantOpen]);
 
-    /* 
     useEffect(() => {
         // Only evaluate auth state once system is fully ready
         if (!loading && !isLoggingIn && !isSigningUp) {
@@ -39,7 +40,6 @@ export default function DashboardLayout({
             }
         }
     }, [user, loading, isLoggingIn, isSigningUp, router]);
-    */
 
     if (loading || isSigningUp || isLoggingIn) {
         return (
@@ -52,9 +52,7 @@ export default function DashboardLayout({
         );
     }
 
-    // if (!user) return null;
-
-    // Gate removed
+    if (!user) return null;
 
     return (
         <div className="flex bg-background min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
