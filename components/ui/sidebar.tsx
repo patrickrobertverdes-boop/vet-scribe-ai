@@ -26,9 +26,10 @@ import { cn } from '@/lib/utils';
 interface SidebarProps {
     onNavigate?: () => void;
     className?: string;
+    isMobile?: boolean;
 }
 
-export function Sidebar({ onNavigate, className }: SidebarProps) {
+export function Sidebar({ onNavigate, className, isMobile }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -53,24 +54,26 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
             )}
         >
             {/* Clinical Infrastructure Brand */}
-            <div className="h-20 px-6 flex items-center justify-between border-b border-border/50">
-                <div className={cn("flex items-center gap-3 transition-all duration-300", isCollapsed && "opacity-0 invisible w-0")}>
-                    <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm">
-                        <Zap className="h-5 w-5 no-demote" />
+            {!isMobile && (
+                <div className="h-20 px-6 flex items-center justify-between border-b border-border/50">
+                    <div className={cn("flex items-center gap-3 transition-all duration-300", isCollapsed && "opacity-0 invisible w-0")}>
+                        <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm">
+                            <Zap className="h-5 w-5 no-demote" />
+                        </div>
+                        <div>
+                            <span className="text-lg font-serif font-black tracking-tighter text-foreground leading-none block">VetScribe</span>
+                            <span className="text-[10px] font-bold text-foreground uppercase tracking-[0.2em] mt-1 block">Clinical Node</span>
+                        </div>
                     </div>
-                    <div>
-                        <span className="text-lg font-serif font-black tracking-tighter text-foreground leading-none block">VetScribe</span>
-                        <span className="text-[10px] font-bold text-foreground uppercase tracking-[0.2em] mt-1 block">Clinical Node</span>
-                    </div>
-                </div>
 
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-10 w-10 border border-border rounded-xl flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-all bg-card"
-                >
-                    {isCollapsed ? <ChevronRight className="h-4 w-4 no-demote" /> : <ChevronLeft className="h-4 w-4 no-demote" />}
-                </button>
-            </div>
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="h-10 w-10 border border-border rounded-xl flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-all bg-card"
+                    >
+                        {isCollapsed ? <ChevronRight className="h-4 w-4 no-demote" /> : <ChevronLeft className="h-4 w-4 no-demote" />}
+                    </button>
+                </div>
+            )}
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-6 overflow-y-auto custom-scrollbar space-y-0.5">

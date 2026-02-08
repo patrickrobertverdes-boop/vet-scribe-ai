@@ -53,7 +53,21 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <CapacitorInitializer />
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                // Limit to 1 toast at a time to prevent stacking on mobile
+                className: 'react-hot-toast-mobile',
+              }}
+              containerStyle={{
+                top: 40,
+                left: 20,
+                bottom: 20,
+                right: 20,
+              }}
+              gutter={8}
+            />
             <SafeAreaContainer>
               {children}
             </SafeAreaContainer>

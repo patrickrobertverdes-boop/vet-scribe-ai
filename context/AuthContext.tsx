@@ -523,7 +523,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Get fresh user instance from auth to ensure reactive updates
             const freshUser = auth?.currentUser;
-            if (freshUser) setUser({ ...freshUser });
+            if (freshUser) setUser(freshUser);
 
             console.log("[Auth] Profile synchronized successfully.");
         } catch (error: any) {

@@ -56,6 +56,7 @@ export default function SettingsPage() {
     const { user, updateUser } = useAuth();
     const [profile, setProfile] = useState<any>({ name: '', specialty: '', image: '' });
     const [isUploading, setIsUploading] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -73,7 +74,8 @@ export default function SettingsPage() {
     }, [user]);
 
     const handleUpdateProfile = async (newData: any) => {
-        if (!user) return;
+        if (!user || isUpdating) return;
+        setIsUpdating(true);
         try {
             // Map 'name' back to 'displayName' for consistency with provisioning/Auth
             const dataToSave: any = { ...newData };
@@ -89,6 +91,8 @@ export default function SettingsPage() {
         } catch (e: any) {
             console.error("[Settings] Profile update error:", e);
             toast.error(`Synchronization failed: ${e.message || 'Check connection'}`);
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -123,10 +127,16 @@ export default function SettingsPage() {
         if (!user) return;
 
         try {
+            // Ensure permissions are granted before proceeding
+            const status = await Camera.checkPermissions();
+            if (status.photos !== 'granted' || status.camera !== 'granted') {
+                await Camera.requestPermissions();
+            }
+
             const image = await Camera.getPhoto({
                 quality: 70, // Optimized compression
-                width: 500, // Resize locally for instant upload
-                allowEditing: true,
+                width: 1000, // Balanced resolution
+                allowEditing: false, // PROFESSIONAL: No external editors
                 resultType: CameraResultType.Base64,
                 source: CameraSource.Prompt // Asks user: Gallery or Camera
             });
@@ -317,9 +327,11 @@ export default function SettingsPage() {
 
                                                 <button
                                                     onClick={() => handleUpdateProfile(profile)}
-                                                    className="w-full md:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                                                    disabled={isUpdating}
+                                                    className="w-full md:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                                                 >
-                                                    Synchronize Profile
+                                                    {isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                                    {isUpdating ? "Synchronizing..." : "Synchronize Profile"}
                                                 </button>
                                             </div>
                                         </div>

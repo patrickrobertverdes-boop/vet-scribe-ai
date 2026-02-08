@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Header } from '@/components/ui/header';
 import { MobileNav } from '@/components/ui/mobile-nav';
-import { X } from 'lucide-react';
+import { X, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { AIAssistant } from '@/components/ai/ai-assistant';
 import { useChatStore } from '@/lib/chat-store';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
     children,
@@ -67,22 +68,44 @@ export default function DashboardLayout({
 
             {/* Sidebar - Mobile */}
             <div className={`
-                fixed inset-y-0 left-0 right-0 z-50 transform transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] lg:hidden
-                ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}
+                fixed inset-0 z-[100] lg:hidden
+                ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                transition-opacity duration-300
             `}>
-                <div className="flex flex-col w-full h-full relative bg-background mobile-solid">
-                    {/* Close Button - Premium Square Box */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="absolute right-6 top-8 h-12 w-12 flex items-center justify-center border-2 border-slate-200 dark:border-slate-800 rounded-xl z-[110] active:scale-95 transition-all bg-background/80 backdrop-blur-sm shadow-sm"
-                        aria-label="Close menu"
-                    >
-                        <X className="h-6 w-6 text-foreground" />
-                    </button>
+                {/* Backdrop */}
+                <div
+                    className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
 
-                    {/* Sidebar Content with top padding for button and bottom for nav */}
-                    <div className="flex-1 overflow-y-auto pt-24 pb-48">
-                        <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} className="w-full border-none h-full" />
+                {/* Menu Panel */}
+                <div className={cn(
+                    "absolute inset-y-0 left-0 w-[85%] max-w-[320px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                    isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+                )}>
+                    {/* Header inside Panel */}
+                    <div className="h-20 px-6 flex items-center justify-between border-b border-border/50 bg-background shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-sm">
+                                <Zap className="h-4.5 w-4.5" />
+                            </div>
+                            <span className="text-sm font-black tracking-tighter text-foreground uppercase">VetScribe</span>
+                        </div>
+                        <button
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="h-10 w-10 flex items-center justify-center border border-border rounded-xl active:scale-90 transition-all"
+                        >
+                            <X className="h-5 w-5 text-foreground" />
+                        </button>
+                    </div>
+
+                    {/* Navigation - Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto">
+                        <Sidebar
+                            onNavigate={() => setIsMobileMenuOpen(false)}
+                            className="w-full border-none h-full shadow-none"
+                            isMobile={true}
+                        />
                     </div>
                 </div>
             </div>
