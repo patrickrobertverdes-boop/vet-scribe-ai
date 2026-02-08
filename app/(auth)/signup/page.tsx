@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 export default function SignupPage() {
     const router = useRouter();
-    const { user, signup } = useAuth();
+    const { user, signup, signInWithGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -148,7 +148,7 @@ export default function SignupPage() {
 
                     <button
                         type="button"
-                        onClick={useAuth().signInWithGoogle}
+                        onClick={signInWithGoogle}
                         className="w-full h-10 border border-slate-300 dark:border-slate-700 bg-white dark:bg-black text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-widest rounded-md hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
                     >
                         <svg className="h-3.5 w-3.5" viewBox="0 0 24 24">

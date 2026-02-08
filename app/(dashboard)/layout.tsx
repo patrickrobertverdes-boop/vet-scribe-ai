@@ -81,14 +81,14 @@ export default function DashboardLayout({
                     {/* Close Button - Premium Square */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="mobile-close-btn absolute right-6 top-6"
+                        className="absolute right-6 top-6 p-2 z-[100]"
                         aria-label="Close menu"
                     >
-                        <X className="h-6 w-6" />
+                        <X className="h-8 w-8 text-foreground" />
                     </button>
 
                     {/* Sidebar Content with bottom padding for mobile nav */}
-                    <div className="flex-1 overflow-y-auto pb-24">
+                    <div className="flex-1 overflow-y-auto pb-48">
                         <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} className="w-full border-none h-full" />
                     </div>
                 </div>
@@ -107,7 +107,7 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
-                <main className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-20 lg:pb-10 relative z-10 w-full scroll-smooth">
+                <main className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-32 lg:pb-10 relative z-10 w-full scroll-smooth">
                     <div className="mx-auto max-w-[1600px] w-full">
                         {children}
                     </div>
