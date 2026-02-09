@@ -286,6 +286,9 @@ function RecordPageContent() {
         const toastId = toast.loading("Synthesizing professional clinical report...");
 
         try {
+            const { fixHtml2CanvasCSS } = await import('@/lib/utils');
+            fixHtml2CanvasCSS(); // Sanitize CSS for html2canvas compatibility
+
             const { default: html2canvas } = await import('html2canvas');
             const { jsPDF } = await import('jspdf');
 

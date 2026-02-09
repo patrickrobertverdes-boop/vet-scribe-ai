@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-border: var(--border);
+  --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   --color-background: hsl(var(--background));
@@ -27,6 +27,18 @@
 
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Define HSL neutrals to avoid Tailwind 4 oklch defaults in PDF export */
+  --color-zinc-50: hsl(0 0% 98%);
+  --color-zinc-100: hsl(0 0% 96%);
+  --color-zinc-200: hsl(0 0% 90%);
+  --color-zinc-300: hsl(0 0% 83%);
+  --color-zinc-400: hsl(0 0% 64%);
+  --color-zinc-500: hsl(0 0% 46%);
+  --color-zinc-600: hsl(0 0% 32%);
+  --color-zinc-700: hsl(0 0% 25%);
+  --color-zinc-800: hsl(0 0% 15%);
+  --color-zinc-900: hsl(0 0% 9%);
 
   --radius-lg: 12px;
   --radius-md: 8px;
@@ -67,7 +79,7 @@
   .dark {
     --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-    --border: 217 33% 18%;
+    --border: 0 0% 100%;
     --card: 224 71% 4%;
     --card-foreground: 210 40% 98%;
     --primary: 0 0% 100%;

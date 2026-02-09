@@ -114,6 +114,9 @@ export default function PatientProfilePage() {
             // Wait for DOM to render the printable-record
             await new Promise(r => setTimeout(r, 100));
 
+            const { fixHtml2CanvasCSS } = await import('@/lib/utils');
+            fixHtml2CanvasCSS();
+
             const { default: html2canvas } = await import('html2canvas');
             const { jsPDF } = await import('jspdf');
 
