@@ -79,7 +79,7 @@ export function PrintableRecord({ consultationId, date, patient, soap, clinician
                     </div>
                     <div className="pt-4 border-t border-zinc-200">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#10b981' }} />
                             <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">Status: Finalized</span>
                         </div>
                     </div>
@@ -118,7 +118,7 @@ export function PrintableRecord({ consultationId, date, patient, soap, clinician
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-100">
+                        <div className="bg-zinc-50 text-zinc-700 px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest border border-zinc-200">
                             Secure Verification Active
                         </div>
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">Captured via Autonomous Veterinary Scribe</p>

@@ -40,6 +40,19 @@
   --color-zinc-800: hsl(0 0% 15%);
   --color-zinc-900: hsl(0 0% 9%);
 
+  /* Define HSL emeralds to prevent PDF crash */
+  --color-emerald-50: hsl(152 81% 96%);
+  --color-emerald-100: hsl(149 80% 90%);
+  --color-emerald-200: hsl(152 76% 80%);
+  --color-emerald-300: hsl(156 72% 67%);
+  --color-emerald-400: hsl(158 64% 52%);
+  --color-emerald-500: hsl(160 84% 39%);
+  --color-emerald-600: hsl(161 94% 30%);
+  --color-emerald-700: hsl(163 94% 24%);
+  --color-emerald-800: hsl(163 88% 20%);
+  --color-emerald-900: hsl(164 86% 16%);
+  --color-emerald-950: hsl(166 91% 9%);
+
   --radius-lg: 12px;
   --radius-md: 8px;
   --radius-sm: 4px;

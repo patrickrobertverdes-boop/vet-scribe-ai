@@ -590,8 +590,10 @@ function RecordPageContent() {
                         {/* Note Identity */}
                         <div className="px-8 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-20">
                             <div className="flex items-center gap-4">
-                                <div className="h-9 w-9 bg-primary text-primary-foreground rounded flex items-center justify-center shadow-sm">
-                                    <Sparkles className="h-4 w-4" />
+                                <div className="h-9 w-9 bg-black text-white rounded flex items-center justify-center shadow-sm">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                                    </svg>
                                 </div>
                                 <div>
                                     <h2 className="text-xs font-medium text-foreground uppercase tracking-widest leading-none mb-1">SOAP Synthesis</h2>
