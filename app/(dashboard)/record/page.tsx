@@ -591,7 +591,7 @@ function RecordPageContent() {
                         <div className="px-8 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-20">
                             <div className="flex items-center gap-4">
                                 <div className="h-9 w-9 bg-transparent rounded flex items-center justify-center shadow-none">
-                                    <img src="/icon.png" alt="VetScribe" className="h-9 w-9 rounded-xl object-cover shadow-sm border border-black/10" />
+                                    <img src="/logo.png" alt="VetScribe Logo" className="h-9 w-9 object-contain" />
                                 </div>
                                 <div>
                                     <h2 className="text-xs font-medium text-foreground uppercase tracking-widest leading-none mb-1">SOAP Synthesis</h2>
