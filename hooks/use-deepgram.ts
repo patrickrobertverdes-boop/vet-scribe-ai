@@ -179,7 +179,7 @@ export function useDeepgram(): UseDeepgramReturn {
             // and often requires a user gesture for each start.
             // Enable PCM for Capacitor as modern WebViews handle it well.
             const isSafari = /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent);
-            const isPcmCapable = !!(window.AudioWorklet && !isSafari);
+            const isPcmCapable = !!(window.AudioWorklet && !isSafari && !Capacitor.isNativePlatform());
 
             // 3. Setup Audio Handler (Hybrid)
             if (isPcmCapable) {
@@ -258,7 +258,8 @@ export function useDeepgram(): UseDeepgramReturn {
                     console.log(`[Scribe] 📱 Mobile/APK Recorder Init: ${mimeType}`);
 
                     const mediaRecorder = new MediaRecorder(audioStream, {
-                        mimeType: mimeType
+                        mimeType: mimeType,
+                        audioBitsPerSecond: 128000
                     });
                     mediaRecorderRef.current = mediaRecorder;
                     mediaRecorder.ondataavailable = (e) => {
@@ -267,13 +268,19 @@ export function useDeepgram(): UseDeepgramReturn {
                             ws.send(e.data);
                         }
                     };
-                    mediaRecorder.start(100); // 100ms for responsiveness on mobile
+                    mediaRecorder.start(250); // Balanced for mobile buffer stability
                 }
             };
 
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+
+                    // Debug point: help confirm data is arriving on APK
+                    if (data.channel) {
+                        console.log('[Scribe] 📡 Data received from Deepgram');
+                    }
+
                     const alt = data.channel?.alternatives?.[0];
                     const text = alt?.transcript || '';
 
