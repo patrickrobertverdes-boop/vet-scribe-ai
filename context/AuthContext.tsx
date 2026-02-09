@@ -143,6 +143,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     handledRedirect = true;
                     setLoading(true);
 
+                    // NATIVE RECOVERY: If returning to native app, check if native plugin has user while JS SDK does not
+                    if (Capacitor.isNativePlatform()) {
+                        try {
+                            console.log("[Auth] Checking native session state...");
+                            const nativeState = await FirebaseAuthentication.getCurrentUser();
+                            if (nativeState.user && !auth?.currentUser) {
+                                console.log("[Auth] Recovering native session to JS SDK...");
+                                // Note: We can't easily get the credential here without re-sign-in flow, 
+                                // but this check confirms if we are in a desynced state.
+                                // The main sign-in flow now handles the sync, so here we mostly log.
+                            }
+                        } catch (e) {
+                            console.warn("[Auth] Native state check warning:", e);
+                        }
+                    }
+
                     try {
                         const result = await getRedirectResult(auth!);
                         if (result?.user) {
@@ -408,7 +424,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth) throw new Error("Firebase auth not initialized");
         const provider = new GoogleAuthProvider();
 
-        // Platform Detection Diagnostics
         const isNative = Capacitor.isNativePlatform() ||
             (typeof window !== 'undefined' && (!!(window as any).Capacitor || !!(window as any).androidBridge));
         const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -417,24 +432,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`[Auth] G-Sign-In Request.`, { isNative, isMobile, isHosted, bridge: !!(window as any).Capacitor });
 
         try {
-            // Android-ONLY specialized handover logic
             if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
                 console.log("[Auth] 📱 Android Platform Detected. Initiating Native Google Sign-In.");
                 setLoading(true);
 
                 try {
-                    // Start native sign-in with auto-sync to Firebase JS SDK
                     const result = await FirebaseAuthentication.signInWithGoogle({
                         mode: 'signInWithCredential',
-                    } as any); // Cast to any to bypass potentially outdated type definitions
+                    } as any);
 
-                    if (result.user) {
+                    if (result.user && result.credential) {
                         console.log("[Auth] Native Google Sign-In Success:", result.user.uid);
 
-                        // User is already signed into the Firebase JS SDK by the plugin.
-                        const jsUser = result.user as unknown as User;
+                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                        const userCredential = await signInWithCredential(auth, credential);
+                        const jsUser = userCredential.user;
 
-                        // DEFER: Let native layer close modal before heavy app transition
+                        console.log("[Auth] JS SDK Sync Complete. Provisioning...");
+
+                        // PROVISIONING for Android Google User
+                        const idToken = await jsUser.getIdToken(true);
+                        await fetch('/api/auth/provision', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({
+                                displayName: jsUser.displayName,
+                                uid: jsUser.uid
+                            })
+                        }).catch(e => console.warn("Native Google provisioning failed:", e));
+
                         setTimeout(() => {
                             setUser(jsUser);
                             initializeUserBackground(jsUser);
@@ -442,12 +471,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             router.push('/');
                         }, 500);
                     } else {
-                        throw new Error("Google sign-in returned no user");
+                        throw new Error("Google sign-in returned incomplete credentials");
                     }
                     return;
                 } catch (pluginErr: any) {
                     console.error("[Auth] Native Google Login failed:", pluginErr);
-                    // Handle cancellation gracefully
                     if (pluginErr.message?.includes('cancel') || pluginErr.code === 'CANCELLED') {
                         toast.error("Sign-in cancelled.");
                     } else {
@@ -463,10 +491,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("[Auth] 🌐 Non-Android Platform Detected. Using standard handshake.");
             setLoading(true);
 
-            // Try popup first as it is most premium experience for web
             try {
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
+
+                console.log("[Auth] Web Google Success. Provisioning...");
+
+                // PROVISIONING for Web Google User
+                const idToken = await user.getIdToken(true);
+                const provisionRes = await fetch('/api/auth/provision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({
+                        displayName: user.displayName,
+                        uid: user.uid
+                    })
+                });
+
+                if (!provisionRes.ok) {
+                    console.warn("Web Google provisioning failed, attempting to continue regardless.");
+                    // We continue because they have a session, but backend might be out of sync
+                }
 
                 if (db) {
                     await setDoc(doc(db, 'users', user.uid), {
@@ -481,7 +529,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 router.push('/');
             } catch (popupErr: any) {
                 console.warn("[Auth] Popup blocked or failed, falling back to Redirect.");
-                // Fallback to redirect if popup is blocked
                 await signInWithRedirect(auth, provider);
             }
         } catch (error: any) {
@@ -496,12 +543,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         if (!auth) return;
+        setLoading(true);
+        console.log("[Auth] Initiating global logout protocol...");
+
         try {
+            // 1. Native Guard: Clear Capacitor Session (Essential for Android/iOS)
+            if (Capacitor.isNativePlatform()) {
+                try {
+                    console.log("[Auth] 📱 Android/iOS: Clearing Native Firebase Session...");
+                    await FirebaseAuthentication.signOut();
+                } catch (e) {
+                    console.warn("[Auth] Native sign-out warning:", e);
+                }
+            }
+
+            // 2. JS SDK Guard: Clear Browser/WebView Auth
             await firebaseSignOut(auth);
-            toast.success('Logged out');
-            router.push('/login');
-        } catch (error) {
-            console.error("Logout error:", error);
+
+            // 3. UI Guard: Force immediate state sync and redirect
+            setUser(null);
+            toast.success('Identity Logged Out');
+            window.location.href = '/login'; // Hard redirect to clear any lingering memory states
+
+        } catch (error: any) {
+            console.error("[Auth] FATAL Logout Error:", error);
+            toast.error("Logout process interrupted.");
+        } finally {
+            setLoading(false);
         }
     };
 

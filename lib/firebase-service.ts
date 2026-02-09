@@ -104,6 +104,8 @@ export const firebaseService = {
 
     createPatientMinimal: async (uid: string, minimal: { name: string, species: string, owner: string, prompt?: string }): Promise<Patient> => {
         const now = Timestamp.now();
+        console.log(`[FirebaseService] Audit: Initiating patient creation for ${uid}`, minimal.name);
+
         const full = {
             name: minimal.name,
             species: minimal.species as any,
@@ -117,8 +119,20 @@ export const firebaseService = {
             allergies: [], medications: [], historySummary: '',
             aiPrompt: minimal.prompt || ''
         };
-        const docRef = await addDoc(collection(getFirestoreDb(), 'users', uid, 'patients'), full);
-        return { ...full, id: docRef.id } as Patient;
+
+        try {
+            const db = getFirestoreDb();
+            console.log(`[FirebaseService] DB instance verified for ${uid}`);
+            const docRef = await addDoc(collection(db, 'users', uid, 'patients'), full);
+            console.log(`[FirebaseService] Patient created successfully: ${docRef.id}`);
+            return { ...full, id: docRef.id } as Patient;
+        } catch (error: any) {
+            console.error(`[FirebaseService] FATAL: Patient creation failed for ${uid}`);
+            console.error(`[FirebaseService] Error Code: ${error.code}`);
+            console.error(`[FirebaseService] Error Message: ${error.message}`);
+            console.error(`[FirebaseService] Error Stack: ${error.stack}`);
+            throw error;
+        }
     },
 
     updatePatientWithAIProfile: async (uid: string, id: string, aiData: any) => {
@@ -423,6 +437,11 @@ export const firebaseService = {
         }
     },
 
+    saveDocumentRecord: async (uid: string, patientId: string, docData: any) => {
+        await addDoc(collection(getFirestoreDb(), 'users', uid, 'patients', patientId, 'documents'), docData);
+        return docData;
+    },
+
     uploadDocument: async (uid: string, patientId: string, file: File | Blob) => {
         if (!storage) throw new Error("Storage not configured");
 
@@ -448,10 +467,43 @@ export const firebaseService = {
                 uploadDate: new Date().toLocaleDateString(),
                 storagePath: path
             };
-            await addDoc(collection(getFirestoreDb(), 'users', uid, 'patients', patientId, 'documents'), docData);
+
+            await firebaseService.saveDocumentRecord(uid, patientId, docData);
             return docData;
         } catch (error: any) {
             console.error(`[FirebaseService] Document upload failed:`, error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * TACTICAL: Generic Upload Engine
+     * Handles both Native (Base64) and Web (Blob) seamlessly.
+     */
+    uploadGenericImage: async (uid: string, path: string, data: Blob | Uint8Array | string) => {
+        if (!storage) throw new Error("Storage not configured");
+
+        const storageRef = ref(storage, path);
+        console.log(`[FirebaseService] Generic Upload Initiated: ${path}`);
+
+        try {
+            let snapshot;
+            if (typeof data === 'string') {
+                const format = data.startsWith('data:') ? 'data_url' : 'base64';
+                snapshot = await uploadString(storageRef, data, format);
+            } else {
+                snapshot = await uploadBytes(storageRef, data, {
+                    contentType: 'image/jpeg',
+                    customMetadata: {
+                        uploadedBy: uid,
+                        timestamp: Date.now().toString()
+                    }
+                });
+            }
+
+            return await getDownloadURL(snapshot.ref);
+        } catch (error: any) {
+            console.error(`[FirebaseService] Generic Upload Failed:`, error.message);
             throw error;
         }
     }

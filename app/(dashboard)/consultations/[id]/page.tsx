@@ -85,8 +85,9 @@ export default function ConsultationDetailPage() {
         setHasChanges(true);
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!consultation || !patient) return;
+        console.log("[RecordDetail] Audit: Initiating data export protocol...");
 
         try {
             const dataToExport = {
@@ -103,19 +104,52 @@ export default function ConsultationDetailPage() {
                 transcript: consultation.transcript
             };
 
-            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `medical_record_${patient.name.replace(/\s+/g, '_')}_${consultation.id.slice(0, 8)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            toast.success("Medical record downloaded");
-        } catch (error) {
+            const fileName = `medical_record_${patient.name.replace(/\s+/g, '_')}_${consultation.id.slice(0, 8)}.json`;
+            const jsonStr = JSON.stringify(dataToExport, null, 2);
+
+            // NATIVE PROTOCOL: Capacitor Filesystem + Share
+            import('@capacitor/core').then(async ({ Capacitor }) => {
+                if (Capacitor.isNativePlatform()) {
+                    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                    const { Share } = await import('@capacitor/share');
+
+                    try {
+                        const writeResult = await Filesystem.writeFile({
+                            path: fileName,
+                            data: jsonStr,
+                            directory: Directory.Cache, // Use Cache for temporary shareable files
+                            encoding: 'utf8' as any
+                        });
+
+                        await Share.share({
+                            title: 'Export Medical Record',
+                            text: `Clinical Encounter for ${patient.name}`,
+                            url: writeResult.uri,
+                            dialogTitle: 'Save Record'
+                        });
+
+                        toast.success("Record ready for sharing.");
+                    } catch (nativeErr: any) {
+                        console.error("[Native] Export failed:", nativeErr);
+                        toast.error("Native export failed: " + nativeErr.message);
+                    }
+                } else {
+                    // WEB PROTOCOL: Standard Blob Download
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    toast.success("Medical record downloaded");
+                }
+            });
+        } catch (error: any) {
             console.error("Download failed:", error);
-            toast.error("Download failed.");
+            toast.error("Download failed: " + error.message);
         }
     };
 

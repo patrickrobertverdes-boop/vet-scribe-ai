@@ -38,6 +38,7 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
     const [prompt, setPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Manual/Preview fields
     const [name, setName] = useState('');
@@ -116,10 +117,12 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
             onCreated();
             onClose();
 
-        } catch (err) {
+        } catch (err: any) {
             console.error("Save failed:", err);
-            setError('Error: Failed to save patient to database.');
+            const errorMessage = err.message || "Unknown data sync error.";
+            setError(`Protocol Failure: ${errorMessage}`);
             setIsSaving(false);
+            toast.error(`Save failed: ${errorMessage}`);
         }
     };
 
@@ -163,6 +166,7 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                     <ImageUpload
                                         value={image}
                                         onChange={setImage}
+                                        onUploading={setIsUploading}
                                         className="h-32 w-32 sm:h-40 sm:w-40"
                                     />
                                     <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em]">Subject Image</label>
@@ -280,12 +284,12 @@ export function AIProfileCreator({ onClose, onCreated }: { onClose: () => void, 
                                 Cancel Operation
                             </button>
                             <button
-                                disabled={isSaving || !name.trim()}
+                                disabled={isSaving || isUploading || !name.trim()}
                                 onClick={handleSave}
                                 className="btn-premium h-14 sm:h-16 px-10 sm:px-16 text-[11px] sm:text-xs tracking-[0.2em] w-full sm:w-auto order-1 sm:order-2 shadow-2xl"
                             >
-                                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
-                                <span>{isSaving ? 'Establishing...' : 'Confirm Registration'}</span>
+                                {isSaving || isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
+                                <span>{isSaving ? 'Establishing...' : isUploading ? 'Uploading Image...' : 'Confirm Registration'}</span>
                             </button>
                         </div>
                     </div>

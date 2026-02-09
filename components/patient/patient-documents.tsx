@@ -1,6 +1,8 @@
 'use client';
 
-import { Folder, FileText, Image, FilePlus, Download, MoreVertical, Search, Trash2, Loader2, Layers, Waves, CloudUpload, ArrowUpRight } from 'lucide-react';
+import { Folder, FileText, Image, FilePlus, Download, MoreVertical, Search, Trash2, Loader2, Layers, Waves, CloudUpload, ArrowUpRight, Camera } from 'lucide-react';
+import { Camera as NativeCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import { cn } from '@/lib/utils';
 import { useState, useEffect, useRef } from 'react';
 import { firebaseService } from '@/lib/firebase-service';
@@ -37,7 +39,77 @@ export function PatientDocuments() {
     }, [user, patientId]);
 
     const handleUploadClick = () => {
-        fileInputRef.current?.click();
+        if (Capacitor.isNativePlatform()) {
+            handleNativeUpload();
+        } else {
+            fileInputRef.current?.click();
+        }
+    };
+
+    const handleNativeUpload = async () => {
+        if (!user || !patientId) return;
+
+        try {
+            const photo = await NativeCamera.getPhoto({
+                quality: 80,
+                width: 1200,
+                allowEditing: false,
+                resultType: CameraResultType.Base64,
+                source: CameraSource.Prompt // Professionals can pick Gallery or Camera
+            });
+
+            if (photo.base64String) {
+                const tempId = `temp-native-${Date.now()}`;
+                const name = `Scan_${new Date().toISOString().split('.')[0].replace(/[:T]/g, '_')}.jpg`;
+
+                // Optimistic Doc
+                const optimisticDoc: PatientDocument = {
+                    id: tempId,
+                    patientId,
+                    name,
+                    size: 'Processing...',
+                    type: 'image',
+                    url: '#',
+                    uploadDate: 'Uploading...',
+                };
+
+                setPendingDocs(prev => [optimisticDoc, ...prev]);
+                const toastId = toast.loading(`Uploading native scan...`);
+
+                const path = `users/${user.uid}/patients/${patientId}/documents/${Date.now()}_${name}`;
+
+                try {
+                    const url = await firebaseService.uploadGenericImage(user.uid, path, photo.base64String);
+
+                    // Create the doc record in Firestore
+                    const docData = {
+                        patientId,
+                        name,
+                        url,
+                        type: 'image',
+                        size: 'Native Capture',
+                        uploadDate: new Date().toLocaleDateString(),
+                        storagePath: path
+                    };
+
+                    await firebaseService.saveDocumentRecord(user.uid, patientId, docData);
+
+                    toast.success('Document captured', { id: toastId });
+                } catch (e: any) {
+                    console.error("Native upload error:", e);
+                    toast.error('Native upload failed', { id: toastId });
+                } finally {
+                    setTimeout(() => {
+                        setPendingDocs(prev => prev.filter(d => d.id !== tempId));
+                    }, 1000);
+                }
+            }
+        } catch (error: any) {
+            console.error('Camera capture error:', error);
+            if (error.message !== 'User cancelled photos app') {
+                toast.error('Could not access camera/gallery');
+            }
+        }
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

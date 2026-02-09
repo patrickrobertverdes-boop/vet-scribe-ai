@@ -1,7 +1,8 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, persistentSingleTabManager, getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { Capacitor } from '@capacitor/core';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -24,7 +25,10 @@ const app = getApps().length > 0 ? getApp() : (isFirebaseConfigured ? initialize
 const db = isFirebaseConfigured
     ? (typeof window !== 'undefined'
         ? initializeFirestore(app!, {
-            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+            localCache: persistentLocalCache({
+                tabManager: Capacitor.isNativePlatform() ? persistentSingleTabManager({}) : persistentMultipleTabManager()
+            }),
+            experimentalForceLongPolling: Capacitor.isNativePlatform()
         })
         : getFirestore(app!))
     : null;

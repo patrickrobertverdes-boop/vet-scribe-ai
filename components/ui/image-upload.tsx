@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, X, Loader2, Binary } from 'lucide-react';
+import { Camera as CameraIcon, X, Loader2, Binary } from 'lucide-react';
+import { Camera as NativeCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import { cn } from '@/lib/utils';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -109,6 +112,48 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
         }
     };
 
+    const handleNativeUpload = async () => {
+        if (!user) return;
+        setIsUploading(true);
+        onUploading?.(true);
+        setProgress(10); // Initial progress
+
+        try {
+            const image = await NativeCamera.getPhoto({
+                quality: 80,
+                width: 1200,
+                allowEditing: false,
+                resultType: CameraResultType.Base64,
+                source: CameraSource.Prompt
+            });
+
+            if (image.base64String) {
+                setProgress(50);
+                const timestamp = Date.now();
+                const path = `users/${user.uid}/profile-images/${timestamp}_native.jpg`;
+
+                // Uses the generic upload engine in firebaseService
+                const url = await firebaseService.uploadGenericImage(
+                    user.uid,
+                    path,
+                    image.base64String
+                );
+
+                onChange(url);
+                toast.success('Identity verified and uploaded!');
+            }
+        } catch (error: any) {
+            console.error('Native upload error:', error);
+            if (error.message !== 'User cancelled photos app') {
+                toast.error('Failed to process native image.');
+            }
+        } finally {
+            setIsUploading(false);
+            onUploading?.(false);
+            setProgress(0);
+        }
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -133,7 +178,14 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
-                onClick={() => !isUploading && fileInputRef.current?.click()}
+                onClick={() => {
+                    if (isUploading) return;
+                    if (Capacitor.isNativePlatform()) {
+                        handleNativeUpload();
+                    } else {
+                        fileInputRef.current?.click();
+                    }
+                }}
                 className={cn(
                     "relative h-32 w-32 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-500 overflow-hidden shadow-2xl bg-card border-4 border-border",
                     isDragging ? "border-primary ring-8 ring-primary/10 scale-105" : "hover:border-primary/20",
@@ -168,7 +220,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 {/* Tactical Overlay */}
                 {!isUploading && (
                     <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
-                        <Camera className="h-6 w-6 text-white" />
+                        <CameraIcon className="h-6 w-6 text-white" />
                         <span className="text-[8px] font-bold text-white uppercase tracking-widest">Update</span>
                     </div>
                 )}
