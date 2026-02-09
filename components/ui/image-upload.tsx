@@ -65,6 +65,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
 
     const uploadToStorage = async (file: File) => {
         if (!storage || !user) {
+            console.error(`[ImageUpload] Storage or User context missing. Storage: ${!!storage}, User: ${!!user?.uid}`);
             toast.error('Storage not available. Please try again.');
             return;
         }
@@ -73,6 +74,7 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
         onUploading?.(true);
         setProgress(0);
         try {
+            console.log(`[ImageUpload] Initiating upload for user: ${user.uid}, file: ${file.name}`);
             // Compress on client for mobile performance
             const compressedBlob = await compressImage(file);
 
@@ -91,20 +93,24 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                         const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         setProgress(Math.round(p));
                     },
-                    (error) => reject(error),
+                    (error) => {
+                        console.error(`[ImageUpload] Resumable upload failed:`, error);
+                        reject(error);
+                    },
                     () => resolve(null)
                 );
             });
 
             // Get the download URL
             const url = await getDownloadURL(storageRef);
+            console.log(`[ImageUpload] Upload success. URL: ${url}`);
 
             // Pass the URL (not base64) to the parent
             onChange(url);
             toast.success('Identity verified and uploaded!');
-        } catch (error) {
-            console.error('Upload error:', error);
-            toast.error('Failed to process image.');
+        } catch (error: any) {
+            console.error('[ImageUpload] FATAL error:', error);
+            toast.error(`Failed to process image: ${error.message || 'Unknown error'}`);
         } finally {
             setIsUploading(false);
             onUploading?.(false);
