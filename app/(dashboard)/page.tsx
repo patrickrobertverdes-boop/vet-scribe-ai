@@ -110,7 +110,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-2xl font-bold font-serif text-foreground tracking-tight">
-                            Welcome Back, <span className="text-foreground font-normal">Dr. {user?.displayName?.split(' ')[1] || user?.email?.split('@')[0] || 'Physician'}</span>
+                            Welcome Back, <span className="text-foreground font-normal">{user?.displayName || user?.email?.split('@')[0] || 'Physician'}</span>
                         </h1>
                     </div>
                 </div>
@@ -187,8 +187,9 @@ export default function DashboardPage() {
                                 <Link href="/checklist" className="text-[10px] font-bold text-foreground hover:underline transition-all uppercase tracking-widest leading-none">
                                     Index
                                 </Link>
-                                <Link href="/checklist?focus=true" className="h-7 px-3 bg-primary text-primary-foreground hover:opacity-90 border border-border rounded text-[9px] font-bold uppercase tracking-widest flex items-center transition-all ml-4">
-                                    + Add
+                                <Link href="/checklist?focus=true" className="h-7 px-4 bg-primary text-primary-foreground hover:opacity-90 border border-primary rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all ml-4 shadow-sm active:scale-95">
+                                    <Plus className="h-3 w-3 stroke-[3px]" />
+                                    <span>Add</span>
                                 </Link>
                             </div>
                         </div>

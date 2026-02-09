@@ -276,9 +276,20 @@ export default function PatientsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="h-8 w-8 flex items-center justify-center text-muted-foreground border border-border rounded opacity-0 group-hover:opacity-100 transition-all">
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/record?patientId=${patient.id}`);
+                                    }}
+                                    className="h-10 w-10 flex items-center justify-center text-primary border border-primary/20 bg-primary/5 rounded-xl active:scale-95 transition-all"
+                                >
+                                    <Mic className="h-4 w-4" />
+                                </button>
+                                <div className="h-10 w-10 flex items-center justify-center text-muted-foreground border border-border rounded-xl">
+                                    <ChevronRight className="h-5 w-5" />
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>

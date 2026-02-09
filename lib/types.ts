@@ -11,6 +11,7 @@ export interface Patient {
   age_months: number; // remainder in months
   weight: number; // lbs
   owner: string;
+  ownerPhone?: string;
   lastVisit: string;
   status: 'Active' | 'Archived';
   image: string; // emoji or url

@@ -14,12 +14,14 @@ import {
     Binary,
     Zap,
     Users,
-    Search
+    Search,
+    Download
 } from 'lucide-react';
 import { AudioVisualizer } from '@/components/scribe/audio-visualizer';
 import { TranscriptView } from '@/components/scribe/transcript-view';
 import { SoapEditor } from '@/components/soap/soap-editor';
 import { PatientContext } from '@/components/scribe/patient-context';
+import { PrintableRecord } from '@/components/patient/printable-record';
 import { callGemini } from '@/lib/gemini-client';
 import { useDeepgram } from '@/hooks/use-deepgram';
 import { firebaseService } from '@/lib/firebase-service';
@@ -158,10 +160,6 @@ function RecordPageContent() {
     }, [recordingState, sessionActive, isGenerating, generatedSoap, transcript]);
 
     const beginSession = () => {
-        if (!patient) {
-            toast.error("Please select a patient before starting the session.");
-            return;
-        }
         setGeneratedSoap(null);
         setSaveStatus('idle');
         setGeminiError(null);
@@ -247,8 +245,9 @@ function RecordPageContent() {
 
             setSaveStatus('saved');
             toast.success('Clinical record auto-saved successfully.');
-        } catch (err) {
-            toast.error("Auto-save failed. Manual entry required.");
+        } catch (err: any) {
+            console.error("[Archive] Permanent failure:", err);
+            toast.error("Auto-save failed: " + (err.message || "Network Error"));
             setSaveStatus('idle');
         }
     };
@@ -258,7 +257,11 @@ function RecordPageContent() {
         setSaveStatus('saving');
         try {
             const targetPatientId = urlPatientId || patient?.id;
-            if (!targetPatientId) return;
+            if (!targetPatientId) {
+                setSaveStatus('idle');
+                toast.error("Assign a patient before archiving.");
+                return;
+            }
 
             await firebaseService.createConsultation(user.uid, targetPatientId, {
                 transcript,
@@ -275,6 +278,72 @@ function RecordPageContent() {
         } catch (err) {
             setSaveStatus('idle');
             toast.error("Failed to commit changes.");
+        }
+    };
+
+    const handleDownload = async () => {
+        if (!generatedSoap) return;
+        const toastId = toast.loading("Synthesizing professional clinical report...");
+
+        try {
+            const { default: html2canvas } = await import('html2canvas');
+            const { jsPDF } = await import('jspdf');
+
+            const element = document.querySelector('.printable-record') as HTMLElement;
+            if (!element) throw new Error("Print buffer not found");
+
+            element.style.display = 'block';
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '800px';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            element.style.display = 'none';
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width / 2, canvas.height / 2]
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+            const fileName = `Clinical_Record_${patient?.name || 'Unassigned'}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+            const { Capacitor } = await import('@capacitor/core');
+            if (Capacitor.isNativePlatform()) {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                const { Share } = await import('@capacitor/share');
+
+                const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: pdfBase64,
+                    directory: Directory.Cache
+                });
+
+                await Share.share({
+                    title: 'Clinical Report',
+                    text: `Medical documentation for ${patient?.name || 'Subject'}`,
+                    url: result.uri,
+                });
+                toast.success("Medical report exported", { id: toastId });
+            } else {
+                pdf.save(fileName);
+                toast.success("Medical report exported", { id: toastId });
+            }
+        } catch (error: any) {
+            console.error("PDF generation failed:", error);
+            const element = document.querySelector('.printable-record') as HTMLElement;
+            if (element) element.style.display = 'none'; // Ensure cleanup on error
+            toast.error("Export failed: " + error.message, { id: toastId });
         }
     };
 
@@ -414,7 +483,7 @@ function RecordPageContent() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-card">
+                                <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-card h-[400px] sm:h-auto">
                                     <div className="p-6 border-b border-divider space-y-4">
                                         <div className="flex items-center justify-between">
                                             <div className="space-y-1">
@@ -510,19 +579,28 @@ function RecordPageContent() {
 
                             <div className="flex items-center gap-3">
                                 {generatedSoap && (
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={saveStatus !== 'idle'}
-                                        className={cn(
-                                            "h-8 px-5 rounded text-[9px] font-medium uppercase tracking-widest transition-all",
-                                            saveStatus === 'saved'
-                                                ? "bg-emerald-500 text-white"
-                                                : "bg-black dark:bg-white text-white dark:text-black"
-                                        )}
-                                    >
-                                        {saveStatus === 'saving' ? 'Archiving...' :
-                                            saveStatus === 'saved' ? 'Archived' : 'Commit Changes'}
-                                    </button>
+                                    <>
+                                        <button
+                                            onClick={handleDownload}
+                                            className="h-8 w-8 flex items-center justify-center border border-divider rounded-lg text-muted-foreground hover:bg-muted transition-all active:scale-90"
+                                            title="Download PDF"
+                                        >
+                                            <Download className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={saveStatus !== 'idle'}
+                                            className={cn(
+                                                "h-8 px-5 rounded text-[9px] font-medium uppercase tracking-widest transition-all",
+                                                saveStatus === 'saved'
+                                                    ? "bg-emerald-500 text-white"
+                                                    : "bg-black dark:bg-white text-white dark:text-black"
+                                            )}
+                                        >
+                                            {saveStatus === 'saving' ? 'Archiving...' :
+                                                saveStatus === 'saved' ? 'Archived' : 'Commit Changes'}
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -588,6 +666,28 @@ function RecordPageContent() {
                     </div>
                 </div>
             </div>
+
+            {/* Hidden printable record for PDF generation */}
+            {generatedSoap && (
+                <PrintableRecord
+                    date={new Date().toISOString()}
+                    patient={patient || {
+                        id: 'unassigned',
+                        name: 'Unassigned Patient',
+                        species: 'Exotic',
+                        breed: 'Unknown',
+                        age: 0,
+                        age_months: 0,
+                        weight: 0,
+                        owner: 'Unknown Client',
+                        lastVisit: new Date().toISOString().split('T')[0],
+                        status: 'Active',
+                        image: ''
+                    }}
+                    soap={generatedSoap}
+                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                />
+            )}
         </div>
     );
 }

@@ -135,7 +135,7 @@ function ChecklistContent() {
                                                 "group flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300",
                                                 item.completed
                                                     ? "bg-muted/50 border-transparent opacity-50"
-                                                    : "bg-white border-black hover:shadow-xl hover:-translate-y-0.5"
+                                                    : "bg-white border-primary/20 hover:border-primary hover:shadow-xl hover:-translate-y-0.5"
                                             )}
                                         >
                                             <button
@@ -143,8 +143,8 @@ function ChecklistContent() {
                                                 className={cn(
                                                     "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all",
                                                     item.completed
-                                                        ? "bg-black border-black text-white dark:bg-white dark:text-black"
-                                                        : "border-black hover:scale-110"
+                                                        ? "bg-primary border-primary text-primary-foreground"
+                                                        : "border-primary/40 hover:border-primary hover:scale-110"
                                                 )}
                                             >
                                                 {item.completed && <Check className="h-4 w-4 stroke-[3px]" />}
@@ -159,7 +159,7 @@ function ChecklistContent() {
 
                                             <button
                                                 onClick={() => handleDeleteItem(item.id)}
-                                                className="icon-square h-9 w-9 opacity-0 group-hover:opacity-100 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all"
+                                                className="icon-square h-9 w-9 opacity-40 lg:opacity-0 group-hover:opacity-100 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shrink-0"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

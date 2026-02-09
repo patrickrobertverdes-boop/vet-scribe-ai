@@ -76,7 +76,7 @@ export function AddTaskForm() {
                 disabled={isSubmitting}
                 className={cn(
                     "h-14 sm:h-12 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shrink-0 shadow-lg",
-                    isSubmitting ? "bg-muted text-muted-foreground" : "bg-black text-white hover:scale-[1.02] active:scale-95",
+                    isSubmitting ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:scale-[1.02] active:scale-95",
                 )}
             >
                 {isSubmitting ? (

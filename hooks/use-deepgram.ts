@@ -267,7 +267,7 @@ export function useDeepgram(): UseDeepgramReturn {
                             ws.send(e.data);
                         }
                     };
-                    mediaRecorder.start(250);
+                    mediaRecorder.start(100); // 100ms for responsiveness on mobile
                 }
             };
 

@@ -97,8 +97,8 @@ export default function DashboardLayout({
                     {/* Header inside Panel */}
                     <div className="h-20 px-6 flex items-center justify-between border-b border-border/50 bg-background shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-sm">
-                                <Zap className="h-4.5 w-4.5" />
+                            <div className="h-8 w-8 border border-border rounded-lg flex items-center justify-center bg-white shadow-sm overflow-hidden">
+                                <img src="/icons/icon-192.png" className="h-full w-full object-cover" alt="VetScribe" />
                             </div>
                             <span className="text-sm font-black tracking-tighter text-foreground uppercase">VetScribe</span>
                         </div>
@@ -136,7 +136,7 @@ export default function DashboardLayout({
                 {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
                 <main
                     ref={scrollContainerRef}
-                    className="flex-1 lg:overflow-y-auto p-3 sm:p-8 lg:p-10 pb-10 lg:pb-10 relative z-10 w-full scroll-smooth"
+                    className="flex-1 lg:overflow-y-auto p-4 sm:p-8 lg:p-10 pb-32 lg:pb-10 relative z-10 w-full scroll-smooth"
                 >
                     <div className="mx-auto max-w-[1600px] w-full">
                         {children}

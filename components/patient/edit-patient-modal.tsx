@@ -25,6 +25,7 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
         age_months: patient.age_months,
         weight: patient.weight,
         owner: patient.owner,
+        ownerPhone: patient.ownerPhone,
         historySummary: patient.historySummary,
         image: patient.image,
     });
@@ -121,6 +122,16 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
                                         onChange={e => setFormData({ ...formData, owner: e.target.value })}
                                         className="w-full h-12 px-5 rounded-xl text-sm font-black text-black border border-zinc-200 outline-none focus:ring-1 focus:ring-black shadow-sm bg-white tracking-tight"
                                         required
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] ml-1">Client Phone</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.ownerPhone || ''}
+                                        onChange={e => setFormData({ ...formData, ownerPhone: e.target.value })}
+                                        className="w-full h-12 px-5 rounded-xl text-sm font-black text-black border border-zinc-200 outline-none focus:ring-1 focus:ring-black shadow-sm bg-white tracking-tight"
+                                        placeholder="(555) 000-0000"
                                     />
                                 </div>
                             </div>

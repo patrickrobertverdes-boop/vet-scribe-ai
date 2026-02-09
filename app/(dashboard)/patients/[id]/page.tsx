@@ -295,18 +295,12 @@ export default function PatientProfilePage() {
                                     </div>
                                 </div>
                                 <div className="space-y-4 pt-6 border-t border-border">
-                                    <div onClick={() => toast.success(`Calling ${patient.owner}...`)} className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-all cursor-pointer group/item">
+                                    <a href={`tel:${patient.ownerPhone || ''}`} className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-all cursor-pointer group/item">
                                         <div className="h-8 w-8 border border-border rounded flex items-center justify-center group-hover/item:bg-muted transition-all">
                                             <Phone className="h-4 w-4" />
                                         </div>
-                                        <span className="text-[11px] font-medium uppercase tracking-widest">(555) 123-4567</span>
-                                    </div>
-                                    <div onClick={() => router.push('/team')} className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-all cursor-pointer group/item">
-                                        <div className="h-8 w-8 border border-border rounded flex items-center justify-center group-hover/item:bg-muted transition-all">
-                                            <Mail className="h-4 w-4" />
-                                        </div>
-                                        <span className="text-[11px] font-medium uppercase tracking-widest truncate">Message Owner</span>
-                                    </div>
+                                        <span className="text-[11px] font-medium uppercase tracking-widest">{patient.ownerPhone || '(Not Recorded)'}</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>

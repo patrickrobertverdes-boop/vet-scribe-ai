@@ -136,18 +136,51 @@ export default function HistoryPage() {
             ].join("\n");
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `vetscribe_records_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            toast.success("Records exported as CSV");
-        } catch (error) {
+            const fileName = `vetscribe_records_${new Date().toISOString().split('T')[0]}.csv`;
+
+            import('@capacitor/core').then(async ({ Capacitor }) => {
+                if (Capacitor.isNativePlatform()) {
+                    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                    const { Share } = await import('@capacitor/share');
+
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        const base64data = reader.result as string;
+                        try {
+                            const result = await Filesystem.writeFile({
+                                path: fileName,
+                                data: base64data.split(',')[1],
+                                directory: Directory.Cache,
+                                encoding: 'utf8' as any
+                            });
+
+                            await Share.share({
+                                title: 'Exported Records',
+                                text: 'Clinical Encounter Export',
+                                url: result.uri,
+                                dialogTitle: 'Save Clinical Export'
+                            });
+                            toast.success("Records ready for sharing.");
+                        } catch (e: any) {
+                            toast.error("Mobile export failed: " + e.message);
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    toast.success("Records exported as CSV");
+                }
+            });
+        } catch (error: any) {
             console.error("Export failed:", error);
-            toast.error("Export failed. Check console.");
+            toast.error("Export failed: " + error.message);
         }
     };
 

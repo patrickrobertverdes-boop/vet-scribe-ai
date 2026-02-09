@@ -34,6 +34,13 @@ subprojects {
                 }
             }
         }
+        
+        // Resolve Kotlin JVM target mismatch using a safer, more compatible approach
+        project.tasks.configureEach { task ->
+            if (task.class.name.contains('KotlinCompile')) {
+                task.kotlinOptions.jvmTarget = "17"
+            }
+        }
     }
 }
 

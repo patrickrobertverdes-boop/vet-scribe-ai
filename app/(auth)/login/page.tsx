@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -73,8 +73,8 @@ export default function LoginPage() {
     if (user && isMobileAuth) {
         return (
             <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700 py-12">
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
-                    <Zap className="h-8 w-8 text-primary" />
+                <div className="h-16 w-16 border border-border rounded-2xl flex items-center justify-center bg-white shadow-xl overflow-hidden animate-pulse">
+                    <img src="/icons/icon-512.png" className="h-full w-full object-cover" alt="VetScribe" />
                 </div>
                 <div className="text-center space-y-2">
                     <h1 className="text-xl font-bold text-foreground tracking-tight uppercase">Handoff Protocol</h1>
@@ -106,10 +106,15 @@ export default function LoginPage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-sm mx-auto w-full">
 
-            <div className="space-y-1 text-center">
-                <h1 className="text-xl font-bold text-foreground tracking-tight">System Login</h1>
-                <p className="text-sm text-muted-foreground">
-                    Authenticate to access patient records.
+            <div className="space-y-4 text-center">
+                <div className="flex justify-center mb-6">
+                    <div className="h-20 w-20 border border-border rounded-[2rem] flex items-center justify-center bg-white shadow-2xl overflow-hidden p-1">
+                        <img src="/icons/icon-512.png" className="h-full w-full object-cover rounded-[1.8rem]" alt="VetScribe Pro" />
+                    </div>
+                </div>
+                <h1 className="text-2xl font-serif font-black text-foreground tracking-tighter uppercase leading-none">VetScribe <span className="text-primary">Pro</span></h1>
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">
+                    Clinical Documentation Intelligence
                 </p>
             </div>
 
@@ -143,7 +148,7 @@ export default function LoginPage() {
                         disabled={isSubmitting}
                         className="btn-premium w-full h-12"
                     >
-                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign In <Zap className="h-4 w-4 fill-current" /></>}
+                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign In <ChevronRight className="h-4 w-4" /></>}
                     </button>
                 </div>
             </form>

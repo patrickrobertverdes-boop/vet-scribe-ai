@@ -57,8 +57,8 @@ export function Sidebar({ onNavigate, className, isMobile }: SidebarProps) {
             {!isMobile && (
                 <div className="h-20 px-6 flex items-center justify-between border-b border-border/50">
                     <div className={cn("flex items-center gap-3 transition-all duration-300", isCollapsed && "opacity-0 invisible w-0")}>
-                        <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm">
-                            <Zap className="h-5 w-5 no-demote" />
+                        <div className="h-9 w-9 border border-border rounded-xl flex items-center justify-center bg-white shadow-sm overflow-hidden shrink-0">
+                            <img src="/icons/icon-192.png" className="h-full w-full object-cover" alt="VetScribe Logo" />
                         </div>
                         <div>
                             <span className="text-lg font-serif font-black tracking-tighter text-foreground leading-none block">VetScribe</span>

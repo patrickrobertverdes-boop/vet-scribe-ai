@@ -19,6 +19,7 @@ import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';
 import { Consultation, Patient } from '@/lib/types';
 import { SoapEditor } from '@/components/soap/soap-editor';
+import { PrintableRecord } from '@/components/patient/printable-record';
 import toast from 'react-hot-toast';
 
 export default function ConsultationDetailPage() {
@@ -87,69 +88,70 @@ export default function ConsultationDetailPage() {
 
     const handleDownload = async () => {
         if (!consultation || !patient) return;
-        console.log("[RecordDetail] Audit: Initiating data export protocol...");
+        const toastId = toast.loading("Synthesizing professional clinical report...");
 
         try {
-            const dataToExport = {
-                id: consultation.id,
-                date: consultation.date,
-                patient: {
-                    id: patient.id,
-                    name: patient.name,
-                    species: patient.species,
-                    breed: patient.breed
-                },
-                status: consultation.status,
-                clinical_notes: consultation.soap,
-                transcript: consultation.transcript
-            };
+            // Import libraries dynamically
+            const { default: html2canvas } = await import('html2canvas');
+            const { jsPDF } = await import('jspdf');
 
-            const fileName = `medical_record_${patient.name.replace(/\s+/g, '_')}_${consultation.id.slice(0, 8)}.json`;
-            const jsonStr = JSON.stringify(dataToExport, null, 2);
+            // Find the hidden printable element
+            const element = document.querySelector('.printable-record') as HTMLElement;
+            if (!element) throw new Error("Print buffer not found");
 
-            // NATIVE PROTOCOL: Capacitor Filesystem + Share
+            // Temporarily show it for capture
+            element.style.display = 'block';
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '800px';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            // Cleanup
+            element.style.display = 'none';
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width / 2, canvas.height / 2]
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+            const fileName = `Clinical_Record_${patient.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
             import('@capacitor/core').then(async ({ Capacitor }) => {
                 if (Capacitor.isNativePlatform()) {
                     const { Filesystem, Directory } = await import('@capacitor/filesystem');
                     const { Share } = await import('@capacitor/share');
 
-                    try {
-                        const writeResult = await Filesystem.writeFile({
-                            path: fileName,
-                            data: jsonStr,
-                            directory: Directory.Cache, // Use Cache for temporary shareable files
-                            encoding: 'utf8' as any
-                        });
+                    const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                    const result = await Filesystem.writeFile({
+                        path: fileName,
+                        data: pdfBase64,
+                        directory: Directory.Cache
+                    });
 
-                        await Share.share({
-                            title: 'Export Medical Record',
-                            text: `Clinical Encounter for ${patient.name}`,
-                            url: writeResult.uri,
-                            dialogTitle: 'Save Record'
-                        });
-
-                        toast.success("Record ready for sharing.");
-                    } catch (nativeErr: any) {
-                        console.error("[Native] Export failed:", nativeErr);
-                        toast.error("Native export failed: " + nativeErr.message);
-                    }
+                    await Share.share({
+                        title: 'Clinical Report',
+                        text: `Medical documentation for ${patient.name}`,
+                        url: result.uri,
+                    });
+                    toast.success("Medical report exported", { id: toastId });
                 } else {
-                    // WEB PROTOCOL: Standard Blob Download
-                    const blob = new Blob([jsonStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    toast.success("Medical record downloaded");
+                    pdf.save(fileName);
+                    toast.success("Medical report exported", { id: toastId });
                 }
             });
         } catch (error: any) {
-            console.error("Download failed:", error);
-            toast.error("Download failed: " + error.message);
+            console.error("PDF generation failed:", error);
+            toast.error("Export failed: " + error.message, { id: toastId });
         }
     };
 
@@ -207,12 +209,9 @@ export default function ConsultationDetailPage() {
                         <Printer className="h-5 w-5" />
                     </button>
                     <button
-                        onClick={() => {
-                            toast.success('Generating professional PDF...');
-                            window.print();
-                        }}
+                        onClick={handleDownload}
                         title="Download PDF"
-                        className="h-12 w-12 glass border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm"
+                        className="h-12 w-12 glass border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm active:scale-95"
                     >
                         <Download className="h-5 w-5" />
                     </button>
@@ -322,69 +321,13 @@ export default function ConsultationDetailPage() {
             </div>
 
             {/* PROFESSIONAL PRINT TEMPLATE - Hidden on Screen via global CSS */}
-            <div className="printable-record bg-white text-black font-serif">
-                {/* Header/Letterhead */}
-                <div className="border-b-2 border-slate-900 pb-8 mb-8 flex justify-between items-start">
-                    <div>
-                        <h1 className="text-3xl font-bold uppercase tracking-tighter mb-1">Clinic Medical Record</h1>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">VetScribe AI Clinical Network</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Record ID</p>
-                        <p className="font-mono text-sm font-bold">{consultation.id}</p>
-                    </div>
-                </div>
-
-                {/* Patient Summary Box */}
-                <div className="grid grid-cols-2 gap-8 mb-10 bg-slate-50 p-6 rounded-lg border border-slate-200">
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Patient Identity</p>
-                        <h2 className="text-2xl font-bold uppercase">{patient.name}</h2>
-                        <p className="text-sm font-medium">{patient.species} • {patient.breed} • {patient.age}Y {patient.age_months}M</p>
-                    </div>
-                    <div className="text-right space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Visit Analytics</p>
-                        <p className="text-sm font-bold">Date: {new Date(consultation.date).toLocaleDateString()} {new Date(consultation.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        <p className="text-sm">Owner: {patient.owner}</p>
-                    </div>
-                </div>
-
-                {/* SOAP CONTENT */}
-                <div className="space-y-10">
-                    <div className="section">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.3em] border-b border-slate-200 pb-2 mb-4 text-slate-900">Subjective</h3>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{consultation.soap.subjective || 'No clinical notes recorded.'}</p>
-                    </div>
-
-                    <div className="section">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.3em] border-b border-slate-200 pb-2 mb-4 text-slate-900">Objective</h3>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{consultation.soap.objective || 'No visual observations recorded.'}</p>
-                    </div>
-
-                    <div className="section">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.3em] border-b border-slate-200 pb-2 mb-4 text-slate-900">Assessment</h3>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{consultation.soap.assessment || 'No clinical assessment recorded.'}</p>
-                    </div>
-
-                    <div className="section">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.3em] border-b border-slate-200 pb-2 mb-4 text-slate-900">Plan</h3>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{consultation.soap.plan || 'No treatment plan recorded.'}</p>
-                    </div>
-                </div>
-
-                {/* Footer / Signature */}
-                <div className="mt-20 pt-10 border-t border-slate-100 flex justify-between items-end">
-                    <div className="space-y-4">
-                        <div className="h-12 w-48 border-b-2 border-slate-300 italic text-slate-400 flex items-end pb-1 text-xs px-2">
-                            Electronically Signed / {user?.displayName || 'Authorized Clinician'}
-                        </div>
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Digital Validation: Verified via VetScribe AI</p>
-                    </div>
-                    <div className="text-right text-[8px] font-medium text-slate-300 uppercase tracking-widest">
-                        Document generated at {new Date().toLocaleString()}
-                    </div>
-                </div>
-            </div>
+            <PrintableRecord
+                consultationId={consultation.id}
+                date={consultation.date}
+                patient={patient}
+                soap={consultation.soap}
+                clinicianName={user?.displayName || 'Dr. Sarah Gahra'}
+            />
         </div>
     );
 }

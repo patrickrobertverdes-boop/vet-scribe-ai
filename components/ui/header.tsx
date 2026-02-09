@@ -51,8 +51,8 @@ export function Header({ onMenuClick, onAIAssistantClick }: HeaderProps) {
 
     return (
         <header className={cn(
-            "sticky top-0 z-30 flex items-center justify-between px-6 border-b border-border/60 transition-all duration-300 bg-background",
-            isPatientProfile ? "h-11 sm:h-12 border-primary/20" : "h-12 sm:h-14 shadow-none"
+            "sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 border-b border-border/60 transition-all duration-300 bg-background",
+            isPatientProfile ? "h-14 border-primary/20" : "h-14 sm:h-16 shadow-none"
         )}>
             {/* Infrastructure Access */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
