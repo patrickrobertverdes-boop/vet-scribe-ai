@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -98,11 +98,16 @@ export default function PatientsPage() {
     };
 
 
-    const filteredPatients = patients.filter(p =>
-        (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (p.owner?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (p.breed?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+
+    const filteredPatients = useMemo(() =>
+        patients.filter(p =>
+            (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (p.owner?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (p.breed?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        ),
+        [patients, searchTerm]
     );
+
 
     return (
         <div className="space-y-6 pb-20">
@@ -153,7 +158,7 @@ export default function PatientsPage() {
 
             {/* Record Ledger Partition */}
             <div className={cn(
-                "surface overflow-hidden bg-card transition-all duration-500",
+                "surface-contained overflow-hidden bg-card transition-all duration-500",
                 isLoading ? "opacity-60" : "opacity-100"
             )}>
                 {/* Protocol: Unified Table Representation */}

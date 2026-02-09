@@ -48,7 +48,7 @@ export function Sidebar({ onNavigate, className, isMobile }: SidebarProps) {
     return (
         <aside
             className={cn(
-                "h-full flex flex-col bg-card border-r border-border transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
+                "h-full flex flex-col bg-card border-r border-border transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] relative z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] [will-change:width]",
                 isCollapsed ? "w-24" : "w-80",
                 className
             )}

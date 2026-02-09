@@ -19,7 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Consultation, Patient, SoapNote } from '@/lib/types';
 import { PrintableRecord } from '@/components/patient/printable-record';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -103,11 +103,16 @@ export default function HistoryPage() {
         setIsPaginating(false);
     };
 
-    const filtered = consultations.filter(c =>
-        (c.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (c.patientId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (c.soapPreview?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+
+    const filtered = useMemo(() =>
+        consultations.filter(c =>
+            (c.patientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (c.patientId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (c.soapPreview?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        ),
+        [consultations, searchTerm]
     );
+
 
     const handleDownloadIndividual = async (c: Consultation) => {
         const toastId = toast.loading(`Synthesizing report for ${c.patientName || 'Subject'}...`);

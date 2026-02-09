@@ -407,8 +407,11 @@ function RecordPageContent() {
                 });
                 toast.success("Medical report exported", { id: toastId });
             } else {
-                pdf.save(fileName);
-                toast.success("Medical report exported", { id: toastId });
+                // Open PDF in browser instead of downloading
+                const pdfBlob = pdf.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                window.open(pdfUrl, '_blank');
+                toast.success("Medical report opened in new tab", { id: toastId });
             }
         } catch (error: any) {
             console.error("PDF generation failed:", error);
@@ -667,14 +670,9 @@ function RecordPageContent() {
                     <div className="surface flex flex-col flex-1 overflow-hidden relative">
                         {/* Note Identity */}
                         <div className="px-8 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-20">
-                            <div className="flex items-center gap-4">
-                                <div className="h-9 w-9 bg-transparent rounded flex items-center justify-center shadow-none">
-                                    <img src="/logo.png" alt="VetScribe Logo" className="h-9 w-9 object-contain" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xs font-medium text-foreground uppercase tracking-widest leading-none mb-1">SOAP Synthesis</h2>
-                                    <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.1em]">Automated Clinical Record</p>
-                                </div>
+                            <div>
+                                <h2 className="text-xs font-medium text-foreground uppercase tracking-widest leading-none mb-1">SOAP Synthesis</h2>
+                                <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.1em]">Automated Clinical Record</p>
                             </div>
 
                             <div className="flex items-center gap-3">
