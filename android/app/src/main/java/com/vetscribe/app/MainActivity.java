@@ -25,7 +25,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         // Re-apply immersive mode when app resumes to ensure bars stay hidden
         applyImmersiveMode();
