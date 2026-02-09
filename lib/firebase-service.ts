@@ -18,7 +18,8 @@ import {
     startAfter,
     getCountFromServer,
     collectionGroup,
-    Firestore
+    Firestore,
+    SnapshotListenOptions
 } from 'firebase/firestore';
 import { Patient, Consultation, Message, Conversation, PatientDocument, Appointment, ChecklistItem } from './types';
 
@@ -29,6 +30,13 @@ const getFirestoreDb = (): Firestore => {
     }
     return db;
 };
+
+// Metadata type for subscription callbacks
+export interface FirestoreSyncMeta {
+    fromCache: boolean;
+    hasPendingWrites: boolean;
+    error?: { code: string; message: string };
+}
 
 /**
  * FIREBASE SERVICE - STRICT USER SCOPING
@@ -56,18 +64,55 @@ export const firebaseService = {
         }
     },
 
-    subscribeToPatients: (uid: string, callback: (patients: Patient[]) => void) => {
+    /**
+     * FIX: Enhanced subscription with cache detection and error surfacing
+     * - Detects if data is from cache vs server (fromCache metadata)
+     * - Surfaces permission-denied errors instead of swallowing them
+     * - Provides sync state to callback for UI feedback
+     */
+    subscribeToPatients: (
+        uid: string,
+        callback: (patients: Patient[], meta?: FirestoreSyncMeta) => void
+    ) => {
         const col = collection(getFirestoreDb(), 'users', uid, 'patients');
-        return onSnapshot(query(col, limit(100)), (snap) => {
-            // Filter out placeholder documents
-            const patients = snap.docs
-                .filter(d => !d.id.startsWith('_') && !d.data().placeholder)
-                .map(d => ({ ...d.data(), id: d.id } as Patient));
-            callback(patients);
-        }, (err) => {
-            console.error("[Patients] Subscription error:", err);
-            callback([]);
-        });
+        const options: SnapshotListenOptions = { includeMetadataChanges: true };
+
+        return onSnapshot(
+            query(col, limit(100)),
+            options,
+            (snap) => {
+                // CRITICAL: Detect if data is from cache vs server
+                const fromCache = snap.metadata.fromCache;
+                const hasPendingWrites = snap.metadata.hasPendingWrites;
+
+                // Filter out placeholder documents
+                const patients = snap.docs
+                    .filter(d => !d.id.startsWith('_') && !d.data().placeholder)
+                    .map(d => ({ ...d.data(), id: d.id } as Patient));
+
+                // Log cache vs server data for debugging
+                if (fromCache) {
+                    console.log(`[Patients] 🔄 Data from CACHE (${patients.length} items, pending: ${hasPendingWrites})`);
+                } else {
+                    console.log(`[Patients] ✅ Data from SERVER (${patients.length} items)`);
+                }
+
+                callback(patients, { fromCache, hasPendingWrites });
+            },
+            (err) => {
+                console.error("[Patients] ❌ Subscription error:", err);
+                console.error("[Patients] Error code:", err.code);
+                console.error("[Patients] Error message:", err.message);
+
+                // CRITICAL: Surface the error instead of silently returning empty array
+                // This allows UI to show "Permission Denied" or "Auth Required" instead of "No Patients"
+                callback([], {
+                    fromCache: true,
+                    hasPendingWrites: false,
+                    error: { code: err.code, message: err.message }
+                });
+            }
+        );
     },
 
     subscribeToPatient: (uid: string, id: string, callback: (patient: Patient | undefined) => void) => {

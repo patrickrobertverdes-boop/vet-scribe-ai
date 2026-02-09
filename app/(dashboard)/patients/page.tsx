@@ -34,6 +34,38 @@ export default function PatientsPage() {
     const [hasMore, setHasMore] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
 
+    // FIX: Track sync state to show appropriate UI feedback
+    const [syncState, setSyncState] = useState<{
+        isFromCache: boolean;
+        hasError: boolean;
+        errorMessage?: string;
+    }>({ isFromCache: false, hasError: false });
+
+    // FIX: Track network state to force re-fetch when coming back online
+    const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
+    const [subscriptionKey, setSubscriptionKey] = useState(0);
+
+    // Monitor network state changes
+    useEffect(() => {
+        const handleOnline = () => {
+            console.log('[PatientsPage] Network back online - forcing re-subscription');
+            setIsOnline(true);
+            setSubscriptionKey(prev => prev + 1); // Force re-subscribe
+        };
+        const handleOffline = () => {
+            console.log('[PatientsPage] Network went offline');
+            setIsOnline(false);
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
     useEffect(() => {
         if (searchParams.get('new') === 'true') {
             setShowAICreator(true);
@@ -65,19 +97,52 @@ export default function PatientsPage() {
                 } else if (patients.length === 0) {
                     setPatients(parsed);
                     setIsLoading(false);
+                    setSyncState({ isFromCache: true, hasError: false });
                 }
             }
         } catch (e) { }
 
         setIsLoading(true);
-        // Real-time subscription for first 25 items
-        const unsubscribe = firebaseService.subscribeToPatients(user.uid, (data) => {
+
+        // FIX: Enhanced subscription with metadata handling
+        const unsubscribe = firebaseService.subscribeToPatients(user.uid, (data, meta) => {
+            // Check for errors (permission denied, auth issues)
+            if (meta?.error) {
+                console.error("[PatientsPage] Subscription error detected:", meta.error);
+                setSyncState({
+                    isFromCache: true,
+                    hasError: true,
+                    errorMessage: meta.error.code === 'permission-denied'
+                        ? 'Authentication required. Please log in again.'
+                        : meta.error.message
+                });
+                setIsLoading(false);
+                clearTimeout(timer);
+
+                // Show error toast for permission issues
+                if (meta.error.code === 'permission-denied') {
+                    toast.error('Session expired. Please log in again.');
+                }
+                return;
+            }
+
+            // Update patients data
             setPatients(data);
             setIsLoading(false);
-            // Cache the result
-            try {
-                localStorage.setItem(`patients_${user.uid}`, JSON.stringify(data.slice(0, 10)));
-            } catch (e) { }
+
+            // Update sync state
+            setSyncState({
+                isFromCache: meta?.fromCache ?? false,
+                hasError: false
+            });
+
+            // Only cache server data, not cached data
+            if (!meta?.fromCache && data.length > 0) {
+                try {
+                    localStorage.setItem(`patients_${user.uid}`, JSON.stringify(data.slice(0, 10)));
+                } catch (e) { }
+            }
+
             clearTimeout(timer);
         });
 
@@ -85,7 +150,7 @@ export default function PatientsPage() {
             unsubscribe();
             clearTimeout(timer);
         };
-    }, [user]);
+    }, [user, subscriptionKey]); // Re-run when network comes back online
 
     const loadMore = async () => {
         if (!user || isPaginating || !hasMore) return;
@@ -120,6 +185,22 @@ export default function PatientsPage() {
                     <p className="text-lg text-muted-foreground mt-3 font-normal">
                         System inventory of <span className="text-foreground font-bold">{patients.length} active patient entities</span> under clinical observation.
                     </p>
+
+                    {/* FIX: Sync State Indicator */}
+                    {syncState.hasError && (
+                        <div className="mt-3 px-4 py-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl">
+                            <p className="text-sm font-medium text-red-900 dark:text-red-300">
+                                ⚠️ {syncState.errorMessage || 'Unable to sync data'}
+                            </p>
+                        </div>
+                    )}
+                    {!syncState.hasError && syncState.isFromCache && patients.length > 0 && (
+                        <div className="mt-3 px-4 py-2 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl">
+                            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-300">
+                                🔄 Showing cached data. Syncing with server...
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4">

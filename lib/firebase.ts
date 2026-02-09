@@ -27,8 +27,7 @@ const db = isFirebaseConfigured
         ? initializeFirestore(app!, {
             localCache: persistentLocalCache({
                 tabManager: Capacitor.isNativePlatform() ? persistentSingleTabManager({}) : persistentMultipleTabManager()
-            }),
-            experimentalForceLongPolling: Capacitor.isNativePlatform()
+            })
         })
         : getFirestore(app!))
     : null;
