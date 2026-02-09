@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, AlertTriangle, Loader2, User, Activity, ShieldCheck, Binary } from 'lucide-react';
 import { Patient } from '@/lib/types';
 import { firebaseService } from '@/lib/firebase-service';
@@ -33,8 +33,17 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // FIX H3: Prevent scroll-behind on APK
+    useEffect(() => {
+        document.body.classList.add('modal-open');
+        return () => document.body.classList.remove('modal-open');
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // FIX C5: Guard clause to prevent duplicate submissions
+        if (isSaving || isUploading) return;
+
         if (!user) {
             toast.error('You must be logged in to update patients.');
             return;
@@ -95,7 +104,14 @@ export function EditPatientModal({ patient, onClose, onUpdate }: EditPatientModa
                                     onChange={async (val) => {
                                         setFormData(prev => ({ ...prev, image: val }));
                                         if (val.startsWith('http') && user) {
-                                            try { await firebaseService.updatePatient(user.uid, patient.id, { image: val }); } catch (e) { }
+                                            try {
+                                                await firebaseService.updatePatient(user.uid, patient.id, { image: val });
+                                                // FIX C13: Trigger parent refresh to show new image
+                                                onUpdate();
+                                                toast.success('Photo updated!');
+                                            } catch (e) {
+                                                toast.error('Failed to save photo');
+                                            }
                                         }
                                     }}
                                     onUploading={setIsUploading}

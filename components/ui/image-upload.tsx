@@ -64,6 +64,13 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
     };
 
     const uploadToStorage = async (file: File) => {
+        // FIX C15: Check file size before upload
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        if (file.size > MAX_SIZE) {
+            toast.error('Image too large. Maximum 10MB allowed.', { duration: 5000 });
+            return;
+        }
+
         if (!storage || !user) {
             console.error(`[ImageUpload] Storage or User context missing. Storage: ${!!storage}, User: ${!!user?.uid}`);
             toast.error('Storage not available. Please try again.');
@@ -109,9 +116,19 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
             onChange(url);
             toast.success('Identity verified and uploaded!');
         } catch (error: any) {
+            // FIX C4: Provide specific error messages
             console.error('[ImageUpload] FATAL error:', error);
-            toast.error(`Failed to process image: ${error.message || 'Unknown error'}`);
+            let message = 'Failed to process image.';
+            if (error.code === 'storage/unauthorized') {
+                message = 'Storage permissions required. Check app settings.';
+            } else if (error.code === 'storage/quota-exceeded') {
+                message = 'Storage quota exceeded. Please contact support.';
+            } else if (error.message) {
+                message = `Upload failed: ${error.message}`;
+            }
+            toast.error(message, { duration: 5000 });
         } finally {
+            // FIX C4: Ensure spinner always stops
             setIsUploading(false);
             onUploading?.(false);
             setProgress(0);
@@ -149,11 +166,19 @@ export function ImageUpload({ value, onChange, className, placeholderEmoji = '',
                 toast.success('Identity verified and uploaded!');
             }
         } catch (error: any) {
+            // FIX C4: Better error handling for native uploads
             console.error('Native upload error:', error);
+            let message = 'Failed to process native image.';
+            if (error.code === 'storage/unauthorized') {
+                message = 'Storage permissions required. Check app settings.';
+            } else if (error.code === 'storage/quota-exceeded') {
+                message = 'Storage quota exceeded. Please contact support.';
+            }
             if (error.message !== 'User cancelled photos app') {
-                toast.error('Failed to process native image.');
+                toast.error(message, { duration: 5000 });
             }
         } finally {
+            // FIX C4: Ensure spinner always stops
             setIsUploading(false);
             onUploading?.(false);
             setProgress(0);

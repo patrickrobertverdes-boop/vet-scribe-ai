@@ -11,6 +11,8 @@ import { AIAssistant } from '@/components/ai/ai-assistant';
 import { useChatStore } from '@/lib/chat-store';
 import { cn } from '@/lib/utils';
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
 export default function DashboardLayout({
     children,
 }: {
@@ -67,84 +69,86 @@ export default function DashboardLayout({
     if (!user) return null;
 
     return (
-        <div className="flex bg-background min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
-            {/* Ambient Background Glows Removed for high contrast */}
+        <ErrorBoundary>
+            <div className="flex bg-background min-h-dvh lg:h-dvh lg:overflow-hidden relative flex-col lg:flex-row">
+                {/* Ambient Background Glows Removed for high contrast */}
 
 
 
-            {/* Sidebar - Desktop (Fixed Height/Scroll internally handled by flex parent) */}
-            <div className="hidden lg:flex w-80 flex-col border-r border-border bg-card relative z-20 shrink-0">
-                <Sidebar className="w-full h-full" />
-            </div>
+                {/* Sidebar - Desktop (Fixed Height/Scroll internally handled by flex parent) */}
+                <div className="hidden lg:flex w-80 flex-col border-r border-border bg-card relative z-20 shrink-0">
+                    <Sidebar className="w-full h-full" />
+                </div>
 
-            {/* Sidebar - Mobile */}
-            <div className={`
+                {/* Sidebar - Mobile */}
+                <div className={`
                 fixed inset-0 z-[100] lg:hidden
                 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
                 transition-opacity duration-300
             `}>
-                {/* Backdrop */}
-                <div
-                    className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
 
-                {/* Menu Panel */}
-                <div className={cn(
-                    "absolute inset-y-0 left-0 w-[85%] max-w-[320px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                    isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-                )}>
-                    {/* Header inside Panel */}
-                    <div className="h-20 px-6 flex items-center justify-between border-b border-border/50 bg-background shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 border border-border rounded-lg flex items-center justify-center bg-white shadow-sm overflow-hidden">
-                                <img src="/icons/icon-192.png" className="h-full w-full object-cover" alt="VetScribe" />
+                    {/* Menu Panel */}
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 w-[85%] max-w-[320px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+                    )}>
+                        {/* Header inside Panel */}
+                        <div className="h-20 px-6 flex items-center justify-between border-b border-border/50 bg-background shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 border border-border rounded-lg flex items-center justify-center bg-white shadow-sm overflow-hidden">
+                                    <img src="/icons/icon-192.png" className="h-full w-full object-cover" alt="VetScribe" />
+                                </div>
+                                <span className="text-sm font-black tracking-tighter text-foreground uppercase">VetScribe</span>
                             </div>
-                            <span className="text-sm font-black tracking-tighter text-foreground uppercase">VetScribe</span>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="h-10 w-10 flex items-center justify-center border border-border rounded-xl active:scale-90 transition-all"
+                            >
+                                <X className="h-5 w-5 text-foreground" />
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="h-10 w-10 flex items-center justify-center border border-border rounded-xl active:scale-90 transition-all"
-                        >
-                            <X className="h-5 w-5 text-foreground" />
-                        </button>
-                    </div>
 
-                    {/* Navigation - Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto">
-                        <Sidebar
-                            onNavigate={() => setIsMobileMenuOpen(false)}
-                            className="w-full border-none h-full shadow-none"
-                            isMobile={true}
+                        {/* Navigation - Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto">
+                            <Sidebar
+                                onNavigate={() => setIsMobileMenuOpen(false)}
+                                className="w-full border-none h-full shadow-none"
+                                isMobile={true}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden relative">
+                    <div className="sticky top-0 z-40 lg:static">
+                        <Header
+                            onMenuClick={() => setIsMobileMenuOpen(true)}
+                            onAIAssistantClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setAIAssistantOpen(true);
+                            }}
                         />
                     </div>
-                </div>
-            </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden relative">
-                <div className="sticky top-0 z-40 lg:static">
-                    <Header
-                        onMenuClick={() => setIsMobileMenuOpen(true)}
-                        onAIAssistantClick={() => {
-                            setIsMobileMenuOpen(false);
-                            setAIAssistantOpen(true);
-                        }}
-                    />
+                    {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
+                    <main
+                        ref={scrollContainerRef}
+                        className="flex-1 lg:overflow-y-auto p-4 sm:p-8 lg:p-10 pb-32 lg:pb-10 relative z-10 w-full scroll-smooth"
+                    >
+                        <div className="mx-auto max-w-[1600px] w-full">
+                            {children}
+                        </div>
+                    </main>
                 </div>
 
-                {/* Scroll Container: Native Body on Mobile, Internal on Desktop */}
-                <main
-                    ref={scrollContainerRef}
-                    className="flex-1 lg:overflow-y-auto p-4 sm:p-8 lg:p-10 pb-32 lg:pb-10 relative z-10 w-full scroll-smooth"
-                >
-                    <div className="mx-auto max-w-[1600px] w-full">
-                        {children}
-                    </div>
-                </main>
+                <AIAssistant />
             </div>
-
-            <AIAssistant />
-        </div>
+        </ErrorBoundary>
     );
 }

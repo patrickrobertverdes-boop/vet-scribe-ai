@@ -8,6 +8,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    private WindowInsetsControllerCompat insetsController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -15,10 +17,35 @@ public class MainActivity extends BridgeActivity {
         // Enable edge-to-edge
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        // Implement Full Immersive Mode (Hide Status Bar & Navigation Bar until swipe)
-        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(),
-                getWindow().getDecorView());
-        controller.hide(WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.navigationBars());
-        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        // Get the insets controller for consistent bar control
+        insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+
+        // Apply immersive mode
+        applyImmersiveMode();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Re-apply immersive mode when app resumes to ensure bars stay hidden
+        applyImmersiveMode();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        // Re-apply immersive mode when window gains focus
+        if (hasFocus) {
+            applyImmersiveMode();
+        }
+    }
+
+    private void applyImmersiveMode() {
+        if (insetsController != null) {
+            // Hide both status bar and navigation bar
+            insetsController.hide(WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.navigationBars());
+            // Bars will reappear with a swipe, then auto-hide again
+            insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        }
     }
 }

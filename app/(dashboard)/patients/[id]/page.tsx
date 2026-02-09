@@ -54,6 +54,23 @@ export default function PatientProfilePage() {
     const [hasMore, setHasMore] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
     const [downloadingRecord, setDownloadingRecord] = useState<{ consultation: Consultation, patient?: Patient } | null>(null);
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Subscribe to user profile for professional name
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+            if (data) setUserProfile(data);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
+    // Helper to get clinician display name from profile
+    const getClinicianDisplayName = () => {
+        const professionalName = userProfile?.displayName || userProfile?.name;
+        if (professionalName) return professionalName;
+        return user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician';
+    };
 
     useEffect(() => {
         // Wait for connection
@@ -430,9 +447,9 @@ export default function PatientProfilePage() {
                             </div>
                             <button
                                 onClick={() => router.push(`/record?patientId=${patient.id}`)}
-                                className="h-9 px-4 border border-border rounded text-[10px] font-medium uppercase tracking-widest text-foreground hover:bg-muted transition-all flex items-center gap-2"
+                                className="h-8 px-2.5 sm:px-4 border border-border rounded text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-foreground hover:bg-muted transition-all flex items-center gap-1.5 sm:gap-2"
                             >
-                                <PlusCircle className="h-3.5 w-3.5" /> Log Encounter
+                                <PlusCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">Log</span> Encounter
                             </button>
                         </div>
 
@@ -500,7 +517,7 @@ export default function PatientProfilePage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Attending</p>
-                                                        <p className="text-[11px] font-medium text-foreground uppercase tracking-tight">Verified Clinician</p>
+                                                        <p className="text-[11px] font-medium text-foreground uppercase tracking-tight">{getClinicianDisplayName()}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -578,7 +595,7 @@ export default function PatientProfilePage() {
                     date={downloadingRecord.consultation.date}
                     patient={patient}
                     soap={downloadingRecord.consultation.soap}
-                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                    clinicianName={getClinicianDisplayName()}
                     consultationId={downloadingRecord.consultation.id}
                 />
             )}

@@ -176,9 +176,9 @@ export default function AnalyticsPage() {
                         <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
                     </button>
 
-                    <button onClick={handleExport} className="h-12 px-6 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:translate-y-[-2px] hover:shadow-xl transition-all flex items-center gap-2 active:translate-y-0 shadow-lg shadow-slate-900/10">
-                        <Download className="h-4 w-4" />
-                        Export Dossier
+                    <button onClick={handleExport} className="h-10 sm:h-12 px-3 sm:px-6 bg-primary text-primary-foreground rounded-xl font-bold text-[10px] sm:text-sm hover:translate-y-[-2px] hover:shadow-xl transition-all flex items-center gap-1.5 sm:gap-2 active:translate-y-0 shadow-lg shadow-slate-900/10 whitespace-nowrap">
+                        <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <span className="hidden xs:inline">Export</span> Dossier
                     </button>
                 </div>
             </header>

@@ -31,6 +31,25 @@ export default function ConsultationDetailPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Subscribe to user profile for professional name
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+            if (data) setUserProfile(data);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
+    // Helper to extract last name from professional name or use display name
+    const getClinicianDisplayName = () => {
+        const professionalName = userProfile?.displayName || userProfile?.name;
+        if (professionalName) {
+            return professionalName;
+        }
+        return user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician';
+    };
 
     useEffect(() => {
         const load = async () => {
@@ -249,7 +268,7 @@ export default function ConsultationDetailPage() {
                         <div className="space-y-6 pt-10 border-t border-slate-100">
                             {[
                                 { label: 'Date of Record', value: new Date(consultation.date).toLocaleDateString(), icon: Clock },
-                                { label: 'Attending Clinician', value: 'Dr. Sarah Gahra', icon: ShieldCheck },
+                                { label: 'Attending Clinician', value: getClinicianDisplayName(), icon: ShieldCheck },
                                 { label: 'Encounter Status', value: 'Verified', icon: Activity }
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-4">
@@ -326,7 +345,7 @@ export default function ConsultationDetailPage() {
                 date={consultation.date}
                 patient={patient}
                 soap={consultation.soap}
-                clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                clinicianName={getClinicianDisplayName()}
             />
         </div>
     );

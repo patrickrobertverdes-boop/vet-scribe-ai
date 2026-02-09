@@ -329,8 +329,29 @@ export function useDeepgram(): UseDeepgramReturn {
     }, []);
 
     useEffect(() => {
-        return () => cleanup();
-    }, [cleanup]);
+        // FIX C3: Handle APK backgrounding
+        let appStateListener: any = null;
+
+        if (Capacitor.isNativePlatform()) {
+            import('@capacitor/app').then(({ App }) => {
+                App.addListener('appStateChange', ({ isActive }) => {
+                    if (!isActive && isListening) {
+                        console.log('[Scribe] App backgrounded, pausing recording...');
+                        togglePause(true);
+                    }
+                }).then(listener => {
+                    appStateListener = listener;
+                });
+            });
+        }
+
+        return () => {
+            if (appStateListener) {
+                appStateListener.remove();
+            }
+            cleanup();
+        };
+    }, [isListening, cleanup, togglePause]);
 
     return {
         isListening,

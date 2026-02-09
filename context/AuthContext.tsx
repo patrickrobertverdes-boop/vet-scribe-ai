@@ -126,12 +126,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setPersistence(auth!, indexedDBLocalPersistence).catch(e => console.error("Persistence error:", e));
         });
 
-        let handledRedirect = false;
+        // FIX C1: Use ref to properly track redirect state across logout cycles
+        const handledRedirectRef = { current: false };
 
         // 1. Deep link listener for Capacitor Mobile Redirects
         const setupDeepLink = async () => {
             App.addListener('appUrlOpen', async (data: any) => {
-                if (handledRedirect) return;
+                if (handledRedirectRef.current) return;
 
                 const url = data.url;
                 console.log('[Auth] Deep link/App Link received:', url);
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (url.includes('com.vetscribe.app://auth') ||
                     url.includes('vet-scribe-a2i--verdes-8568d.us-east4.hosted.app/__/auth/handler')) {
 
-                    handledRedirect = true;
+                    handledRedirectRef.current = true;
                     setLoading(true);
 
                     // NATIVE RECOVERY: If returning to native app, check if native plugin has user while JS SDK does not
@@ -150,9 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             const nativeState = await FirebaseAuthentication.getCurrentUser();
                             if (nativeState.user && !auth?.currentUser) {
                                 console.log("[Auth] Recovering native session to JS SDK...");
-                                // Note: We can't easily get the credential here without re-sign-in flow, 
-                                // but this check confirms if we are in a desynced state.
-                                // The main sign-in flow now handles the sync, so here we mostly log.
                             }
                         } catch (e) {
                             console.warn("[Auth] Native state check warning:", e);
@@ -180,11 +178,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             // Check for redirect result on initialization (crucial for Capacitor/Mobile)
-            if (!currentUser && auth && !handledRedirect) {
+            if (!currentUser && auth && !handledRedirectRef.current) {
                 try {
                     const result = await getRedirectResult(auth);
                     if (result?.user) {
-                        handledRedirect = true;
+                        handledRedirectRef.current = true;
                         console.log("[Auth] Captured redirect login result during init");
                         setUser(result.user);
                         initializeUserBackground(result.user);
@@ -206,9 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setLoading(false);
         });
-
-        // Deep link listener for custom URL schemes (if needed for other features)
-        // Removed Google Handshake logic from here as we now use native sign-in direct.
 
         return () => {
             unsubscribe();
@@ -261,17 +256,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             console.log(`[STAGE: WEBHOOK-SUCCESS] [${correlationId}] Server confirmed webhook dispatch`);
 
-            // 4. Immediate Provisioning (Ensure UI works even if n8n is slow)
+            // 4. CRITICAL PROVISIONING (FIX H6: Must succeed or rollback)
             console.log(`[STAGE: PROVISION] [${correlationId}] Auto-provisioning profile...`);
             const idToken = await user.getIdToken();
-            await fetch('/api/auth/provision', {
+            const provisionRes = await fetch('/api/auth/provision', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${idToken}`
                 },
                 body: JSON.stringify({ displayName: `${firstName} ${lastName}`, uid: user.uid })
-            }).catch(e => console.warn("Background auto-provisioning failed:", e));
+            });
+
+            if (!provisionRes.ok) {
+                console.error(`[STAGE: PROVISION-FAILED] [${correlationId}] Rolling back user creation...`);
+                try {
+                    await user.delete(); // Rollback: delete auth user
+                } catch (deleteErr) {
+                    console.error('Failed to rollback user:', deleteErr);
+                }
+                throw new Error('Account creation failed. Please try again.');
+            }
 
             // 5. Finalize UI
             toast.success('Registration successful.');
@@ -424,6 +429,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth) throw new Error("Firebase auth not initialized");
         const provider = new GoogleAuthProvider();
 
+        // FIX H7: Add timeout handling
+        setIsLoggingIn(true);
+        const timeout = setTimeout(() => {
+            if (isLoggingIn) {
+                setIsLoggingIn(false);
+                setLoading(false);
+                toast.error('Sign-in timed out or was cancelled.');
+            }
+        }, 30000); // 30s timeout
+
         const isNative = Capacitor.isNativePlatform() ||
             (typeof window !== 'undefined' && (!!(window as any).Capacitor || !!(window as any).androidBridge));
         const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -464,6 +479,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             })
                         }).catch(e => console.warn("Native Google provisioning failed:", e));
 
+                        clearTimeout(timeout);
                         setTimeout(() => {
                             setUser(jsUser);
                             initializeUserBackground(jsUser);
@@ -477,13 +493,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 } catch (pluginErr: any) {
                     console.error("[Auth] Native Google Login failed:", pluginErr);
                     if (pluginErr.message?.includes('cancel') || pluginErr.code === 'CANCELLED') {
-                        toast.error("Sign-in cancelled.");
+                        // User cancelled - silent
                     } else {
                         toast.error(`Google Login Error: ${pluginErr.message || "Failed to authenticate"}`);
                     }
                     return;
                 } finally {
                     setLoading(false);
+                    setIsLoggingIn(false);
                 }
             }
 
@@ -513,7 +530,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (!provisionRes.ok) {
                     console.warn("Web Google provisioning failed, attempting to continue regardless.");
-                    // We continue because they have a session, but backend might be out of sync
                 }
 
                 if (db) {
@@ -525,6 +541,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }, { merge: true });
                 }
 
+                clearTimeout(timeout);
                 toast.success('Signed in via Google');
                 router.push('/');
             } catch (popupErr: any) {
@@ -535,9 +552,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Google login error:", error);
             if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
                 await signInWithRedirect(auth, provider);
-            } else {
+            } else if (!error.message?.includes('cancel')) {
                 toast.error(error.message);
             }
+        } finally {
+            clearTimeout(timeout);
+            setIsLoggingIn(false);
+            setLoading(false);
         }
     };
 
@@ -547,6 +568,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("[Auth] Initiating global logout protocol...");
 
         try {
+            // FIX C12: Clear ALL localStorage data before logout
+            console.log("[Auth] Clearing app data from localStorage...");
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('scribe_') || key.startsWith('vet-scribe') || key.startsWith('patient_') || key.includes('draft')) {
+                    localStorage.removeItem(key);
+                }
+            });
+
+            // FIX C1: Clear user state immediately
+            setUser(null);
+
             // 1. Native Guard: Clear Capacitor Session (Essential for Android/iOS)
             if (Capacitor.isNativePlatform()) {
                 try {
@@ -560,14 +592,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // 2. JS SDK Guard: Clear Browser/WebView Auth
             await firebaseSignOut(auth);
 
-            // 3. UI Guard: Force immediate state sync and redirect
-            setUser(null);
+            // 3. UI Guard: Force immediate redirect
             toast.success('Identity Logged Out');
             window.location.href = '/login'; // Hard redirect to clear any lingering memory states
 
         } catch (error: any) {
             console.error("[Auth] FATAL Logout Error:", error);
             toast.error("Logout process interrupted.");
+            // Force redirect anyway
+            window.location.href = '/login';
         } finally {
             setLoading(false);
         }

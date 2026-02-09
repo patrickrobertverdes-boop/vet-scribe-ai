@@ -390,7 +390,7 @@ export default function SettingsPage() {
                                         <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">Global Sync Active</span>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
                                         {[
                                             { id: 'light', name: 'Light Mode', icon: Sun },
                                             { id: 'dark', name: 'Dark Mode', icon: Moon },
@@ -399,19 +399,19 @@ export default function SettingsPage() {
                                                 key={t.id}
                                                 onClick={() => handleThemeChange(t.id)}
                                                 className={cn(
-                                                    "relative p-8 rounded-2xl flex flex-col items-center gap-5 transition-all hover:translate-y-[-2px] border",
+                                                    "relative p-4 sm:p-8 rounded-xl sm:rounded-2xl flex flex-col items-center gap-3 sm:gap-5 transition-all hover:translate-y-[-2px] border",
                                                     theme === t.id
                                                         ? "bg-card shadow-2xl ring-2 ring-primary border-transparent"
                                                         : "bg-card/20 border hover:bg-card/60"
                                                 )}
                                             >
-                                                <div className="h-16 w-full rounded-xl flex items-center justify-center bg-muted shadow-inner overflow-hidden">
-                                                    <t.icon className="h-6 w-6 text-foreground/40" />
+                                                <div className="h-10 sm:h-16 w-full rounded-lg sm:rounded-xl flex items-center justify-center bg-muted shadow-inner overflow-hidden">
+                                                    <t.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground/40" />
                                                 </div>
-                                                <span className={cn("text-[10px] font-bold uppercase tracking-widest", theme === t.id ? "text-primary" : "text-muted-foreground")}>{t.name}</span>
+                                                <span className={cn("text-[9px] sm:text-[10px] font-bold uppercase tracking-widest", theme === t.id ? "text-primary" : "text-muted-foreground")}>{t.name}</span>
                                                 {theme === t.id && (
-                                                    <div className="absolute top-4 right-4 h-6 w-6 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-card">
-                                                        <Zap className="h-2.5 w-2.5 text-white" />
+                                                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 h-5 w-5 sm:h-6 sm:w-6 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-card">
+                                                        <Zap className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />
                                                     </div>
                                                 )}
                                             </button>

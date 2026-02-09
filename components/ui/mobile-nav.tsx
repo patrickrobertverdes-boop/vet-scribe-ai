@@ -11,10 +11,32 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 export function MobileNav() {
     const pathname = usePathname();
     const isPatientProfile = pathname.includes('/patients/') && pathname.split('/').pop() !== 'patients';
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+    // FIX C8: Hide nav when keyboard is open
+    useEffect(() => {
+        if (!Capacitor.isNativePlatform()) return;
+
+        import('@capacitor/keyboard').then(({ Keyboard }) => {
+            Keyboard.addListener('keyboardWillShow', () => setIsKeyboardVisible(true));
+            Keyboard.addListener('keyboardWillHide', () => setIsKeyboardVisible(false));
+        }).catch(() => {
+            // Keyboard plugin not available, ignore
+        });
+
+        return () => {
+            if (!Capacitor.isNativePlatform()) return;
+            import('@capacitor/keyboard').then(({ Keyboard }) => {
+                Keyboard.removeAllListeners();
+            }).catch(() => { });
+        };
+    }, []);
 
     const navigation = [
         { name: 'Home', href: '/', icon: LayoutDashboard },
@@ -25,7 +47,8 @@ export function MobileNav() {
 
     return (
         <div className={cn(
-            "lg:hidden fixed bottom-14 left-4 right-4 z-[9999] border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl safe-bottom",
+            "lg:hidden fixed bottom-14 left-4 right-4 z-[9999] border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl safe-bottom transition-all duration-300",
+            isKeyboardVisible ? "hidden" : "block",
             isPatientProfile
                 ? "bg-white text-black h-[5rem]"
                 : "bg-white dark:bg-card text-foreground h-[6rem]"

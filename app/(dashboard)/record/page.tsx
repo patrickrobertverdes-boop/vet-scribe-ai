@@ -33,11 +33,19 @@ import toast from 'react-hot-toast';
 
 import { useDesignStore } from '@/lib/design-store';
 import { useAuth } from '@/context/AuthContext';
+import { Capacitor } from '@capacitor/core';
+import { useRef } from 'react';
 
 function RecordPageContent() {
     const { user } = useAuth();
     const router = useRouter();
     const { clinicalModel } = useDesignStore();
+
+    // FIX C9: Add offline detection
+    const [isOnline, setIsOnline] = useState(true);
+
+    // FIX C11: Prevent duplicate auto-saves
+    const isSavingRef = useRef(false);
 
     // Hooks
     const {
@@ -69,6 +77,52 @@ function RecordPageContent() {
     const [patient, setPatient] = useState<any>(null);
     const [allPatients, setAllPatients] = useState<Patient[]>([]);
     const [patientSearch, setPatientSearch] = useState('');
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Subscribe to user profile for professional name
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+            if (data) setUserProfile(data);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
+    // FIX C9: Monitor network status
+    useEffect(() => {
+        const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Capacitor Network plugin for APK
+        if (Capacitor.isNativePlatform()) {
+            import('@capacitor/network').then(({ Network }) => {
+                Network.addListener('networkStatusChange', (status: any) => {
+                    setIsOnline(status.connected);
+                    if (!status.connected) {
+                        toast.error('Lost connection. Recording will save when online.', { duration: 5000 });
+                    } else {
+                        toast.success('Connection restored.');
+                    }
+                });
+            }).catch(() => {
+                // Network plugin not available, fallback to browser API
+            });
+        }
+
+        return () => {
+            window.removeEventListener('online', updateOnlineStatus);
+            window.removeEventListener('offline', updateOnlineStatus);
+        };
+    }, []);
+
+    // Helper to get clinician display name from profile
+    const getClinicianDisplayName = () => {
+        const professionalName = userProfile?.displayName || userProfile?.name;
+        if (professionalName) return professionalName;
+        return user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician';
+    };
 
     // Load draft on mount
     useEffect(() => {
@@ -216,6 +270,13 @@ function RecordPageContent() {
     };
 
     const performAutoSave = async (patientId: string, finalTranscript: string, soap: SoapNote) => {
+        // FIX C11: Prevent race condition on rapid saves
+        if (isSavingRef.current) {
+            console.log('[AutoSave] Save already in progress, skipping...');
+            return;
+        }
+
+        isSavingRef.current = true;
         setSaveStatus('saving');
         try {
             let metaName = patient?.name;
@@ -249,6 +310,8 @@ function RecordPageContent() {
             console.error("[Archive] Permanent failure:", err);
             toast.error("Auto-save failed: " + (err.message || "Network Error"));
             setSaveStatus('idle');
+        } finally {
+            isSavingRef.current = false;
         }
     };
 
@@ -361,6 +424,16 @@ function RecordPageContent() {
 
     return (
         <div className="flex flex-col flex-1 min-h-[calc(100dvh-140px)] xl:h-[calc(100dvh-8rem)] pb-28 sm:pb-10 xl:pb-4 overflow-y-auto xl:overflow-hidden px-0 sm:px-1">
+            {/* FIX C9: Offline Detection Banner */}
+            {!isOnline && (
+                <div className="fixed top-20 left-0 right-0 bg-amber-500 text-white px-4 py-3 text-center z-50 shadow-lg">
+                    <div className="flex items-center justify-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <span className="text-sm font-bold">No internet connection. Recording will save when online.</span>
+                    </div>
+                </div>
+            )}
+
             {/* Protocol Header */}
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
@@ -707,7 +780,7 @@ function RecordPageContent() {
                         image: ''
                     }}
                     soap={generatedSoap}
-                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                    clinicianName={getClinicianDisplayName()}
                 />
             )}
         </div>

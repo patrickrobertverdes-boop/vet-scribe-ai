@@ -33,7 +33,24 @@ export default function HistoryPage() {
     const [isPaginating, setIsPaginating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [downloadingRecord, setDownloadingRecord] = useState<{ consultation: Consultation, patient?: Patient } | null>(null);
+    const [userProfile, setUserProfile] = useState<any>(null);
     const router = useRouter();
+
+    // Subscribe to user profile for professional name
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+            if (data) setUserProfile(data);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
+    // Helper to get clinician display name from profile
+    const getClinicianDisplayName = () => {
+        const professionalName = userProfile?.displayName || userProfile?.name;
+        if (professionalName) return professionalName;
+        return user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician';
+    };
 
     useEffect(() => {
         if (!user) {
@@ -371,7 +388,7 @@ export default function HistoryPage() {
                                         </div>
                                         <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-widest pb-3 border-b border-border">
                                             <span>Clinician</span>
-                                            <span className="text-foreground font-bold">{user?.displayName || 'Authorized User'}</span>
+                                            <span className="text-foreground font-bold">{getClinicianDisplayName()}</span>
                                         </div>
 
                                     </div>
@@ -476,7 +493,7 @@ export default function HistoryPage() {
                     date={downloadingRecord.consultation.date}
                     patient={downloadingRecord.patient!}
                     soap={downloadingRecord.consultation.soap}
-                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                    clinicianName={getClinicianDisplayName()}
                     consultationId={downloadingRecord.consultation.id}
                 />
             )}

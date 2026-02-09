@@ -51,9 +51,29 @@ Do not use markdown formatting, code blocks, or any wrapper text.`;
         return NextResponse.json(json, { headers });
 
     } catch (error: any) {
+        // FIX C6: Detailed error categorization
         console.error("[Gemini SOAP API] ❌ Error:", error.message);
+
+        let userMessage = error.message || "Failed to generate notes";
+        let statusCode = 500;
+
+        if (error.message?.includes('API_KEY') || error.message?.includes('authentication')) {
+            userMessage = "API configuration error. Please contact support.";
+            statusCode = 503;
+        } else if (error.message?.includes('quota') || error.message?.includes('rate') || error.message?.includes('429')) {
+            userMessage = "Service temporarily unavailable. Please try again in 1 minute.";
+            statusCode = 429;
+        } else if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('ENOTFOUND')) {
+            userMessage = "Network error. Please check your connection.";
+            statusCode = 503;
+        } else if (error.message?.includes('timeout')) {
+            userMessage = "Request timed out. Please try again.";
+            statusCode = 504;
+        }
+
         return NextResponse.json({
-            error: error.message || "Failed to generate notes",
-        }, { status: 500, headers });
+            error: userMessage,
+            code: error.code || 'UNKNOWN_ERROR'
+        }, { status: statusCode, headers });
     }
 }

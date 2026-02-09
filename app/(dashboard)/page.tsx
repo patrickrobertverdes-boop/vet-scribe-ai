@@ -44,6 +44,23 @@ export default function DashboardPage() {
     const [stats, setStats] = useState({ patients: 0, consultations: 0 });
     const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
     const [isLoadingChecklist, setIsLoadingChecklist] = useState(true);
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Helper to get user's display name (preferring last name from professional profile)
+    const getUserDisplayName = () => {
+        const professionalName = userProfile?.displayName || userProfile?.name;
+        if (professionalName) {
+            // Try to extract last name from professional name (e.g., "Dr. John Smith" -> "Smith")
+            const parts = professionalName.split(' ').filter((p: string) => p && !p.includes('.') && !['Dr', 'DVM', 'MD', 'VMD'].includes(p));
+            if (parts.length > 1) {
+                return parts[parts.length - 1]; // Return last name
+            } else if (parts.length === 1) {
+                return parts[0]; // Return single name
+            }
+        }
+        // Fallback to Firebase user displayName or email
+        return user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || 'Physician';
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -51,6 +68,7 @@ export default function DashboardPage() {
 
         let unsubscribeStats = () => { };
         let unsubscribeChecklist = () => { };
+        let unsubscribeProfile = () => { };
 
         try {
             unsubscribeStats = firebaseService.subscribeToPracticeStats(user.uid, (data) => {
@@ -61,6 +79,10 @@ export default function DashboardPage() {
                 setChecklist(items);
                 setIsLoadingChecklist(false);
             });
+
+            unsubscribeProfile = firebaseService.subscribeToUserProfile(user.uid, (data) => {
+                if (data) setUserProfile(data);
+            });
         } catch (err) {
             console.error("[Dashboard] Early access error handled:", err);
             setIsLoadingChecklist(false);
@@ -69,6 +91,7 @@ export default function DashboardPage() {
         return () => {
             unsubscribeStats();
             unsubscribeChecklist();
+            unsubscribeProfile();
         };
     }, [user]);
 
@@ -110,7 +133,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-2xl font-bold font-serif text-foreground tracking-tight">
-                            Welcome Back, <span className="text-foreground font-normal">{user?.displayName || user?.email?.split('@')[0] || 'Physician'}</span>
+                            Welcome Back, <span className="text-foreground font-normal">{getUserDisplayName()}</span>
                         </h1>
                     </div>
                 </div>
