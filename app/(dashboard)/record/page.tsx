@@ -95,20 +95,25 @@ function RecordPageContent() {
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
 
-        // Capacitor Network plugin for APK
+        // Capacitor Network plugin for APK (optional - web builds won't have this)
         if (Capacitor.isNativePlatform()) {
-            import('@capacitor/network').then(({ Network }) => {
-                Network.addListener('networkStatusChange', (status: any) => {
-                    setIsOnline(status.connected);
-                    if (!status.connected) {
-                        toast.error('Lost connection. Recording will save when online.', { duration: 5000 });
-                    } else {
-                        toast.success('Connection restored.');
-                    }
+            try {
+                // Dynamic import wrapped in try-catch for web compatibility
+                import('@capacitor/network').then(({ Network }) => {
+                    Network.addListener('networkStatusChange', (status: any) => {
+                        setIsOnline(status.connected);
+                        if (!status.connected) {
+                            toast.error('Lost connection. Recording will save when online.', { duration: 5000 });
+                        } else {
+                            toast.success('Connection restored.');
+                        }
+                    });
+                }).catch((err) => {
+                    console.log('[Network] Plugin not available in web build, using browser API only');
                 });
-            }).catch(() => {
-                // Network plugin not available, fallback to browser API
-            });
+            } catch (e) {
+                // Network plugin not available
+            }
         }
 
         return () => {
