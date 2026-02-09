@@ -299,20 +299,15 @@ export function useDeepgram(): UseDeepgramReturn {
             };
 
 
+
             ws.onerror = (err) => {
-                console.error('[Scribe] ❌ WebSocket Error:', err);
                 updateStatus('error');
-                setRecordingState('ERROR');
-                setIsListening(false);
             };
 
             ws.onclose = (ev) => {
-                console.log('[Scribe] 🔌 WebSocket closed:', ev.code, ev.reason);
                 clearInterval(keepAlive);
-                // Always reset to disconnected to allow reconnection
-                updateStatus('disconnected');
+                if (statusRef.current === 'connected') updateStatus('finished');
                 setIsListening(false);
-                setRecordingState('IDLE');
             };
 
 
@@ -337,29 +332,11 @@ export function useDeepgram(): UseDeepgramReturn {
     }, []);
 
     useEffect(() => {
-        // FIX C3: Handle APK backgrounding
-        let appStateListener: any = null;
-
-        if (Capacitor.isNativePlatform()) {
-            import('@capacitor/app').then(({ App }) => {
-                App.addListener('appStateChange', ({ isActive }) => {
-                    if (!isActive && isListening) {
-                        console.log('[Scribe] App backgrounded, pausing recording...');
-                        togglePause(true);
-                    }
-                }).then(listener => {
-                    appStateListener = listener;
-                });
-            });
-        }
-
+        // Cleanup on unmount
         return () => {
-            if (appStateListener) {
-                appStateListener.remove();
-            }
             cleanup();
         };
-    }, [isListening, cleanup, togglePause]);
+    }, [cleanup]);
 
     return {
         isListening,
