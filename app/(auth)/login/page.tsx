@@ -108,8 +108,12 @@ export default function LoginPage() {
 
             <div className="space-y-4 text-center">
                 <div className="flex justify-center mb-6">
-                    <div className="h-20 w-20 border border-border rounded-[2rem] flex items-center justify-center bg-white shadow-2xl overflow-hidden p-1">
-                        <img src="/icons/icon-512.png" className="h-full w-full object-cover rounded-[1.8rem]" alt="VetScribe Pro" />
+                    <div className="h-40 w-40 flex items-center justify-center">
+                        <img
+                            src="https://firebasestorage.googleapis.com/v0/b/verdes-8568d.firebasestorage.app/o/image_2026-02-09_164708822.png?alt=media&token=14f1f5fa-c82a-49aa-b8e0-d9af0b2d3c5f"
+                            className="h-full w-full object-contain"
+                            alt="VetScribe"
+                        />
                     </div>
                 </div>
                 <h1 className="text-2xl font-serif font-black text-foreground tracking-tighter uppercase leading-none">VetScribe <span className="text-primary">Pro</span></h1>
