@@ -298,15 +298,23 @@ export function useDeepgram(): UseDeepgramReturn {
                 } catch (e) { /* ignore */ }
             };
 
+
             ws.onerror = (err) => {
+                console.error('[Scribe] ❌ WebSocket Error:', err);
                 updateStatus('error');
+                setRecordingState('ERROR');
+                setIsListening(false);
             };
 
             ws.onclose = (ev) => {
+                console.log('[Scribe] 🔌 WebSocket closed:', ev.code, ev.reason);
                 clearInterval(keepAlive);
-                if (statusRef.current === 'connected') updateStatus('finished');
+                // Always reset to disconnected to allow reconnection
+                updateStatus('disconnected');
                 setIsListening(false);
+                setRecordingState('IDLE');
             };
+
 
         } catch (err: any) {
             clearTimeout(connectionTimeout);
@@ -329,11 +337,29 @@ export function useDeepgram(): UseDeepgramReturn {
     }, []);
 
     useEffect(() => {
-        // Cleanup on unmount only - removed aggressive auto-pause that was breaking recordings
+        // FIX C3: Handle APK backgrounding
+        let appStateListener: any = null;
+
+        if (Capacitor.isNativePlatform()) {
+            import('@capacitor/app').then(({ App }) => {
+                App.addListener('appStateChange', ({ isActive }) => {
+                    if (!isActive && isListening) {
+                        console.log('[Scribe] App backgrounded, pausing recording...');
+                        togglePause(true);
+                    }
+                }).then(listener => {
+                    appStateListener = listener;
+                });
+            });
+        }
+
         return () => {
+            if (appStateListener) {
+                appStateListener.remove();
+            }
             cleanup();
         };
-    }, [cleanup]);
+    }, [isListening, cleanup, togglePause]);
 
     return {
         isListening,
