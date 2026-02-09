@@ -468,8 +468,26 @@ function RecordPageContent() {
                             )}
                         </div>
 
+                        {/* Mobile Optimized Transcription Domain (Shown above identity during active session) */}
+                        <div className={cn(
+                            "flex-1 min-h-[400px] xl:h-auto overflow-hidden relative group border-b border-divider",
+                            sessionActive ? "order-3" : "order-5"
+                        )}>
+                            <div className="xl:absolute xl:inset-0 p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+                                <TranscriptView
+                                    transcript={transcript}
+                                    interimTranscript={interimTranscript}
+                                    connectionStatus={connectionStatus}
+                                />
+                            </div>
+                            <div className="hidden xl:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
+                        </div>
+
                         {/* Subject Identity Context */}
-                        <div className="flex-1 flex flex-col min-h-0 overflow-hidden border-b border-divider">
+                        <div className={cn(
+                            "flex flex-col min-h-0 overflow-hidden border-b border-divider",
+                            sessionActive ? "order-4 flex-none h-auto transition-all" : "flex-1 order-3"
+                        )}>
                             {patient ? (
                                 <div className="relative group p-4 border-b border-divider bg-slate-50/30">
                                     <PatientContext patient={patient} />
@@ -483,82 +501,83 @@ function RecordPageContent() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-card h-[400px] sm:h-auto">
-                                    <div className="p-6 border-b border-divider space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="space-y-1">
-                                                <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Patient Repository</h3>
-                                                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Select target subject</p>
-                                            </div>
-                                            <Users className="h-4 w-4 text-muted-foreground/30" />
-                                        </div>
-
-                                        <div className="search-container">
-                                            <Search className="search-icon" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search clinical directory..."
-                                                value={patientSearch}
-                                                onChange={(e) => setPatientSearch(e.target.value)}
-                                                className="search-input h-11"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-                                        {allPatients
-                                            .filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase()))
-                                            .map((p) => (
-                                                <button
-                                                    key={p.id}
-                                                    onClick={() => handlePatientSelect(p.id)}
-                                                    className="w-full flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-black hover:bg-slate-50 dark:hover:bg-slate-900 group/item transition-all"
-                                                >
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-10 w-10 border border-black dark:border-border rounded-lg bg-white dark:bg-black p-0.5 flex-shrink-0">
-                                                            {p.image ? (
-                                                                <img src={p.image} className="h-full w-full object-cover rounded shadow-sm" alt="" />
-                                                            ) : (
-                                                                <div className="h-full w-full flex items-center justify-center text-xs font-serif font-black">{p.name[0]}</div>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <p className="text-[11px] font-black uppercase tracking-widest text-foreground">{p.name}</p>
-                                                            <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">{p.species || 'Unknown Entity'}</p>
-                                                        </div>
+                                <div className={cn(
+                                    "flex-1 flex flex-col min-h-0 bg-white dark:bg-card h-[400px] sm:h-auto transition-all",
+                                    sessionActive && "h-[60px] opacity-50 grayscale"
+                                )}>
+                                    {!sessionActive ? (
+                                        <>
+                                            <div className="p-6 border-b border-divider space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-1">
+                                                        <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Patient Repository</h3>
+                                                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Select target subject</p>
                                                     </div>
-                                                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-all group-hover/item:translate-x-1 group-hover/item:text-primary" />
-                                                </button>
-                                            ))}
+                                                    <Users className="h-4 w-4 text-muted-foreground/30" />
+                                                </div>
 
-                                        {allPatients.length > 0 && allPatients.filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase())).length === 0 && (
-                                            <div className="p-10 text-center space-y-4">
-                                                <Search className="h-8 w-8 text-black/5 mx-auto" />
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No matching subjects found</p>
+                                                <div className="search-container">
+                                                    <Search className="search-icon" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search clinical directory..."
+                                                        value={patientSearch}
+                                                        onChange={(e) => setPatientSearch(e.target.value)}
+                                                        className="search-input h-11"
+                                                    />
+                                                </div>
                                             </div>
-                                        )}
 
-                                        {allPatients.length === 0 && (
-                                            <div className="p-10 text-center animate-pulse">
-                                                <Loader2 className="h-6 w-6 animate-spin mx-auto text-black/20" />
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-4">Accessing Database...</p>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                                                {allPatients
+                                                    .filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase()))
+                                                    .map((p) => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => handlePatientSelect(p.id)}
+                                                            className="w-full flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-black hover:bg-slate-50 dark:hover:bg-slate-900 group/item transition-all"
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="h-10 w-10 border border-black dark:border-border rounded-lg bg-white dark:bg-black p-0.5 flex-shrink-0">
+                                                                    {p.image ? (
+                                                                        <img src={p.image} className="h-full w-full object-cover rounded shadow-sm" alt="" />
+                                                                    ) : (
+                                                                        <div className="h-full w-full flex items-center justify-center text-xs font-serif font-black">{p.name[0]}</div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-left">
+                                                                    <p className="text-[11px] font-black uppercase tracking-widest text-foreground">{p.name}</p>
+                                                                    <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">{p.species || 'Unknown Entity'}</p>
+                                                                </div>
+                                                            </div>
+                                                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-all group-hover/item:translate-x-1 group-hover/item:text-primary" />
+                                                        </button>
+                                                    ))}
+
+                                                {allPatients.length > 0 && allPatients.filter(p => !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase())).length === 0 && (
+                                                    <div className="p-10 text-center space-y-4">
+                                                        <Search className="h-8 w-8 text-black/5 mx-auto" />
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No matching subjects found</p>
+                                                    </div>
+                                                )}
+
+                                                {allPatients.length === 0 && (
+                                                    <div className="p-10 text-center animate-pulse">
+                                                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-black/20" />
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-4">Accessing Database...</p>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 flex items-center justify-center p-2">
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Capture in Progress</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex-1 min-h-[400px] xl:h-auto overflow-hidden relative group">
-                            <div className="xl:absolute xl:inset-0 p-4 sm:p-8 overflow-y-auto custom-scrollbar">
-                                <TranscriptView
-                                    transcript={transcript}
-                                    interimTranscript={interimTranscript}
-                                    connectionStatus={connectionStatus}
-                                />
-                            </div>
-                            <div className="hidden xl:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
-                        </div>
                     </div>
                 </div>
 
