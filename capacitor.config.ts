@@ -21,6 +21,7 @@ interface LocalCapacitorConfig {
 const config: LocalCapacitorConfig = {
     appId: 'com.vetscribe.app',
     appName: 'VetScribe Pro',
+    webDir: 'www',
     server: {
         url: 'https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app',
         cleartext: false,

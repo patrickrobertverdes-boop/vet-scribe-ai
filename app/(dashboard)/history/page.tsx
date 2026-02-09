@@ -140,32 +140,29 @@ export default function HistoryPage() {
 
             import('@capacitor/core').then(async ({ Capacitor }) => {
                 if (Capacitor.isNativePlatform()) {
-                    const { Filesystem, Directory } = await import('@capacitor/filesystem');
-                    const { Share } = await import('@capacitor/share');
+                    try {
+                        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                        const { Share } = await import('@capacitor/share');
 
-                    const reader = new FileReader();
-                    reader.onloadend = async () => {
-                        const base64data = reader.result as string;
-                        try {
-                            const result = await Filesystem.writeFile({
-                                path: fileName,
-                                data: base64data.split(',')[1],
-                                directory: Directory.Cache,
-                                encoding: 'utf8' as any
-                            });
+                        const text = await blob.text();
+                        const result = await Filesystem.writeFile({
+                            path: fileName,
+                            data: text,
+                            directory: Directory.Cache,
+                            encoding: 'utf8' as any
+                        });
 
-                            await Share.share({
-                                title: 'Exported Records',
-                                text: 'Clinical Encounter Export',
-                                url: result.uri,
-                                dialogTitle: 'Save Clinical Export'
-                            });
-                            toast.success("Records ready for sharing.");
-                        } catch (e: any) {
-                            toast.error("Mobile export failed: " + e.message);
-                        }
-                    };
-                    reader.readAsDataURL(blob);
+                        await Share.share({
+                            title: 'Exported Records',
+                            text: 'Clinical Encounter Export',
+                            url: result.uri,
+                            dialogTitle: 'Save Clinical Export'
+                        });
+                        toast.success("Records ready for sharing.");
+                    } catch (e: any) {
+                        console.error("Mobile export failed", e);
+                        toast.error("Mobile export failed: " + e.message);
+                    }
                 } else {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');

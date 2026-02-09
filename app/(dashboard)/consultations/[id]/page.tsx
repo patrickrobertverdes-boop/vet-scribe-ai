@@ -326,7 +326,7 @@ export default function ConsultationDetailPage() {
                 date={consultation.date}
                 patient={patient}
                 soap={consultation.soap}
-                clinicianName={user?.displayName || 'Dr. Sarah Gahra'}
+                clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
             />
         </div>
     );
