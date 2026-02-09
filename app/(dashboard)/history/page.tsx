@@ -11,11 +11,13 @@ import {
     Database,
     Binary,
     Zap,
-    Layers
+    Layers,
+    Download
 } from 'lucide-react';
 import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';
-import { Consultation } from '@/lib/types';
+import { Consultation, Patient, SoapNote } from '@/lib/types';
+import { PrintableRecord } from '@/components/patient/printable-record';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -30,6 +32,7 @@ export default function HistoryPage() {
     const [hasMore, setHasMore] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [downloadingRecord, setDownloadingRecord] = useState<{ consultation: Consultation, patient?: Patient } | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -88,6 +91,91 @@ export default function HistoryPage() {
         (c.patientId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (c.soapPreview?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
+
+    const handleDownloadIndividual = async (c: Consultation) => {
+        const toastId = toast.loading(`Synthesizing report for ${c.patientName || 'Subject'}...`);
+
+        try {
+            // Find patient data for headers (Consultation might have summary, but patient has full details)
+            let patientData = await firebaseService.getPatient(user!.uid, c.patientId);
+            if (!patientData) {
+                // Fallback patient object if original doc missing
+                patientData = {
+                    id: c.patientId,
+                    name: c.patientName || 'Unknown Patient',
+                    species: 'Other',
+                    breed: 'Unknown',
+                    owner: 'Unknown',
+                    age: 0, age_months: 0, weight: 0, image: '',
+                    allergies: [], medications: [], historySummary: '', status: 'Active', lastVisit: ''
+                };
+            }
+
+            setDownloadingRecord({ consultation: c, patient: patientData });
+
+            // Wait for DOM to render the printable-record
+            await new Promise(r => setTimeout(r, 100));
+
+            const { default: html2canvas } = await import('html2canvas');
+            const { jsPDF } = await import('jspdf');
+
+            const element = document.querySelector('.printable-record') as HTMLElement;
+            if (!element) throw new Error("Print buffer not found");
+
+            element.style.display = 'block';
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '800px';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            element.style.display = 'none';
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width / 2, canvas.height / 2]
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+            const fileName = `Clinical_Record_${(c.patientName || 'Subject').replace(/\s+/g, '_')}_${new Date(c.date).toISOString().split('T')[0]}.pdf`;
+
+            const { Capacitor } = await import('@capacitor/core');
+            if (Capacitor.isNativePlatform()) {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                const { Share } = await import('@capacitor/share');
+
+                const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: pdfBase64,
+                    directory: Directory.Cache
+                });
+
+                await Share.share({
+                    title: 'Clinical Report',
+                    text: `Medical documentation for ${c.patientName || 'Subject'}`,
+                    url: result.uri,
+                });
+                toast.success("Medical report exported", { id: toastId });
+            } else {
+                pdf.save(fileName);
+                toast.success("Medical report exported", { id: toastId });
+            }
+        } catch (error: any) {
+            console.error("PDF generation failed:", error);
+            toast.error("Export failed: " + error.message, { id: toastId });
+        } finally {
+            setDownloadingRecord(null);
+        }
+    };
 
     const handleExport = () => {
         if (filtered.length === 0) {
@@ -293,6 +381,16 @@ export default function HistoryPage() {
                                             SOAP Note Summary
                                         </div>
                                         <div className="flex items-center gap-6">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDownloadIndividual(item);
+                                                }}
+                                                className="h-8 w-8 flex items-center justify-center border border-divider rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-all active:scale-90"
+                                                title="Download PDF"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                            </button>
                                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"><FileText className="h-4 w-4" /> SOAP ID: {item.id.slice(-4)}</div>
                                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"><Clock className="h-4 w-4" /> Cloud Synced</div>
 
@@ -369,6 +467,16 @@ export default function HistoryPage() {
                     </div>
                 )}
             </div>
+            {/* Hidden printable record for PDF generation */}
+            {downloadingRecord && (
+                <PrintableRecord
+                    date={downloadingRecord.consultation.date}
+                    patient={downloadingRecord.patient!}
+                    soap={downloadingRecord.consultation.soap}
+                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                    consultationId={downloadingRecord.consultation.id}
+                />
+            )}
         </div>
     );
 }

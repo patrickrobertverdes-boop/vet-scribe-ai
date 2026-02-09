@@ -549,15 +549,15 @@ function RecordPageContent() {
                             )}
                         </div>
 
-                        <div className="flex-1 overflow-hidden relative group">
-                            <div className="absolute inset-0 p-8 overflow-y-auto custom-scrollbar">
+                        <div className="flex-1 min-h-[400px] xl:h-auto overflow-hidden relative group">
+                            <div className="xl:absolute xl:inset-0 p-4 sm:p-8 overflow-y-auto custom-scrollbar">
                                 <TranscriptView
                                     transcript={transcript}
                                     interimTranscript={interimTranscript}
                                     connectionStatus={connectionStatus}
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
+                            <div className="hidden xl:block absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
                         </div>
                     </div>
                 </div>

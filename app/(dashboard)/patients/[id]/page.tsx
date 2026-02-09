@@ -35,7 +35,9 @@ import Link from 'next/link';
 import { PatientDocuments } from '@/components/patient/patient-documents';
 import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';
-import { Patient, Consultation } from '@/lib/types';
+import { Patient, Consultation, SoapNote } from '@/lib/types';
+import { PrintableRecord } from '@/components/patient/printable-record';
+import { Download } from 'lucide-react';
 import { EditPatientModal } from '@/components/patient/edit-patient-modal';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -51,6 +53,7 @@ export default function PatientProfilePage() {
     const [lastDoc, setLastDoc] = useState<any>(null);
     const [hasMore, setHasMore] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
+    const [downloadingRecord, setDownloadingRecord] = useState<{ consultation: Consultation, patient?: Patient } | null>(null);
 
     useEffect(() => {
         // Wait for connection
@@ -100,6 +103,77 @@ export default function PatientProfilePage() {
             clearTimeout(timer);
         };
     }, [user, params.id, authLoading]);
+
+    const handleDownloadIndividual = async (c: Consultation) => {
+        if (!patient) return;
+        const toastId = toast.loading(`Synthesizing report for ${patient.name}...`);
+
+        try {
+            setDownloadingRecord({ consultation: c, patient: patient });
+
+            // Wait for DOM to render the printable-record
+            await new Promise(r => setTimeout(r, 100));
+
+            const { default: html2canvas } = await import('html2canvas');
+            const { jsPDF } = await import('jspdf');
+
+            const element = document.querySelector('.printable-record') as HTMLElement;
+            if (!element) throw new Error("Print buffer not found");
+
+            element.style.display = 'block';
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '800px';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            element.style.display = 'none';
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width / 2, canvas.height / 2]
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+            const fileName = `Clinical_Record_${patient.name.replace(/\s+/g, '_')}_${new Date(c.date).toISOString().split('T')[0]}.pdf`;
+
+            const { Capacitor } = await import('@capacitor/core');
+            if (Capacitor.isNativePlatform()) {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                const { Share } = await import('@capacitor/share');
+
+                const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: pdfBase64,
+                    directory: Directory.Cache
+                });
+
+                await Share.share({
+                    title: 'Clinical Report',
+                    text: `Medical documentation for ${patient.name}`,
+                    url: result.uri,
+                });
+                toast.success("Medical report exported", { id: toastId });
+            } else {
+                pdf.save(fileName);
+                toast.success("Medical report exported", { id: toastId });
+            }
+        } catch (error: any) {
+            console.error("PDF generation failed:", error);
+            toast.error("Export failed: " + error.message, { id: toastId });
+        } finally {
+            setDownloadingRecord(null);
+        }
+    };
 
     const loadMoreConsultations = async () => {
         if (!user || isPaginating || !hasMore || !params.id) return;
@@ -426,12 +500,27 @@ export default function PatientProfilePage() {
                                                         <p className="text-[11px] font-medium text-foreground uppercase tracking-tight">Verified Clinician</p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => router.push(`/consultations/${c.id}`)}
-                                                    className="h-8 px-4 border border-border rounded text-[9px] font-medium uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-2 group/btn"
-                                                >
-                                                    Full Log <ChevronRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDownloadIndividual(c);
+                                                        }}
+                                                        className="h-8 w-8 flex items-center justify-center border border-divider rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-all active:scale-90"
+                                                        title="Download PDF"
+                                                    >
+                                                        <Download className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            router.push(`/consultations/${c.id}`);
+                                                        }}
+                                                        className="h-8 px-4 border border-border rounded text-[9px] font-medium uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-2 group/btn"
+                                                    >
+                                                        Full Log <ChevronRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -478,6 +567,16 @@ export default function PatientProfilePage() {
                     patient={patient}
                     onClose={() => setShowEditModal(false)}
                     onUpdate={() => { }}
+                />
+            )}
+            {/* Hidden printable record for PDF generation */}
+            {downloadingRecord && (
+                <PrintableRecord
+                    date={downloadingRecord.consultation.date}
+                    patient={patient}
+                    soap={downloadingRecord.consultation.soap}
+                    clinicianName={user?.displayName || user?.email?.split('@')[0] || 'Authorized Clinician'}
+                    consultationId={downloadingRecord.consultation.id}
                 />
             )}
         </div>

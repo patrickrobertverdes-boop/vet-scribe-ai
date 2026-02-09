@@ -59,7 +59,7 @@ export function TranscriptView({ transcript, interimTranscript, connectionStatus
 
             <div
                 ref={containerRef}
-                className="flex-1 min-h-[300px] glass border border-slate-200/50 rounded-2xl p-6 md:p-10 overflow-y-auto custom-scrollbar relative group transition-all bg-white/40 hover:bg-white shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 scroll-smooth"
+                className="flex-1 min-h-[400px] glass border border-slate-200/50 rounded-2xl p-6 md:p-10 overflow-y-auto custom-scrollbar relative group transition-all bg-white/40 hover:bg-white shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 scroll-smooth"
             >
                 {(!transcript && !interimTranscript) ? (
                     <div className="h-full flex flex-col items-center justify-center text-center space-y-6 transition-opacity">
@@ -82,10 +82,10 @@ export function TranscriptView({ transcript, interimTranscript, connectionStatus
                     </div>
                 ) : (
                     <div className="space-y-6 pb-4">
-                        <p className="text-slate-700 font-bold leading-relaxed text-sm md:text-base tracking-tight whitespace-pre-wrap break-words">
+                        <p className="text-slate-800 font-serif font-medium leading-[1.8] text-base md:text-lg tracking-tight whitespace-pre-wrap break-words">
                             {transcript}
                             {interimTranscript && (
-                                <span className="text-slate-400 italic transition-opacity duration-300 ml-1">
+                                <span className="text-slate-500 italic transition-opacity duration-300 ml-1">
                                     {interimTranscript}
                                 </span>
                             )}

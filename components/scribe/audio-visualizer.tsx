@@ -23,6 +23,9 @@ export function AudioVisualizer({ isRecording, stream: externalStream }: AudioVi
                     const stream = externalStream || await navigator.mediaDevices.getUserMedia({ audio: true });
 
                     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
                     const analyser = audioContext.createAnalyser();
                     const source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
