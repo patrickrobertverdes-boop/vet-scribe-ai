@@ -298,7 +298,7 @@ export default function ConsultationDetailPage() {
                             <div className="h-12 w-12 bg-slate-900 text-primary rounded-xl flex items-center justify-center shadow-lg">
                                 <FileText className="h-6 w-6" />
                             </div>
-                            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Medical Documentation (Active)</h2>
+                            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Clinical Notes</h2>
                         </div>
                         <div className="p-2">
                             <SoapEditor
@@ -316,7 +316,7 @@ export default function ConsultationDetailPage() {
                                     {isSaving ? (
                                         <>
                                             <Activity className="h-4 w-4 animate-spin" />
-                                            Synchronizing...
+                                            Saving...
                                         </>
                                     ) : (
                                         <>
@@ -331,7 +331,7 @@ export default function ConsultationDetailPage() {
                             <div className="p-10 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                    Record Verified & Immutable
+                                    Summary saved and up to date
                                 </p>
                             </div>
                         )}

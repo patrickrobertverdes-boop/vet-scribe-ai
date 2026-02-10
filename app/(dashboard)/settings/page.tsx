@@ -87,10 +87,10 @@ export default function SettingsPage() {
             // 2. Update Firestore Profile
             await firebaseService.updateUserProfile(user.uid, dataToSave);
 
-            toast.success("Profile synchronized with clinical vault.");
+            toast.success("Profile updated.");
         } catch (e: any) {
             console.error("[Settings] Profile update error:", e);
-            toast.error(`Synchronization failed: ${e.message || 'Check connection'}`);
+            toast.error(`Update failed: ${e.message || 'Check connection'}`);
         } finally {
             setIsUpdating(false);
         }
@@ -176,14 +176,14 @@ export default function SettingsPage() {
                 await updateUser({ image: result.url });
 
                 setProfile((prev: any) => ({ ...prev, image: result.url }));
-                toast.success("Profile photo synchronized.");
+                toast.success("Profile photo updated.");
             }
         } catch (err: any) {
             if (err.message !== 'User cancelled photos app') {
                 console.error("[Settings] Camera/Upload Error:", err);
                 // Log the full error for debugging in Android Logcat/In-App DevTools
                 console.error("[Settings] Error Details:", JSON.stringify(err));
-                toast.error(`Sync Failed: ${err.message || 'Unknown error'}`);
+                toast.error(`Upload failed: ${err.message || 'Unknown error'}`);
             }
         } finally {
             setIsUploading(false);
@@ -204,7 +204,7 @@ export default function SettingsPage() {
 
     const handleAccentChange = (color: string, name: string) => {
         setAccentColor(color);
-        toast.success(`Accent color synchronized: ${name}`);
+        toast.success(`Accent color updated: ${name}`);
     };
 
     const tabs: { label: SettingTab; icon: any }[] = [
@@ -360,7 +360,7 @@ export default function SettingsPage() {
                                                     className="w-full md:w-auto px-8 py-3 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                                                 >
                                                     {isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                                                    {isUpdating ? "Synchronizing..." : "Synchronize Profile"}
+                                                    {isUpdating ? "Updating..." : "Update Profile"}
                                                 </button>
                                             </div>
                                         </div>
@@ -387,7 +387,7 @@ export default function SettingsPage() {
                                         <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-4">
                                             <Monitor className="h-4 w-4" /> Theme & Appearance
                                         </h2>
-                                        <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">Global Sync Active</span>
+                                        <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">Settings Saved</span>
                                     </div>
 
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
@@ -796,7 +796,7 @@ export default function SettingsPage() {
                             <ShieldCheck className="h-8 w-8" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-white text-lg font-bold tracking-tight mb-2 uppercase">System Synchronization</p>
+                            <p className="text-white text-lg font-bold tracking-tight mb-2 uppercase">Your Preferences</p>
                             <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.1em] leading-[1.8] max-w-xl">
                                 Changes are synchronized across all your devices in real-time. Your clinical environment settings are securely stored.
                             </p>

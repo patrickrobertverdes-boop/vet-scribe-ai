@@ -15,7 +15,8 @@ import {
     Zap,
     Users,
     Search,
-    Download
+    Download,
+    CheckCircle2
 } from 'lucide-react';
 import { AudioVisualizer } from '@/components/scribe/audio-visualizer';
 import { TranscriptView } from '@/components/scribe/transcript-view';
@@ -506,7 +507,7 @@ function RecordPageContent() {
                                 className="btn-premium flex-1 sm:flex-none h-12 px-6"
                             >
                                 <Square className="h-3.5 w-3.5 fill-black" />
-                                <span className="hidden xs:inline">Terminate & Sync</span>
+                                <span className="hidden xs:inline">End Session</span>
                                 <span className="xs:hidden">Finish</span>
                             </button>
                         </div>
@@ -695,13 +696,23 @@ function RecordPageContent() {
                                                     : "bg-black dark:bg-white text-white dark:text-black"
                                             )}
                                         >
-                                            {saveStatus === 'saving' ? 'Archiving...' :
-                                                saveStatus === 'saved' ? 'Archived' : 'Commit Changes'}
+                                            {saveStatus === 'saving' ? 'Saving...' :
+                                                saveStatus === 'saved' ? 'Saved' : 'Save Summary'}
                                         </button>
                                     </>
                                 )}
                             </div>
                         </div>
+
+                        {/* Completion Banner */}
+                        {saveStatus === 'saved' && generatedSoap && (
+                            <div className="px-8 py-4 bg-emerald-50 dark:bg-emerald-950/20 border-b border-emerald-200 dark:border-emerald-900/30 flex items-center gap-3">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                                    Clinical summary prepared. Ready for entry into your practice records.
+                                </p>
+                            </div>
+                        )}
 
                         {/* Synthesis Hub */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar relative">

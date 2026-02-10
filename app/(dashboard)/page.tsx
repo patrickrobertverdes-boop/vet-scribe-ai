@@ -221,7 +221,7 @@ export default function DashboardPage() {
                             {isLoadingChecklist ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <Loader2 className="h-5 w-5 animate-spin text-foreground" />
-                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-4">Syncing Archive...</p>
+                                    <p className="text-[10px] text-foreground uppercase tracking-widest mt-4">Loading...</p>
                                 </div>
                             ) : checklist.length === 0 ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
@@ -310,11 +310,11 @@ export default function DashboardPage() {
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                                    <span>Sync Latency</span>
-                                    <span>24ms</span>
-                                </div>
-                                <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                                    <div className="h-full w-full bg-border rounded-full w-[2%]" />
+                                    <span>System Status</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/20" />
+                                        <span className="text-emerald-600 dark:text-emerald-400">Operational</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -190,14 +190,14 @@ export default function PatientsPage() {
                     {syncState.hasError && (
                         <div className="mt-3 px-4 py-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl">
                             <p className="text-sm font-medium text-red-900 dark:text-red-300">
-                                ⚠️ {syncState.errorMessage || 'Unable to sync data'}
+                                ⚠️ {syncState.errorMessage || 'Unable to load data'}
                             </p>
                         </div>
                     )}
                     {!syncState.hasError && syncState.isFromCache && patients.length > 0 && (
                         <div className="mt-3 px-4 py-2 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl">
                             <p className="text-xs font-medium text-yellow-900 dark:text-yellow-300">
-                                🔄 Showing cached data. Syncing with server...
+                                🔄 Showing saved data. Checking for updates...
                             </p>
                         </div>
                     )}

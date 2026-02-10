@@ -62,7 +62,7 @@ export default function HistoryPage() {
         const timer = setTimeout(() => {
             if (isLoading) {
                 setIsLoading(false);
-                toast.error("Database sync slow...");
+                toast.error("Still loading records...");
             }
         }, 8000);
 
@@ -312,7 +312,7 @@ export default function HistoryPage() {
                         onClick={handleExport}
                         className="h-12 px-8 border border-black rounded-xl text-foreground font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm"
                     >
-                        Export CSV
+                        Download Records
                     </button>
                     <button
                         onClick={() => router.push('/record')}
@@ -417,7 +417,7 @@ export default function HistoryPage() {
                                                 <Download className="h-4 w-4" />
                                             </button>
                                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"><FileText className="h-4 w-4" /> SOAP ID: {item.id.slice(-4)}</div>
-                                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"><Clock className="h-4 w-4" /> Cloud Synced</div>
+                                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"><Clock className="h-4 w-4" /> Saved</div>
 
                                         </div>
                                     </div>
