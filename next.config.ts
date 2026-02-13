@@ -14,10 +14,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   serverExternalPackages: ['firebase-admin'],
-  experimental: {
-    turbopack: {
-      root: process.cwd(),
-    },
+  turbopack: {
+    root: process.cwd(),
   },
 } as any;
 

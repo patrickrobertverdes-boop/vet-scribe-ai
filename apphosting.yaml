@@ -21,12 +21,14 @@ env:
   - variable: DEEPGRAM_API_KEY
     secret: deepgram-api-key
     availability:
+      - BUILD
       - RUNTIME
 
   # Gemini API Key (Secret - Server-side only)
   - variable: GEMINI_API_KEY
     secret: gemini-api-key
     availability:
+      - BUILD
       - RUNTIME
 
   # Firebase Public Configuration (Safe to expose)
