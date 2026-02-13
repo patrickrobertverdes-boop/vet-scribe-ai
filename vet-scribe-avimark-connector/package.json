@@ -1,0 +1,25 @@
+{
+    "name": "vet-scribe-avimark-connector",
+    "version": "1.0.0",
+    "description": "Local bridge to sync Avimark data with VetScribe Cloud",
+    "main": "connector/run.js",
+    "bin": "connector/run.js",
+    "scripts": {
+        "start": "node connector/run.js",
+        "build": "pkg connector/run.js --target node18-win-x64 --output dist/vet-scribe-bridge.exe"
+    },
+    "dependencies": {
+        "axios": "^1.6.0",
+        "dbffile": "^1.5.0",
+        "dotenv": "^16.3.0",
+        "fs-extra": "^11.1.0"
+    },
+    "devDependencies": {
+        "pkg": "^5.8.0"
+    },
+    "pkg": {
+        "assets": [
+            "connector/shadow_copy.ps1"
+        ]
+    }
+}
