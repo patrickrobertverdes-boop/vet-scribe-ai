@@ -17,7 +17,8 @@ import {
     Brain,
     Zap,
     Binary,
-    ListChecks
+    ListChecks,
+    HardDrive
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -41,6 +42,7 @@ export function Sidebar({ onNavigate, className, isMobile }: SidebarProps) {
         { name: 'Analytics', href: '/analytics', icon: BarChart3 },
         { name: 'Calendar', href: '/calendar', icon: Calendar },
         { name: 'Checklist', href: '/checklist', icon: ListChecks },
+        { name: 'Server Bridge', href: '/integration', icon: HardDrive },
         { name: 'Settings', href: '/settings', icon: Settings },
     ];
 

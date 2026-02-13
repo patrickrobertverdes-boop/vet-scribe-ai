@@ -44,7 +44,7 @@ import toast from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
-type SettingTab = 'User Profile' | 'Appearance' | 'AI Assistant' | 'Security & Access' | 'Notifications' | 'Data & Integration' | 'Local Connection' | 'Legal & Compliance';
+type SettingTab = 'User Profile' | 'Appearance' | 'AI Assistant' | 'Security & Access' | 'Notifications' | 'Data & Integration' | 'Server Bridge' | 'Legal & Compliance';
 
 export default function SettingsPage() {
     const {
@@ -61,6 +61,7 @@ export default function SettingsPage() {
     const [profile, setProfile] = useState<any>({ name: '', specialty: '', image: '' });
     const [isUploading, setIsUploading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
 
     useEffect(() => {
         if (!user) return;
@@ -218,7 +219,7 @@ export default function SettingsPage() {
         { label: 'Security & Access', icon: ShieldCheck },
         { label: 'Notifications', icon: Bell },
         { label: 'Data & Integration', icon: Database },
-        { label: 'Local Connection', icon: HardDrive },
+        { label: 'Server Bridge', icon: HardDrive },
         { label: 'Legal & Compliance', icon: Scale },
     ];
 
@@ -257,7 +258,12 @@ export default function SettingsPage() {
                                 )}>
                                     <item.icon className="h-5 w-5" />
                                 </div>
-                                <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                                <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    {item.label}
+                                    {item.label === 'Server Bridge' && (
+                                        <span className="bg-primary/10 text-primary text-[9px] px-2 py-0.5 rounded-full border border-primary/20 leading-none">NEW</span>
+                                    )}
+                                </span>
                             </div>
                             {activeTab === item.label && <ChevronRight className="h-4 w-4 text-primary-foreground" />}
                         </button>
@@ -792,7 +798,9 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
                             </div>
-                        {activeTab === 'Local Connection' && (
+                        )}
+
+                        {activeTab === 'Server Bridge' && (
                             <div className="space-y-12 animate-in fade-in duration-500">
                                 <div className="space-y-8">
                                     <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-4">
@@ -803,8 +811,9 @@ export default function SettingsPage() {
                                         Since we can't easily check window.avimarkConnector in SSR/TS without declaration, we'll assume 
                                         we can check a flag or just show the UI for now with a warning if not connected.
                                     */}
-                                    <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-border shadow-inner space-y-8">
-                                        <div className="flex items-start gap-6">
+                                    <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-border shadow-inner space-y-8 relative overflow-hidden">
+                                        <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                                        <div className="flex items-start gap-6 relative z-10">
                                             <div className="h-14 w-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/20">
                                                 <Database className="h-7 w-7" />
                                             </div>
@@ -832,7 +841,8 @@ export default function SettingsPage() {
                                                         type="text"
                                                         placeholder="C:\ClinicData\Server"
                                                         className="flex-1 h-12 bg-card border border-border rounded-xl px-4 text-xs font-mono text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                                        defaultValue="C:\Avimark\Data"
+                                                        value={sourcePath}
+                                                        onChange={(e) => setSourcePath(e.target.value)}
                                                     />
                                                     <button className="h-12 px-6 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all">
                                                         Browse
@@ -865,7 +875,7 @@ export default function SettingsPage() {
                                                         const connector = (window as any).avimarkConnector;
                                                         if (connector) {
                                                             toast.promise(
-                                                                connector.shadowCopy('C:\\Avimark\\Data', 'C:\\VetScribe\\ShadowData'),
+                                                                connector.shadowCopy(sourcePath, 'C:\\VetScribe\\ShadowData'),
                                                                 {
                                                                     loading: 'Syncing database...',
                                                                     success: 'Database synced successfully!',
