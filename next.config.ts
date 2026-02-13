@@ -7,18 +7,18 @@ const nextConfig = {
   // Stop Next.js from scanning parent directories or native folders
   outputFileTracingRoot: path.resolve(__dirname),
   outputFileTracingExcludes: {
-    '/**/*': [
+    '*': [
       'node_modules/@capacitor/**',
       'node_modules/@capacitor-community/**',
       'node_modules/@capacitor-firebase/**',
-      '**/android/**',
-      '**/ios/**',
-      '**/electron/**',
-      '**/dist-electron/**',
-      '**/vet-scribe-avimark-connector/**',
-      '**/build/**',
-      '**/www/**',
-      '**/.next/cache/**',
+      'android/**',
+      'ios/**',
+      'electron/**',
+      'dist-electron/**',
+      'vet-scribe-avimark-connector/**',
+      'build/**',
+      'www/**',
+      '.next/cache/**',
     ],
   },
   images: {
