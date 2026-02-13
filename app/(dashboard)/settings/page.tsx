@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { firebaseService } from '@/lib/firebase-service';
@@ -64,6 +64,15 @@ export default function SettingsPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
+    const fileSelectorRef = useRef<HTMLInputElement>(null);
+
+    // Enable Folder Selection (Standard webkit attrs don't work in React props)
+    useEffect(() => {
+        if (fileSelectorRef.current) {
+            fileSelectorRef.current.setAttribute('webkitdirectory', '');
+            fileSelectorRef.current.setAttribute('directory', '');
+        }
+    }, [fileSelectorRef]);
 
     useEffect(() => {
         if (!user) return;
@@ -842,21 +851,12 @@ export default function SettingsPage() {
                                                     />
                                                     <input
                                                         type="file"
-                                                        ref={(input) => {
-                                                            if (input) {
-                                                                input.setAttribute('webkitdirectory', '');
-                                                                input.setAttribute('directory', '');
-                                                            }
-                                                        }}
-                                                        className="hidden"
+                                                        ref={fileSelectorRef}
+                                                        style={{ display: 'none' }}
                                                         onChange={(e: any) => {
                                                             if (e.target.files && e.target.files.length > 0) {
                                                                 const file = e.target.files[0];
-                                                                // Extract path from the first file found in the folder
-                                                                // Note: Browsers security limits full path, but we can get relative path or name
-                                                                // Ideally for Electron apps, this gives full path. For web, it gives partial.
-                                                                // We'll set what we can get to populate the field.
-                                                                const path = file.webkitRelativePath.split('/')[0];
+                                                                const path = file.webkitRelativePath.split('/')[0] || file.name;
                                                                 setSourcePath(path || 'C:\\Selected\\Folder');
                                                                 toast.success("Folder Selected");
                                                             }
@@ -878,8 +878,7 @@ export default function SettingsPage() {
                                                                 return;
                                                             }
                                                             // 2. Web Fallback
-                                                            const fileInput = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                                                            if (fileInput) fileInput.click();
+                                                            fileSelectorRef.current?.click();
                                                         }}
                                                         className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95"
                                                     >
