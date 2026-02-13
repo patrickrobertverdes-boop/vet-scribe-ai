@@ -13,7 +13,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
-            // Allow remote content if needed, but be careful
+            sandbox: false,
             webSecurity: true
         },
     });
@@ -78,7 +78,11 @@ app.whenReady().then(() => {
 
     // Handle Folder Selection
     ipcMain.handle('select-folder', async () => {
-        const win = BrowserWindow.getFocusedWindow();
+        let win = BrowserWindow.getFocusedWindow();
+        if (!win) {
+            win = BrowserWindow.getAllWindows()[0];
+        }
+
         console.log('[Native] Requesting folder selection...');
         try {
             const result = await dialog.showOpenDialog(win, {
