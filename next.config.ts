@@ -1,11 +1,13 @@
+import path from 'path';
+
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  // Explicitly lock tracing to this project directory only.
+  // This prevents Next.js from scanning C:\Users\verdes\ and finding duplicate android folders.
+  outputFileTracingRoot: path.join(process.cwd()),
   outputFileTracingExcludes: {
     '/**/*': [
-      'node_modules/@swc/core-linux-x64-gnu',
-      'node_modules/@swc/core-linux-x64-musl',
-      'node_modules/@esbuild/linux-x64',
       '**/android/**/*',
       '**/ios/**/*',
       '**/electron/**/*',
@@ -14,22 +16,22 @@ const nextConfig = {
       '**/build/**/*',
       '**/www/**/*',
       '**/out/**/*',
-      '**/.netlify/**/*',
     ],
   },
   images: {
     unoptimized: true,
   },
   compiler: {
-    removeConsole: process.env['NODE_ENV'] === 'production',
+    // Use indexing to avoid property access errors if types are missing
+    removeConsole: process['env']['NODE_ENV'] === 'production',
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   serverExternalPackages: ['firebase-admin'],
-  // Top-level turbopack for Next.js 15/16 dev/build warnings
   turbopack: {
-    root: process.cwd(),
+    // Ensure turbopack is also pinned to this project root
+    root: path.join(process.cwd()),
   },
 };
 
