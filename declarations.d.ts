@@ -36,6 +36,11 @@ declare module 'firebase/app';
 declare module 'firebase/auth';
 declare module 'firebase/firestore';
 declare module 'firebase-admin';
+declare module '@capacitor/core';
+declare module '@capacitor/app';
+declare module '@capacitor/browser';
+declare module '@capacitor/camera';
+declare module '@capacitor-firebase/authentication';
 
 declare namespace JSX {
     interface IntrinsicElements {
@@ -52,3 +57,4 @@ declare var window: any;
 declare var document: any;
 declare var navigator: any;
 declare var console: any;
+declare var localStorage: any;
