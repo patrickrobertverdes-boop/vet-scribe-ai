@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     const correlationId = `provision_${Date.now()}`;
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
         // 1. Verify ID Token
         console.log(`[PROVISION] [${correlationId}] Verifying ID Token...`);
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const decodedToken = await getAdminAuth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
         const email = decodedToken.email;
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
         // 3. Provision Firestore Document
         console.log(`[PROVISION] [${correlationId}] Creating/Updating Firestore document...`);
-        const userRef = adminDb.collection('users').doc(uid);
+        const userRef = getAdminDb().collection('users').doc(uid);
 
         const provisionData: any = {
             email: email,
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         // 4. Set Custom Claims
         console.log(`[PROVISION] [${correlationId}] Setting custom claims...`);
-        await adminAuth.setCustomUserClaims(uid, {
+        await getAdminAuth().setCustomUserClaims(uid, {
             role: 'owner',
             verified: true
         });

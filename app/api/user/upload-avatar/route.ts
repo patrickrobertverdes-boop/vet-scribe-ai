@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminStorage, adminDb } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminStorage, getAdminDb } from '@/lib/firebase-admin';
 
 /**
  * PRO-TIER: Dedicated Avatar Upload Endpoint
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
         }
 
         const idToken = authHeader.split('Bearer ')[1];
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const decodedToken = await getAdminAuth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
 
         console.log(`[UPLOAD] [${correlationId}] Request verified for UID: ${uid}`);
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         // 3. Upload to Firebase Storage via Admin SDK
         const timestamp = Date.now();
         const filename = `avatar_${timestamp}.jpg`;
-        const bucket = adminStorage.bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+        const bucket = getAdminStorage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
         const fileRef = bucket.file(`users/${uid}/profile/${filename}`);
 
         await fileRef.save(buffer, {
@@ -76,11 +76,11 @@ export async function POST(req: NextRequest) {
         console.log(`[UPLOAD] [${correlationId}] Synchronizing identity records...`);
 
         const updateTasks = [
-            adminDb.collection('users').doc(uid).set({
+            getAdminDb().collection('users').doc(uid).set({
                 image: url,
                 updatedAt: new Date()
             }, { merge: true }),
-            adminAuth.updateUser(uid, { photoURL: url })
+            getAdminAuth().updateUser(uid, { photoURL: url })
         ];
 
         await Promise.all(updateTasks);

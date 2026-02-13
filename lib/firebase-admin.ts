@@ -1,7 +1,13 @@
 import * as admin from 'firebase-admin';
 
+let app: admin.app.App | null = null;
+
 function getAdminApp() {
-    if (admin.apps.length > 0) return admin.app();
+    if (app) return app;
+    if (admin.apps.length > 0) {
+        app = admin.app();
+        return app;
+    }
 
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
@@ -46,8 +52,7 @@ function getAdminApp() {
     });
 }
 
-const app = getAdminApp();
-
-export const adminAuth = app.auth();
-export const adminDb = app.firestore();
-export const adminStorage = app.storage();
+// Lazy-load exports to prevent build-time side effects
+export const getAdminAuth = () => getAdminApp().auth();
+export const getAdminDb = () => getAdminApp().firestore();
+export const getAdminStorage = () => getAdminApp().storage();

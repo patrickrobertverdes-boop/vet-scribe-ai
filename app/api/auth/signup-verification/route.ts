@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     const correlationId = `signup_${Date.now()}`;
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             url: `https://verdes-8568d.firebaseapp.com`,
         };
 
-        const firebaseLink = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings);
+        const firebaseLink = await getAdminAuth().generateEmailVerificationLink(email, actionCodeSettings);
         console.log(`[FIREBASE-LINK] [${correlationId}] Raw Link Generated Successfully`);
 
         const urlObj = new URL(firebaseLink);
