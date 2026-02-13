@@ -1,0 +1,17 @@
+{
+    "name": "vet-scribe-electron",
+    "version": "1.0.0",
+    "main": "main.js",
+    "description": "Electron wrapper for VetScribe Pro",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "devDependencies": {
+        "electron": "^40.4.0",
+        "electron-builder": "^26.7.0",
+        "cross-env": "^10.1.0",
+        "png-to-ico": "^3.0.1"
+    }
+}
