@@ -8,19 +8,20 @@
     "backendId": "vet-scribe-a2i",
     "rootDir": "/",
     "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log",
-      "functions",
-      "dist-electron",
-      "electron",
-      "build",
-      "android",
-      "ios",
-      "vet-scribe-avimark-connector",
-      "www",
-      "out"
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/firebase-debug.log",
+      "**/firebase-debug.*.log",
+      "**/functions/**",
+      "**/dist-electron/**",
+      "**/electron/**",
+      "**/build/**",
+      "**/android/**",
+      "**/ios/**",
+      "**/vet-scribe-avimark-connector/**",
+      "**/www/**",
+      "**/out/**",
+      "**/.next/"
     ],
     "alwaysDeployFromSource": true
   }

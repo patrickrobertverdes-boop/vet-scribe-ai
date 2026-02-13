@@ -59,7 +59,7 @@ export default function SettingsPage() {
 
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<SettingTab>('User Profile');
-    const { user, updateUser } = useAuth();
+    const { user, updateUser } = useAuth() as any;
     const [profile, setProfile] = useState<any>({ name: '', specialty: '', image: '' });
     const [isUploading, setIsUploading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -290,7 +290,7 @@ export default function SettingsPage() {
                                                         src={profile.image}
                                                         alt="Profile"
                                                         className="h-full w-full object-cover"
-                                                        onError={(e) => {
+                                                        onError={(e: any) => {
                                                             (e.target as HTMLImageElement).style.display = 'none';
                                                             const parent = (e.target as HTMLImageElement).parentElement;
                                                             if (parent) parent.innerHTML = '<div class="flex items-center justify-center h-full w-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                                                     </div>
                                                 )}
                                                 <label
-                                                    onClick={(e) => {
+                                                    onClick={(e: any) => {
                                                         if (Capacitor.isNativePlatform()) {
                                                             e.preventDefault();
                                                             handleNativeImagePick();
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                                                 <input
                                                     type="text"
                                                     value={profile.name}
-                                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                                    onChange={(e: any) => setProfile({ ...profile, name: e.target.value })}
                                                     placeholder="e.g. Dr. Sarah Gahra, DVM"
                                                     className="w-full h-12 bg-muted/30 border border-border rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                                 />
@@ -838,7 +838,7 @@ export default function SettingsPage() {
                                                         className="h-12 flex-1 bg-muted/30 border border-border rounded-xl px-4 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                                                         placeholder="C:\PMS\Data"
                                                         value={sourcePath}
-                                                        onChange={(e) => setSourcePath(e.target.value)}
+                                                        onChange={(e: any) => setSourcePath(e.target.value)}
                                                     />
                                                     <button className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95">
                                                         Browse

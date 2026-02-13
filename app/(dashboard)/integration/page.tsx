@@ -162,7 +162,7 @@ export default function IntegrationPage() {
                                             className="h-11 px-4 flex-1 bg-muted/30 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                                             placeholder="C:\AVImark\Data"
                                             value={sourcePath}
-                                            onChange={(e) => setSourcePath(e.target.value)}
+                                            onChange={(e: any) => setSourcePath(e.target.value)}
                                         />
                                         <button className="h-11 px-6 border border-border rounded-lg text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95">
                                             Browse

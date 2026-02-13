@@ -18,11 +18,11 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, loading, isSigningUp, isLoggingIn } = useAuth();
+    const { user, loading, isSigningUp, isLoggingIn } = useAuth() as any;
     const router = useRouter();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const scrollContainerRef = useRef<HTMLElement>(null);
+    const scrollContainerRef = useRef<HTMLElement | null>(null);
 
     // AUTO-SCROLL: Ensure page starts at top on every navigation
     useEffect(() => {
