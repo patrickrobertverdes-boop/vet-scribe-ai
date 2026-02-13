@@ -22,16 +22,17 @@ const nextConfig = {
     unoptimized: true,
   },
   compiler: {
-    // Use indexing to avoid property access errors if types are missing
-    removeConsole: process['env']['NODE_ENV'] === 'production',
+    removeConsole: (process as any).env?.NODE_ENV === 'production',
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   serverExternalPackages: ['firebase-admin'],
-  turbopack: {
-    // Ensure turbopack is also pinned to this project root
-    root: path.join(process.cwd()),
+  // Root detection fix for Next.js 16 / Turbopack
+  experimental: {
+    turbo: {
+      root: path.join(process.cwd()),
+    },
   },
 };
 

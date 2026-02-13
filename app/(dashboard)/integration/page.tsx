@@ -217,7 +217,7 @@ export default function IntegrationPage() {
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Bridge Agent</p>
-                                        <p className="font-bold text-sm text-foreground">v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.4'}</p>
+                                        <p className="font-bold text-sm text-foreground">v{(process as any).env?.NEXT_PUBLIC_APP_VERSION || '1.0.4'}</p>
                                     </div>
                                 </div>
                             </div>
