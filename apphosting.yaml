@@ -6,8 +6,8 @@ runConfig:
   minInstances: 1
   maxInstances: 10
   concurrency: 80
-  cpu: 2
-  memoryMiB: 4096
+  cpu: 4
+  memoryMiB: 8192
 
 # Environment variables and secrets
 env:
