@@ -2,6 +2,7 @@
   "name": "vet-scribe-ai",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +11,9 @@
     "type-check": "tsc --noEmit",
     "deploy:preview": "npm run build && firebase deploy --only hosting:preview",
     "deploy:rules": "firebase deploy --only firestore:rules",
-    "deploy:full": "firebase deploy"
+    "deploy:full": "firebase deploy",
+    "dev:electron": "cross-env NODE_ENV=development electron .",
+    "build:win": "electron-builder --win"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.0",
@@ -52,12 +55,41 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/recordrtc": "^5.6.15",
+    "cross-env": "^10.1.0",
+    "electron": "^40.4.0",
+    "electron-builder": "^26.7.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "png-to-ico": "^3.0.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "com.vetscribe.app",
+    "productName": "VetScribe Pro",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "vet-scribe-avimark-connector/connector",
+        "to": "connector",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "icon": "build/icon.png",
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    }
   }
 }

@@ -12,7 +12,10 @@
       ".git",
       "firebase-debug.log",
       "firebase-debug.*.log",
-      "functions"
+      "functions",
+      "dist-electron",
+      "electron",
+      "build"
     ],
     "alwaysDeployFromSource": true
   }

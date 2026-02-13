@@ -40,6 +40,7 @@ export function useDeepgram(): UseDeepgramReturn {
     const finalTextRef = useRef('');
     const statusRef = useRef<'disconnected' | 'connecting' | 'connected' | 'error' | 'finished'>('disconnected');
     const isPausedRef = useRef(false);
+    const connectionStartTimeRef = useRef<number>(0);
 
     const updateStatus = useCallback((newStatus: typeof connectionStatus) => {
         statusRef.current = newStatus;
@@ -100,22 +101,38 @@ export function useDeepgram(): UseDeepgramReturn {
 
     const togglePause = useCallback((paused: boolean) => {
         console.log(`[Scribe] ${paused ? '⏸️ Pausing' : '▶️ Resuming'}...`);
+
+        // Prevent pausing immediately after connection (within 2 seconds)
+        if (paused && connectionStartTimeRef.current > 0) {
+            const timeSinceConnection = Date.now() - connectionStartTimeRef.current;
+            if (timeSinceConnection < 2000) {
+                console.warn('[Scribe] ⚠️ Ignoring pause request - connection too recent');
+                toast.error('Please wait a moment before pausing');
+                return;
+            }
+        }
+
         setIsPaused(paused);
         isPausedRef.current = paused;
         setRecordingState(paused ? 'PAUSED' : 'RECORDING');
 
         if (mediaRecorderRef.current) {
             try {
-                if (paused && mediaRecorderRef.current.state === 'recording') {
+                const currentState = mediaRecorderRef.current.state;
+                console.log(`[Scribe] MediaRecorder current state: ${currentState}`);
+
+                if (paused && currentState === 'recording') {
                     console.log('[Scribe] ⏸️ Pausing MediaRecorder...');
                     mediaRecorderRef.current.pause();
-                } else if (!paused && mediaRecorderRef.current.state === 'paused') {
+                } else if (!paused && currentState === 'paused') {
                     console.log('[Scribe] ▶️ Resuming MediaRecorder...');
                     mediaRecorderRef.current.resume();
-                } else if (!paused && mediaRecorderRef.current.state === 'inactive') {
-                    // Fallback for unexpected inactive state
-                    console.log('[Scribe] 🔄 Restarting MediaRecorder...');
-                    mediaRecorderRef.current.start(250);
+                } else if (!paused && currentState === 'inactive') {
+                    // MediaRecorder stopped unexpectedly - need full restart
+                    console.warn('[Scribe] ⚠️ MediaRecorder inactive, cannot resume. Need full restart.');
+                    // Don't try to restart here - let user click stop and start fresh
+                } else {
+                    console.log(`[Scribe] No action needed for state: ${currentState}`);
                 }
             } catch (e) {
                 console.error('[Scribe] ❌ Toggle pause error:', e);
@@ -125,6 +142,7 @@ export function useDeepgram(): UseDeepgramReturn {
         // Also handle AudioWorklet if it was active
         if (workletNodeRef.current) {
             // PCM Mode - we just rely on isPausedRef.current check in startListening's onmessage
+            console.log('[Scribe] PCM mode - pause state updated in ref');
         }
     }, []);
 
@@ -231,6 +249,7 @@ export function useDeepgram(): UseDeepgramReturn {
             ws.onopen = () => {
                 clearTimeout(connectionTimeout);
                 console.log('🟢 [Scribe] Link established');
+                connectionStartTimeRef.current = Date.now();
                 updateStatus('connected');
                 setRecordingState('RECORDING');
                 setIsListening(true);

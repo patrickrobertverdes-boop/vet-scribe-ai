@@ -13,13 +13,19 @@ import {
     Zap,
     Clock,
     User,
-    ArrowLeft
+    ArrowLeft,
+    X,
+    Plus,
+    CheckCircle2,
+    Stethoscope,
+    Pill
 } from 'lucide-react';
 import { firebaseService } from '@/lib/firebase-service';
 import { useAuth } from '@/context/AuthContext';
 import { Consultation, Patient } from '@/lib/types';
 import { SoapEditor } from '@/components/soap/soap-editor';
 import { PrintableRecord } from '@/components/patient/printable-record';
+import { extractStructuredData } from '@/lib/gemini-client';
 import toast from 'react-hot-toast';
 
 export default function ConsultationDetailPage() {
@@ -32,6 +38,14 @@ export default function ConsultationDetailPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [diagnoses, setDiagnoses] = useState<string[]>([]);
+    const [medications, setMedications] = useState<string[]>([]);
+    const [visitStatus, setVisitStatus] = useState<'in-progress' | 'completed'>('in-progress');
+    const [editingDiagnosis, setEditingDiagnosis] = useState<number | null>(null);
+    const [editingMedication, setEditingMedication] = useState<number | null>(null);
+    const [newDiagnosis, setNewDiagnosis] = useState('');
+    const [newMedication, setNewMedication] = useState('');
 
     // Subscribe to user profile for professional name
     useEffect(() => {
@@ -64,6 +78,9 @@ export default function ConsultationDetailPage() {
                 const found = await firebaseService.getConsultation(user.uid, params.id as string);
                 if (found) {
                     setConsultation(found);
+                    setDiagnoses(found.diagnoses || []);
+                    setMedications(found.medications || []);
+                    setVisitStatus(found.visitStatus || 'in-progress');
                     const p = await firebaseService.getPatient(user.uid, found.patientId);
                     if (p) setPatient(p);
                 }
@@ -80,6 +97,25 @@ export default function ConsultationDetailPage() {
         }
     }, [user, params.id]);
 
+    const handleExtractStructured = async () => {
+        if (!consultation?.soap) return;
+
+        setIsExtracting(true);
+        try {
+            const soapText = `Subjective: ${consultation.soap.subjective}\nObjective: ${consultation.soap.objective}\nAssessment: ${consultation.soap.assessment}\nPlan: ${consultation.soap.plan}`;
+            const extracted = await extractStructuredData(soapText);
+            setDiagnoses(extracted.diagnoses);
+            setMedications(extracted.medications);
+            setHasChanges(true);
+            toast.success('Structured data extracted');
+        } catch (error) {
+            console.error('Extraction failed:', error);
+            toast.error('Failed to extract data');
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
     const handleSaveRecord = async () => {
         if (!user || !consultation || !params.id) return;
 
@@ -87,7 +123,10 @@ export default function ConsultationDetailPage() {
         try {
             await firebaseService.updateConsultation(user.uid, params.id as string, {
                 soap: consultation.soap,
-                soapPreview: consultation.soap.subjective?.slice(0, 100)
+                soapPreview: consultation.soap.subjective?.slice(0, 100),
+                diagnoses,
+                medications,
+                visitStatus
             });
             setHasChanges(false);
             toast.success("Clinical record updated");
@@ -102,6 +141,52 @@ export default function ConsultationDetailPage() {
     const handleSoapChange = (newSoap: any) => {
         if (!consultation) return;
         setConsultation({ ...consultation, soap: newSoap });
+        setHasChanges(true);
+    };
+
+    const handleCompleteVisit = () => {
+        setVisitStatus('completed');
+        setHasChanges(true);
+        toast.success('Visit marked as completed');
+    };
+
+    const removeDiagnosis = (index: number) => {
+        setDiagnoses(diagnoses.filter((_, i) => i !== index));
+        setHasChanges(true);
+    };
+
+    const removeMedication = (index: number) => {
+        setMedications(medications.filter((_, i) => i !== index));
+        setHasChanges(true);
+    };
+
+    const addDiagnosis = () => {
+        if (newDiagnosis.trim()) {
+            setDiagnoses([...diagnoses, newDiagnosis.trim()]);
+            setNewDiagnosis('');
+            setHasChanges(true);
+        }
+    };
+
+    const addMedication = () => {
+        if (newMedication.trim()) {
+            setMedications([...medications, newMedication.trim()]);
+            setNewMedication('');
+            setHasChanges(true);
+        }
+    };
+
+    const updateDiagnosis = (index: number, value: string) => {
+        const updated = [...diagnoses];
+        updated[index] = value;
+        setDiagnoses(updated);
+        setHasChanges(true);
+    };
+
+    const updateMedication = (index: number, value: string) => {
+        const updated = [...medications];
+        updated[index] = value;
+        setMedications(updated);
         setHasChanges(true);
     };
 
@@ -292,8 +377,170 @@ export default function ConsultationDetailPage() {
                 </div>
 
                 {/* SOAP Note Editor */}
-                <div className="lg:col-span-8">
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Visit Status Badge */}
+                    {visitStatus === 'completed' && (
+                        <div className="glass rounded-2xl p-6 border border-emerald-200 bg-emerald-50/50 flex items-center gap-4 animate-in slide-in-from-top-4">
+                            <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                            <div>
+                                <p className="text-sm font-bold text-emerald-900 uppercase tracking-widest">Visit Completed</p>
+                                <p className="text-xs text-emerald-700 mt-1">This encounter has been marked as complete</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Diagnosis Section */}
+                    <div className="glass rounded-[2rem] overflow-hidden border border-slate-200/50 shadow-xl bg-white/40">
+                        <div className="px-10 py-6 border-b border-slate-100 bg-white/80 backdrop-blur-md flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-slate-900 text-primary rounded-xl flex items-center justify-center">
+                                    <Stethoscope className="h-5 w-5" />
+                                </div>
+                                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Diagnosis</h2>
+                            </div>
+                            {diagnoses.length === 0 && (
+                                <button
+                                    onClick={handleExtractStructured}
+                                    disabled={isExtracting || visitStatus === 'completed'}
+                                    className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-primary/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isExtracting ? (
+                                        <>
+                                            <Activity className="h-3 w-3 animate-spin" />
+                                            Extracting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap className="h-3 w-3" />
+                                            Auto-Extract
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                        <div className="p-8">
+                            <div className="flex flex-wrap gap-3 mb-4">
+                                {diagnoses.map((diagnosis, index) => (
+                                    <div key={index} className="group flex items-center gap-2 px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl hover:border-primary/50 transition-all">
+                                        {editingDiagnosis === index ? (
+                                            <input
+                                                type="text"
+                                                value={diagnosis}
+                                                onChange={(e) => updateDiagnosis(index, e.target.value)}
+                                                onBlur={() => setEditingDiagnosis(null)}
+                                                onKeyDown={(e) => e.key === 'Enter' && setEditingDiagnosis(null)}
+                                                className="bg-transparent border-none outline-none text-sm font-medium text-slate-900 w-full"
+                                                autoFocus
+                                                disabled={visitStatus === 'completed'}
+                                            />
+                                        ) : (
+                                            <span
+                                                onClick={() => visitStatus !== 'completed' && setEditingDiagnosis(index)}
+                                                className="text-sm font-medium text-slate-900 cursor-pointer"
+                                            >
+                                                {diagnosis}
+                                            </span>
+                                        )}
+                                        {visitStatus !== 'completed' && (
+                                            <button
+                                                onClick={() => removeDiagnosis(index)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-3 w-3 text-slate-400 hover:text-red-500" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {visitStatus !== 'completed' && (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newDiagnosis}
+                                        onChange={(e) => setNewDiagnosis(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addDiagnosis()}
+                                        placeholder="Add diagnosis..."
+                                        className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-all"
+                                    />
+                                    <button
+                                        onClick={addDiagnosis}
+                                        disabled={!newDiagnosis.trim()}
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Medications Section */}
+                    <div className="glass rounded-[2rem] overflow-hidden border border-slate-200/50 shadow-xl bg-white/40">
+                        <div className="px-10 py-6 border-b border-slate-100 bg-white/80 backdrop-blur-md flex items-center gap-4">
+                            <div className="h-10 w-10 bg-slate-900 text-primary rounded-xl flex items-center justify-center">
+                                <Pill className="h-5 w-5" />
+                            </div>
+                            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Medications & Treatments</h2>
+                        </div>
+                        <div className="p-8">
+                            <div className="flex flex-wrap gap-3 mb-4">
+                                {medications.map((medication, index) => (
+                                    <div key={index} className="group flex items-center gap-2 px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl hover:border-primary/50 transition-all">
+                                        {editingMedication === index ? (
+                                            <input
+                                                type="text"
+                                                value={medication}
+                                                onChange={(e) => updateMedication(index, e.target.value)}
+                                                onBlur={() => setEditingMedication(null)}
+                                                onKeyDown={(e) => e.key === 'Enter' && setEditingMedication(null)}
+                                                className="bg-transparent border-none outline-none text-sm font-medium text-slate-900 w-full"
+                                                autoFocus
+                                                disabled={visitStatus === 'completed'}
+                                            />
+                                        ) : (
+                                            <span
+                                                onClick={() => visitStatus !== 'completed' && setEditingMedication(index)}
+                                                className="text-sm font-medium text-slate-900 cursor-pointer"
+                                            >
+                                                {medication}
+                                            </span>
+                                        )}
+                                        {visitStatus !== 'completed' && (
+                                            <button
+                                                onClick={() => removeMedication(index)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-3 w-3 text-slate-400 hover:text-red-500" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {visitStatus !== 'completed' && (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newMedication}
+                                        onChange={(e) => setNewMedication(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addMedication()}
+                                        placeholder="Add medication or treatment..."
+                                        className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-all"
+                                    />
+                                    <button
+                                        onClick={addMedication}
+                                        disabled={!newMedication.trim()}
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* SOAP Notes */}
                     <div className="glass rounded-[2.5rem] overflow-hidden border border-slate-200/50 shadow-2xl bg-white/40">
+
                         <div className="px-10 py-8 border-b border-slate-100 bg-white/80 backdrop-blur-md flex items-center gap-4">
                             <div className="h-12 w-12 bg-slate-900 text-primary rounded-xl flex items-center justify-center shadow-lg">
                                 <FileText className="h-6 w-6" />
@@ -336,6 +583,22 @@ export default function ConsultationDetailPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Complete Visit Button */}
+                    {visitStatus === 'in-progress' && (
+                        <div className="glass rounded-2xl p-8 border border-slate-200/50 bg-white/40 flex flex-col items-center gap-4 animate-in slide-in-from-bottom-4">
+                            <p className="text-xs text-slate-600 text-center max-w-md">
+                                Mark this visit as complete to finalize the encounter. SOAP notes and structured data will remain editable.
+                            </p>
+                            <button
+                                onClick={handleCompleteVisit}
+                                className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-emerald-700 hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-3 shadow-xl"
+                            >
+                                <CheckCircle2 className="h-5 w-5" />
+                                Complete Visit
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

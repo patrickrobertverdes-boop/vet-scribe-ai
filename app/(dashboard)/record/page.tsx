@@ -16,14 +16,20 @@ import {
     Users,
     Search,
     Download,
-    CheckCircle2
+    CheckCircle2,
+    X,
+    Plus,
+    Stethoscope,
+    Pill,
+    ArrowRight,
+    Calendar
 } from 'lucide-react';
 import { AudioVisualizer } from '@/components/scribe/audio-visualizer';
 import { TranscriptView } from '@/components/scribe/transcript-view';
 import { SoapEditor } from '@/components/soap/soap-editor';
 import { PatientContext } from '@/components/scribe/patient-context';
 import { PrintableRecord } from '@/components/patient/printable-record';
-import { callGemini } from '@/lib/gemini-client';
+import { callGemini, extractStructuredData } from '@/lib/gemini-client';
 import { useDeepgram } from '@/hooks/use-deepgram';
 import { firebaseService } from '@/lib/firebase-service';
 import { SoapNote, Patient } from '@/lib/types';
@@ -72,11 +78,27 @@ function RecordPageContent() {
     const [geminiError, setGeminiError] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
+    // Visit Framing state
+    const [visitStatus, setVisitStatus] = useState<'in-progress' | 'completed'>('in-progress');
+
+    // Structured extraction state
+    const [diagnoses, setDiagnoses] = useState<string[]>([]);
+    const [medications, setMedications] = useState<string[]>([]);
+    const [treatments, setTreatments] = useState<string[]>([]);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [editingDiagnosis, setEditingDiagnosis] = useState<number | null>(null);
+    const [editingMedication, setEditingMedication] = useState<number | null>(null);
+    const [editingTreatment, setEditingTreatment] = useState<number | null>(null);
+    const [newDiagnosis, setNewDiagnosis] = useState('');
+    const [newMedication, setNewMedication] = useState('');
+    const [newTreatment, setNewTreatment] = useState('');
+
     // Patient Context Logic
     const searchParams = useSearchParams();
     const urlPatientId = searchParams.get('patientId');
     const [patient, setPatient] = useState<any>(null);
     const [allPatients, setAllPatients] = useState<Patient[]>([]);
+    const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [patientSearch, setPatientSearch] = useState('');
     const [userProfile, setUserProfile] = useState<any>(null);
 
@@ -175,8 +197,10 @@ function RecordPageContent() {
     useEffect(() => {
         const initPatients = async () => {
             if (!user) return;
+            setIsLoadingPatients(true);
             const patientsList = await firebaseService.getPatients(user.uid);
             setAllPatients(patientsList);
+            setIsLoadingPatients(false);
 
             // If URL patient ID is present, it takes priority over draft
             if (urlPatientId) {
@@ -230,12 +254,20 @@ function RecordPageContent() {
     };
 
     const handlePauseResume = () => {
-        if (!isListening) {
-            startListening(); // Reconnect if refresh/dropped
+        // If not listening at all and session is not active, don't do anything
+        if (!isListening && !sessionActive) {
+            toast.error('Please start a new session');
+            return;
+        }
+
+        // If connection dropped but session is active, try to reconnect
+        if (!isListening && sessionActive) {
+            startListening();
             toast.success('Attempting to re-establish secure link...');
             return;
         }
 
+        // Normal pause/resume toggle
         const willPause = !isPaused;
         togglePause(willPause);
 
@@ -263,6 +295,18 @@ function RecordPageContent() {
             const safeTranscript = sanitizeTranscript(fullTranscript);
             const soap = await callGemini(safeTranscript, clinicalModel);
             setGeneratedSoap(soap);
+
+            // Auto-extract structured data after SOAP generation
+            try {
+                const soapText = `Subjective: ${soap.subjective}\nObjective: ${soap.objective}\nAssessment: ${soap.assessment}\nPlan: ${soap.plan}`;
+                const extracted = await extractStructuredData(soapText);
+                setDiagnoses(extracted.diagnoses);
+                setMedications(extracted.medications);
+                setTreatments(extracted.treatments);
+            } catch (extractErr) {
+                console.error('Failed to extract structured data:', extractErr);
+                // Don't fail the whole workflow if extraction fails
+            }
 
             if (user && (urlPatientId || patient?.id)) {
                 await performAutoSave(urlPatientId || patient?.id, fullTranscript, soap);
@@ -303,7 +347,11 @@ function RecordPageContent() {
                 date: new Date().toISOString(),
                 soapPreview: soap.subjective?.slice(0, 100),
                 patientName: metaName,
-                patientImage: metaImage
+                patientImage: metaImage,
+                diagnoses: diagnoses.length > 0 ? diagnoses : undefined,
+                medications: medications.length > 0 ? medications : undefined,
+                treatments: treatments.length > 0 ? treatments : undefined,
+                visitStatus: 'in-progress'
             });
 
             await firebaseService.updatePatient(user!.uid, patientId, {
@@ -339,7 +387,11 @@ function RecordPageContent() {
                 date: new Date().toISOString(),
                 soapPreview: generatedSoap.subjective?.slice(0, 100),
                 patientName: patient?.name,
-                patientImage: patient?.image
+                patientImage: patient?.image,
+                diagnoses: diagnoses.length > 0 ? diagnoses : undefined,
+                medications: medications.length > 0 ? medications : undefined,
+                treatments: treatments.length > 0 ? treatments : undefined,
+                visitStatus: 'in-progress'
             });
 
             setSaveStatus('saved');
@@ -348,6 +400,57 @@ function RecordPageContent() {
             setSaveStatus('idle');
             toast.error("Failed to commit changes.");
         }
+    };
+
+    const removeDiagnosis = (index: number) => {
+        setDiagnoses(diagnoses.filter((_, i) => i !== index));
+    };
+
+    const removeMedication = (index: number) => {
+        setMedications(medications.filter((_, i) => i !== index));
+    };
+
+    const removeTreatment = (index: number) => {
+        setTreatments(treatments.filter((_, i) => i !== index));
+    };
+
+    const addDiagnosis = () => {
+        if (newDiagnosis.trim()) {
+            setDiagnoses([...diagnoses, newDiagnosis.trim()]);
+            setNewDiagnosis('');
+        }
+    };
+
+    const addMedication = () => {
+        if (newMedication.trim()) {
+            setMedications([...medications, newMedication.trim()]);
+            setNewMedication('');
+        }
+    };
+
+    const addTreatment = () => {
+        if (newTreatment.trim()) {
+            setTreatments([...treatments, newTreatment.trim()]);
+            setNewTreatment('');
+        }
+    };
+
+    const updateDiagnosis = (index: number, value: string) => {
+        const updated = [...diagnoses];
+        updated[index] = value;
+        setDiagnoses(updated);
+    };
+
+    const updateMedication = (index: number, value: string) => {
+        const updated = [...medications];
+        updated[index] = value;
+        setMedications(updated);
+    };
+
+    const updateTreatment = (index: number, value: string) => {
+        const updated = [...treatments];
+        updated[index] = value;
+        setTreatments(updated);
     };
 
     const handleDownload = async () => {
@@ -462,7 +565,7 @@ function RecordPageContent() {
                         </div>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-                        Clinical <span className="text-primary">Capture</span>
+                        Visit <span className="text-muted-foreground font-normal">Workspace</span>
                     </h1>
                 </div>
 
@@ -470,10 +573,23 @@ function RecordPageContent() {
                     {!sessionActive ? (
                         <button
                             onClick={beginSession}
-                            className="btn-premium w-full sm:w-auto px-6 sm:px-10 h-12"
+                            disabled={visitStatus === 'completed'}
+                            className={cn(
+                                "btn-premium w-full sm:w-auto px-6 sm:px-10 h-12",
+                                visitStatus === 'completed' && "opacity-50 cursor-not-allowed grayscale"
+                            )}
                         >
-                            <Mic className="h-4 w-4" />
-                            <span>Begin Capture Protocol</span>
+                            {visitStatus === 'completed' ? (
+                                <>
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    <span>Visit Finalized</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Mic className="h-4 w-4" />
+                                    <span>Begin Visit</span>
+                                </>
+                            )}
                         </button>
                     ) : (
                         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -646,10 +762,20 @@ function RecordPageContent() {
                                                     </div>
                                                 )}
 
-                                                {allPatients.length === 0 && (
+                                                {isLoadingPatients && (
                                                     <div className="p-10 text-center animate-pulse">
                                                         <Loader2 className="h-6 w-6 animate-spin mx-auto text-black/20" />
                                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-4">Accessing Database...</p>
+                                                    </div>
+                                                )}
+
+                                                {!isLoadingPatients && allPatients.length === 0 && (
+                                                    <div className="p-10 text-center space-y-4">
+                                                        <Users className="h-8 w-8 text-black/5 mx-auto" />
+                                                        <div>
+                                                            <p className="text-[10px] font-bold text-foreground uppercase tracking-widest">No Patients Yet</p>
+                                                            <p className="text-[9px] text-muted-foreground mt-2">Create your first patient to begin</p>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -669,11 +795,34 @@ function RecordPageContent() {
                 {/* Synthesis Domain */}
                 <div className="flex w-full xl:w-[55%] flex-col gap-8 xl:overflow-hidden min-h-[600px] xl:min-h-0">
                     <div className="surface flex flex-col flex-1 overflow-hidden relative">
-                        {/* Note Identity */}
-                        <div className="px-8 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-20">
-                            <div>
-                                <h2 className="text-xs font-medium text-foreground uppercase tracking-widest leading-none mb-1">SOAP Synthesis</h2>
-                                <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.1em]">Automated Clinical Record</p>
+                        {/* Visit Workspace Identity */}
+                        {/* Persistent Visit Header */}
+                        <div className="px-6 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-20 backdrop-blur-sm">
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-white dark:bg-black rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-sm">
+                                    <Stethoscope className="h-5 w-5 text-slate-900 dark:text-slate-100" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-bold text-foreground leading-none">
+                                        {patient?.name || 'Unassigned Patient'}
+                                        {patient?.breed && <span className="text-muted-foreground font-normal"> — {patient.breed}</span>}
+                                    </h2>
+                                    <div className="flex items-center gap-3 mt-1.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                                                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        </div>
+                                        <div className="h-3 w-px bg-border/60" />
+                                        <span className={cn(
+                                            "text-[9px] font-bold uppercase tracking-widest",
+                                            visitStatus === 'completed' ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
+                                        )}>
+                                            {visitStatus === 'completed' ? 'Completed' : 'In Progress'}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -697,7 +846,7 @@ function RecordPageContent() {
                                             )}
                                         >
                                             {saveStatus === 'saving' ? 'Saving...' :
-                                                saveStatus === 'saved' ? 'Saved' : 'Save Summary'}
+                                                saveStatus === 'saved' ? 'Saved' : 'Save Visit'}
                                         </button>
                                     </>
                                 )}
@@ -728,11 +877,247 @@ function RecordPageContent() {
                                     </p>
                                 </div>
                             ) : generatedSoap ? (
-                                <div className="h-full">
-                                    <SoapEditor
-                                        soap={generatedSoap}
-                                        onChange={(newSoap) => setGeneratedSoap(newSoap)}
-                                    />
+                                <div className="h-full overflow-y-auto custom-scrollbar p-6 space-y-6">
+                                    {/* Visit Completed Banner */}
+                                    {visitStatus === 'completed' && (
+                                        <div className="px-6 py-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Visit Completed — Clinical record finalized.</p>
+                                        </div>
+                                    )}
+
+                                    {/* Diagnosis Section */}
+                                    <div className="surface overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                                <Stethoscope className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                                            </div>
+                                            <h3 className="text-xs font-medium text-foreground uppercase tracking-widest">Diagnosis</h3>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {diagnoses.map((diagnosis, index) => (
+                                                    <div key={index} className="group flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary/50 transition-all text-sm">
+                                                        {editingDiagnosis === index ? (
+                                                            <input
+                                                                type="text"
+                                                                value={diagnosis}
+                                                                onChange={(e) => updateDiagnosis(index, e.target.value)}
+                                                                onBlur={() => setEditingDiagnosis(null)}
+                                                                onKeyDown={(e) => e.key === 'Enter' && setEditingDiagnosis(null)}
+                                                                className="bg-transparent border-none outline-none text-sm font-medium text-foreground w-full"
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <span
+                                                                onClick={() => setEditingDiagnosis(index)}
+                                                                className="text-sm font-medium text-foreground cursor-pointer"
+                                                            >
+                                                                {diagnosis}
+                                                            </span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => removeDiagnosis(index)}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X className="h-3 w-3 text-muted-foreground hover:text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newDiagnosis}
+                                                    onChange={(e) => setNewDiagnosis(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && addDiagnosis()}
+                                                    placeholder="Add diagnosis..."
+                                                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+                                                />
+                                                <button
+                                                    onClick={addDiagnosis}
+                                                    disabled={!newDiagnosis.trim()}
+                                                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Medications Section */}
+                                    <div className="surface overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                                <Pill className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                                            </div>
+                                            <h3 className="text-xs font-medium text-foreground uppercase tracking-widest">Medications</h3>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {medications.map((medication, index) => (
+                                                    <div key={index} className="group flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary/50 transition-all text-sm">
+                                                        {editingMedication === index ? (
+                                                            <input
+                                                                type="text"
+                                                                value={medication}
+                                                                onChange={(e) => updateMedication(index, e.target.value)}
+                                                                onBlur={() => setEditingMedication(null)}
+                                                                onKeyDown={(e) => e.key === 'Enter' && setEditingMedication(null)}
+                                                                className="bg-transparent border-none outline-none text-sm font-medium text-foreground w-full"
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <span
+                                                                onClick={() => setEditingMedication(index)}
+                                                                className="text-sm font-medium text-foreground cursor-pointer"
+                                                            >
+                                                                {medication}
+                                                            </span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => removeMedication(index)}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X className="h-3 w-3 text-muted-foreground hover:text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newMedication}
+                                                    onChange={(e) => setNewMedication(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && addMedication()}
+                                                    placeholder="Add medication..."
+                                                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+                                                />
+                                                <button
+                                                    onClick={addMedication}
+                                                    disabled={!newMedication.trim()}
+                                                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Treatments Section */}
+                                    <div className="surface overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                                <Zap className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                                            </div>
+                                            <h3 className="text-xs font-medium text-foreground uppercase tracking-widest">Treatments</h3>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {treatments.map((treatment, index) => (
+                                                    <div key={index} className="group flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary/50 transition-all text-sm">
+                                                        {editingTreatment === index ? (
+                                                            <input
+                                                                type="text"
+                                                                value={treatment}
+                                                                onChange={(e) => updateTreatment(index, e.target.value)}
+                                                                onBlur={() => setEditingTreatment(null)}
+                                                                onKeyDown={(e) => e.key === 'Enter' && setEditingTreatment(null)}
+                                                                className="bg-transparent border-none outline-none text-sm font-medium text-foreground w-full"
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <span
+                                                                onClick={() => setEditingTreatment(index)}
+                                                                className="text-sm font-medium text-foreground cursor-pointer"
+                                                            >
+                                                                {treatment}
+                                                            </span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => removeTreatment(index)}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X className="h-3 w-3 text-muted-foreground hover:text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newTreatment}
+                                                    onChange={(e) => setNewTreatment(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && addTreatment()}
+                                                    placeholder="Add treatment..."
+                                                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+                                                />
+                                                <button
+                                                    onClick={addTreatment}
+                                                    disabled={!newTreatment.trim()}
+                                                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* SOAP Notes */}
+                                    <div className="surface overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-divider bg-slate-50/50 dark:bg-slate-900/50">
+                                            <h3 className="text-xs font-medium text-foreground uppercase tracking-widest">SOAP Notes</h3>
+                                        </div>
+                                        <SoapEditor
+                                            soap={generatedSoap}
+                                            onChange={(newSoap) => setGeneratedSoap(newSoap)}
+                                        />
+                                    </div>
+
+                                    {/* Visit Completion Ritual */}
+                                    <div className="surface overflow-hidden">
+                                        <div className="p-6 flex flex-col sm:flex-row items-center gap-4">
+                                            {visitStatus === 'in-progress' ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setVisitStatus('completed');
+                                                        if (saveStatus === 'idle') handleSave();
+                                                        toast.success('Visit completed');
+                                                    }}
+                                                    className="w-full sm:w-auto h-11 px-8 bg-black dark:bg-white text-white dark:text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2.5"
+                                                >
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    Complete Visit
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        disabled
+                                                        className="w-full sm:w-auto h-11 px-8 bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-widest opacity-80 cursor-default flex items-center justify-center gap-2.5"
+                                                    >
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                        Visit Completed
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setGeneratedSoap(null);
+                                                            setDiagnoses([]);
+                                                            setMedications([]);
+                                                            setTreatments([]);
+                                                            setVisitStatus('in-progress');
+                                                            setSaveStatus('idle');
+                                                            setPatient(null);
+                                                            toast('Ready for next visit', { icon: '→' });
+                                                        }}
+                                                        className="w-full sm:w-auto h-11 px-8 border border-black dark:border-white text-foreground rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all flex items-center justify-center gap-2.5"
+                                                    >
+                                                        Start Next Visit
+                                                        <ArrowRight className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center p-16 text-center">

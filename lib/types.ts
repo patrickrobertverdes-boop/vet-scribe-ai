@@ -33,6 +33,8 @@ export interface SoapNote {
 
 export type ConsultationStatus = 'scheduled' | 'in-progress' | 'completed';
 
+export type VisitStatus = 'in-progress' | 'completed';
+
 export interface Consultation {
   id: string;
   patientId: string;
@@ -43,6 +45,10 @@ export interface Consultation {
   transcript: string;
   soap: SoapNote;
   soapPreview?: string;
+  diagnoses?: string[];
+  medications?: string[];
+  treatments?: string[];
+  visitStatus?: VisitStatus;
 }
 
 export interface Template {

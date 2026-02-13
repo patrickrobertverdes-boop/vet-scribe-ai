@@ -73,3 +73,26 @@ export const generatePatientProfile = async (prompt: string): Promise<Partial<Pa
         throw error;
     }
 };
+
+export const extractStructuredData = async (soapText: string): Promise<{ diagnoses: string[], medications: string[], treatments: string[] }> => {
+    try {
+        const response = await fetch('/api/extract-structured', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ soapText }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to extract structured data");
+        }
+
+        return await response.json();
+    } catch (error: any) {
+        console.error("Error extracting structured data:", error);
+        throw error;
+    }
+};
+

@@ -45,3 +45,12 @@ service-account.json
 *.tsbuildinfo
 next-env.d.ts
 write-sa.js
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# electron
+/dist-electron
+
