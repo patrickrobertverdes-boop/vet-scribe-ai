@@ -7,7 +7,9 @@ const CANDIDATE_PATHS = [
     'C:/Avimark/Data',
     'D:/Avimark/Data',
     'E:/Avimark/Data',
-    // Mock path for testing purposes
+    'C:/PMS/Data',      // Often used as a generic PMS root
+    'D:/PMS/Data',
+    'E:/PMS/Data',
     path.join(__dirname, '../mock_avimark/Data')
 ];
 
