@@ -1,0 +1,11 @@
+# Exclude non-web project folders from Firebase App Hosting build service
+android/
+ios/
+electron/
+dist-electron/
+vet-scribe-avimark-connector/
+build/
+www/
+out/
+.next/
+node_modules/
