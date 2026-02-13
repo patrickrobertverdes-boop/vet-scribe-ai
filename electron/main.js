@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -20,8 +20,6 @@ function createWindow() {
 
     // Load the app
     // For development (and to match Capacitor usage), we load the hosted URL
-    // Ideally, for offline support, we'd serve the local Next.js export
-    // But since the current mobile app points to the cloud, we'll mimic that first.
     const prodUrl = 'https://vet-scribe-a2i--verdes-8568d.us-east4.hosted.app';
     const devUrl = 'http://localhost:3000';
 
@@ -40,7 +38,6 @@ app.whenReady().then(() => {
     ipcMain.handle('shadow-copy', async (event, source, dest) => {
         return new Promise((resolve, reject) => {
             // Path to the PS script
-            // In prod, resources might be packed in app.asar.unpacked or similar
             const scriptPath = isDev
                 ? path.join(__dirname, '../vet-scribe-avimark-connector/connector/shadow_copy.ps1')
                 : path.join(process.resourcesPath, 'connector/shadow_copy.ps1');
@@ -77,6 +74,18 @@ app.whenReady().then(() => {
                 }
             });
         });
+    });
+
+    // Handle Folder Selection
+    ipcMain.handle('select-folder', async () => {
+        const { canceled, filePaths } = await dialog.showOpenDialog({
+            properties: ['openDirectory']
+        });
+        if (canceled) {
+            return null;
+        } else {
+            return filePaths[0];
+        }
     });
 
     createWindow();

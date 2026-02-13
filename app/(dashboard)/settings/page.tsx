@@ -840,7 +840,49 @@ export default function SettingsPage() {
                                                         value={sourcePath}
                                                         onChange={(e: any) => setSourcePath(e.target.value)}
                                                     />
-                                                    <button className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95">
+                                                    <input
+                                                        type="file"
+                                                        ref={(input) => {
+                                                            if (input) {
+                                                                input.setAttribute('webkitdirectory', '');
+                                                                input.setAttribute('directory', '');
+                                                            }
+                                                        }}
+                                                        className="hidden"
+                                                        onChange={(e: any) => {
+                                                            if (e.target.files && e.target.files.length > 0) {
+                                                                const file = e.target.files[0];
+                                                                // Extract path from the first file found in the folder
+                                                                // Note: Browsers security limits full path, but we can get relative path or name
+                                                                // Ideally for Electron apps, this gives full path. For web, it gives partial.
+                                                                // We'll set what we can get to populate the field.
+                                                                const path = file.webkitRelativePath.split('/')[0];
+                                                                setSourcePath(path || 'C:\\Selected\\Folder');
+                                                                toast.success("Folder Selected");
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            // 1. Electron / Native Environment
+                                                            if ((window as any).avimarkConnector?.selectFolder) {
+                                                                try {
+                                                                    const path = await (window as any).avimarkConnector.selectFolder();
+                                                                    if (path) {
+                                                                        setSourcePath(path);
+                                                                        toast.success("Protocol Path Updated");
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error("Native browse failed:", err);
+                                                                }
+                                                                return;
+                                                            }
+                                                            // 2. Web Fallback
+                                                            const fileInput = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                                                            if (fileInput) fileInput.click();
+                                                        }}
+                                                        className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95"
+                                                    >
                                                         Browse
                                                     </button>
                                                 </div>
