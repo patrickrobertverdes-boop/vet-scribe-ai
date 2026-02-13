@@ -11,94 +11,165 @@ import {
     Download,
     ShieldCheck,
     Zap,
-    Lock
+    Lock,
+    ListChecks,
+    Activity,
+    Stethoscope,
+    Users,
+    Clock,
+    Plus,
+    Wand2,
+    Calendar
 } from 'lucide-react';
 import { CustomSelect } from "@/components/ui/custom-select";
 import toast from 'react-hot-toast';
 import { cn } from "@/lib/utils";
+import { useRouter } from 'next/navigation';
 
 export default function IntegrationPage() {
+    const router = useRouter();
     const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-24 md:pb-20">
-            {/* Command Header */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+        <div className="flex flex-col flex-1 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-24 md:pb-20 px-1">
+            {/* Practice Command Header - MIRRORING DASHBOARD */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-[0.22em] border border-primary px-2 py-0.5 rounded bg-primary">
-                            Protocol Interface
+                            Gateway Active
                         </span>
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-2xl font-bold font-serif text-foreground tracking-tight">
-                            Server <span className="text-primary italic font-normal">Bridge</span>
+                            Server <span className="text-foreground font-normal">Bridge</span>
                         </h1>
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Local Gateway Configuration</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={() => router.push('/analytics')}
+                        className="h-10 px-4 border border-border rounded text-foreground hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2.5 bg-card"
+                    >
+                        <Activity className="h-4 w-4" />
+                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Analytics</span>
+                    </button>
+
                     <div className="h-10 border border-border px-4 rounded flex items-center gap-3 bg-card">
-                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest group">
-                            Secure Handshake
-                        </span>
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <div className="text-left">
+                            <p className="text-[11px] font-bold text-foreground leading-none">
+                                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            </p>
+                        </div>
                     </div>
+
+                    <button
+                        onClick={() => {
+                            const connector = (window as any).avimarkConnector;
+                            if (connector) {
+                                toast.promise(
+                                    connector.shadowCopy(sourcePath, 'C:\\VetScribe\\ShadowData'),
+                                    {
+                                        loading: 'Syncing...',
+                                        success: 'Protocol Synced',
+                                        error: 'Sync Failed',
+                                    }
+                                );
+                            } else {
+                                toast.error("Bridge Connection Required");
+                            }
+                        }}
+                        className="h-10 px-5 bg-primary text-primary-foreground rounded font-bold text-[11px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2.5 shadow-none border border-primary"
+                    >
+                        <RefreshCw className="h-4 w-4 no-demote" />
+                        Sync Now
+                    </button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Main Configuration Module */}
-                <div className="lg:col-span-8">
-                    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm h-full flex flex-col">
-                        <div className="px-8 py-5 border-b border-border/60 flex items-center justify-between bg-card">
+            {/* Performance Stats - MIRRORING DASHBOARD */}
+            <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
+                {[
+                    { label: 'Gateway Node', value: '01', trend: 'Local', icon: HardDrive },
+                    { label: 'Success Rate', value: '100', trend: 'Live', icon: ShieldCheck },
+                    { label: 'Sync Cycles', value: '42', trend: 'Live', icon: RefreshCw },
+                    { label: 'Latency', value: '08', trend: 'ms', icon: Activity },
+                ].map((stat, i) => (
+                    <div
+                        key={i}
+                        className="bg-card border border-border rounded-xl p-6 group transition-all cursor-pointer hover:border-primary/50 shadow-sm"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="icon-square">
+                                <stat.icon className="h-4 w-4" />
+                            </div>
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-border transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
+                                {stat.trend}
+                            </span>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</p>
+                            <p className="text-3xl font-bold font-serif tracking-tight text-foreground">{stat.value}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Operating Modules - MIRRORING DASHBOARD */}
+            <div className="grid gap-8 lg:grid-cols-12">
+                {/* Configuration Module (Replaces Checklist) */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-sm transition-colors">
+                        <div className="px-8 py-5 border-b border-border/60 flex items-center justify-between bg-card transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="h-9 w-9 border border-border rounded flex items-center justify-center text-foreground">
+                                <div className="h-9 w-9 border border-black dark:border-border rounded flex items-center justify-center text-foreground">
                                     <Database className="h-4 w-4" />
                                 </div>
-                                <h2 className="text-xs font-bold text-foreground uppercase tracking-widest text-nowrap">Clinic Data Sync</h2>
+                                <h2 className="text-xs font-bold text-foreground uppercase tracking-widest">Protocol Configuration</h2>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                                    <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active</span>
+                                <div className="h-7 px-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-none">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span>Active</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-10 space-y-10 flex-1">
-                            <div className="space-y-3">
-                                <p className="text-sm font-bold text-foreground tracking-tight">Local Connection Parameters</p>
+                        <div className="p-8 space-y-10">
+                            <div className="space-y-4">
+                                <p className="text-sm font-bold text-foreground tracking-tight underline border-b-2 border-primary/20 pb-1 w-fit">Local Gateway Parameters</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed max-w-xl font-medium">
-                                    Link VetScribe directly to your local database files. This creates a secure, read-only shadow copy to avoid impacting your server's clinical operations.
+                                    Configure the direct link between VetScribe and your local PMS database. This protocol initiates a secure, read-only shadow copy to ensure absolute production stability.
                                 </p>
                             </div>
 
                             <div className="space-y-8">
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                                        <FolderOpen className="h-3 w-3" /> Source Data Root
+                                        <FolderOpen className="h-3 w-3" /> Source Data Directory
                                     </label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            className="flex-1 h-12 bg-muted/30 border border-border rounded-lg px-4 text-xs font-mono text-foreground focus:ring-1 focus:ring-primary outline-none transition-all"
+                                            className="input-premium flex-1"
+                                            placeholder="C:\PMS\Data"
                                             value={sourcePath}
                                             onChange={(e) => setSourcePath(e.target.value)}
                                         />
-                                        <button className="h-12 px-5 border border-border rounded-lg text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card">
+                                        <button className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card shadow-sm">
                                             Browse
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground/60 italic">
-                                        * Point this to the root database folder (e.g. C:\PMS\Data)
+                                    <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">
+                                        * Target root clinical database (e.g. C:\AVImark\Data)
                                     </p>
                                 </div>
 
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                                        <ArrowRightLeft className="h-3 w-3" /> Shadow Interval
+                                        <ArrowRightLeft className="h-3 w-3" /> Sync Frequency
                                     </label>
                                     <div className="max-w-md">
                                         <CustomSelect
@@ -114,85 +185,60 @@ export default function IntegrationPage() {
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="pt-8 border-t border-border flex flex-col sm:flex-row gap-4">
-                                <button
-                                    onClick={() => {
-                                        const connector = (window as any).avimarkConnector;
-                                        if (connector) {
-                                            toast.promise(
-                                                connector.shadowCopy(sourcePath, 'C:\\VetScribe\\ShadowData'),
-                                                {
-                                                    loading: 'Initializing sync...',
-                                                    success: 'Protocol synchronized.',
-                                                    error: 'Sync error detected.',
-                                                }
-                                            );
-                                        } else {
-                                            toast.error("Bridge Connection Missing");
-                                        }
-                                    }}
-                                    className="flex-1 h-12 bg-primary text-primary-foreground rounded-lg font-bold text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-95"
-                                >
-                                    <RefreshCw className="h-4 w-4" />
-                                    Force Data Refresh
-                                </button>
-                                <button className="flex-1 h-12 border border-border rounded-lg text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card flex items-center justify-center gap-2.5">
-                                    <FileText className="h-4 w-4" />
-                                    Review Audit Logs
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Sidebar Protocol Module */}
-                <div className="lg:col-span-4 space-y-8">
-                    {/* Integrity Status */}
-                    <div className="bg-card border border-border rounded-xl p-8 space-y-8 shadow-sm h-full flex flex-col">
+                {/* Status Sidebar (Replaces Command Actions) */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-card border border-border p-8 rounded-xl flex flex-col gap-8 shadow-sm h-full transition-colors">
                         <h2 className="text-xs font-bold text-foreground uppercase tracking-widest mb-2">Protocol Health</h2>
 
-                        <div className="space-y-6 flex-1">
-                            <div className="p-6 rounded-xl bg-primary/5 border border-primary/10 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <ShieldCheck className="h-4 w-4 text-primary" />
-                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none">Integrity Lock</p>
+                        <div className="flex flex-col gap-4">
+                            <div className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border bg-card group">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card transition-all shrink-0">
+                                    <ShieldCheck className="h-5 w-5 text-primary" />
                                 </div>
-                                <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                                    Read-only access is enforced by hardware protocol. Your primary database remains untouched and performance is never degraded.
-                                </p>
+                                <div className="text-left py-2">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Integrity Lock</p>
+                                    <p className="font-bold text-sm text-foreground">Read-Only Active</p>
+                                </div>
                             </div>
 
-                            <div className="space-y-4 pt-4">
-                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-                                    <span className="text-muted-foreground">Gateway Version</span>
-                                    <span className="text-foreground">v0.1.0-build</span>
+                            <div className="w-full min-h-[4.5rem] flex items-center gap-5 px-6 rounded-xl border border-border bg-card group">
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center border border-border bg-card transition-all shrink-0">
+                                    <Lock className="h-5 w-5 text-primary" />
                                 </div>
-                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-                                    <span className="text-muted-foreground">Link Status</span>
-                                    <span className="text-emerald-500">Nominal</span>
+                                <div className="text-left py-2">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Security Standard</p>
+                                    <p className="font-bold text-sm text-foreground">AES-256 Encrypted</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Desktop Bridge Promo */}
-                        <div className="mt-auto pt-8 border-t border-border space-y-5">
-                            <div className="p-5 rounded-xl bg-orange-500/5 border border-orange-500/20 space-y-3">
+                        {/* System Health Module - MIRRORING DASHBOARD */}
+                        <div className="pt-8 border-t border-black dark:border-slate-800 mt-auto space-y-5">
+                            <div className="p-5 rounded-xl bg-primary/5 border border-border space-y-3 border-dashed">
                                 <div className="flex items-center gap-3">
-                                    <Download className="h-3 w-3 text-orange-500" />
-                                    <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Bridge Agent</p>
+                                    <Download className="h-3 w-3 text-primary" />
+                                    <p className="text-[10px] font-bold text-foreground uppercase tracking-widest">Desktop Required</p>
                                 </div>
-                                <p className="text-[10px] text-orange-700/80 dark:text-orange-400 font-medium leading-relaxed">
-                                    Local filesystem access requires the Desktop Scribe Agent.
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight leading-relaxed">
+                                    Direct filesystem access requires the Pro Bridge Agent.
                                 </p>
-                                <button className="text-[9px] font-bold text-orange-600 uppercase tracking-widest hover:underline pt-2">
+                                <button className="text-[9px] font-bold text-primary uppercase tracking-widest hover:underline pt-1">
                                     Download Agent
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-3 px-1 py-1">
-                                <Lock className="h-3 w-3 text-muted-foreground/40" />
-                                <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">End-to-End Encryption Active</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-md shadow-emerald-500/20" />
+                                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none">
+                                        Interface Stability
+                                    </span>
+                                </div>
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Nominal</span>
                             </div>
                         </div>
                     </div>

@@ -811,64 +811,72 @@ export default function SettingsPage() {
                                         Since we can't easily check window.avimarkConnector in SSR/TS without declaration, we'll assume 
                                         we can check a flag or just show the UI for now with a warning if not connected.
                                     */}
-                                    <div className="p-10 rounded-[2rem] bg-slate-900 border border-white/10 shadow-2xl space-y-10 relative overflow-hidden group">
-                                        <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                                        <div className="flex items-start gap-8 relative z-10">
-                                            <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/20 transition-all group-hover:scale-110">
-                                                <Database className="h-8 w-8" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <h3 className="text-xl font-bold text-white tracking-tight">Clinic Server Bridge</h3>
-                                                <p className="text-sm text-white/40 font-medium leading-relaxed max-w-lg">
-                                                    Securely link VetScribe to your local practice management server. This creates a read-only shadow copy of your patient database to ensure zero performance impact on your live system.
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl w-fit relative z-10">
-                                            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Gateway Active</span>
-                                        </div>
-
-                                        <div className="space-y-8 relative z-10">
-                                            <div className="space-y-4">
-                                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                    <FolderOpen className="h-3 w-3" /> Source Data Path
-                                                </label>
-                                                <div className="flex gap-3">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="C:\ClinicData\Server"
-                                                        className="flex-1 h-14 bg-white/5 border border-white/10 rounded-xl px-6 text-sm font-mono text-white focus:ring-2 focus:ring-primary/40 outline-none transition-all placeholder:text-white/10"
-                                                        value={sourcePath}
-                                                        onChange={(e) => setSourcePath(e.target.value)}
-                                                    />
-                                                    <button className="h-14 px-8 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all">
-                                                        Browse
-                                                    </button>
+                                    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-sm">
+                                        <div className="px-8 py-5 border-b border-border/60 flex items-center justify-between bg-card transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className="icon-square h-9 w-9">
+                                                    <Database className="h-4 w-4" />
                                                 </div>
-                                                <p className="text-[10px] text-white/20 italic tracking-wide">
-                                                    * Point this to the root folder of your PMS database files (e.g. .dbf, .dat)
+                                                <h2 className="text-xs font-bold text-foreground uppercase tracking-widest">Interface Parameters</h2>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-7 px-4 bg-primary text-primary-foreground border border-primary rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                                                    <ShieldCheck className="h-3 w-3" />
+                                                    <span>Active Link</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-8 space-y-10">
+                                            <div className="space-y-3">
+                                                <p className="text-sm font-bold text-foreground tracking-tight underline decoration-primary/20 underline-offset-4">Local Connection Parameters</p>
+                                                <p className="text-xs text-muted-foreground leading-relaxed max-w-xl font-medium">
+                                                    Link VetScribe directly to your local database files. This creates a secure, read-only shadow copy to avoid impacting your server's clinical operations.
                                                 </p>
                                             </div>
 
-                                            <div className="space-y-4">
-                                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] flex items-center gap-2">
-                                                    <ArrowRightLeft className="h-3 w-3" /> Sync Frequency
-                                                </label>
-                                                <CustomSelect
-                                                    value="15"
-                                                    onChange={() => { }}
-                                                    options={[
-                                                        { label: "Real-time (Every 5 min)", value: "5" },
-                                                        { label: "Standard (Every 15 min)", value: "15" },
-                                                        { label: "Hourly", value: "60" },
-                                                        { label: "Manual Only", value: "manual" },
-                                                    ]}
-                                                />
+                                            <div className="space-y-8">
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                        <FolderOpen className="h-3 w-3" /> Clinical Data Directory
+                                                    </label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            className="input-premium flex-1"
+                                                            placeholder="C:\PMS\Data"
+                                                            value={sourcePath}
+                                                            onChange={(e) => setSourcePath(e.target.value)}
+                                                        />
+                                                        <button className="h-12 px-6 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card shadow-sm">
+                                                            Browse
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">
+                                                        * Point to the root clinical database (e.g. AVImark/Data)
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                        <ArrowRightLeft className="h-3 w-3" /> Synchronicity Buffer
+                                                    </label>
+                                                    <div className="max-w-md">
+                                                        <CustomSelect
+                                                            value="15"
+                                                            onChange={() => { }}
+                                                            options={[
+                                                                { label: "Real-time (Every 5 min)", value: "5" },
+                                                                { label: "Standard (Every 15 min)", value: "15" },
+                                                                { label: "Hourly", value: "60" },
+                                                                { label: "Manual Only", value: "manual" },
+                                                            ]}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row gap-5">
+                                            <div className="pt-8 border-t border-border flex flex-col sm:flex-row gap-4">
                                                 <button
                                                     onClick={() => {
                                                         const connector = (window as any).avimarkConnector;
@@ -876,38 +884,40 @@ export default function SettingsPage() {
                                                             toast.promise(
                                                                 connector.shadowCopy(sourcePath, 'C:\\VetScribe\\ShadowData'),
                                                                 {
-                                                                    loading: 'Syncing database...',
-                                                                    success: 'Database synced successfully!',
-                                                                    error: 'Sync failed. Check permissions.',
+                                                                    loading: 'Initializing Transfer...',
+                                                                    success: 'Integrity Verified.',
+                                                                    error: 'Link Disrupted.',
                                                                 }
                                                             );
                                                         } else {
-                                                            toast.error("Bridge not detected. Please install the Desktop App.");
+                                                            toast.error("Bridge Connection Required");
                                                         }
                                                     }}
-                                                    className="flex-1 h-14 bg-primary text-primary-foreground rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+                                                    className="btn-premium flex-1 h-12"
                                                 >
-                                                    <RefreshCw className="h-4 w-4" /> Force Sync Now
+                                                    <RefreshCw className="h-4 w-4" />
+                                                    Force Database Refresh
                                                 </button>
-                                                <button className="flex-1 h-14 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                                                    <FileText className="h-4 w-4" /> View Sync Logs
+                                                <button className="flex-1 h-12 border border-border rounded-xl text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card shadow-sm flex items-center justify-center gap-3">
+                                                    <FileText className="h-4 w-4" />
+                                                    View Log Index
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Desktop App Promo */}
-                                    <div className="p-8 rounded-[1.5rem] bg-orange-500/10 border border-orange-500/20 flex items-start gap-6">
-                                        <div className="h-12 w-12 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                                            <Download className="h-6 w-6" />
+                                    <div className="p-8 rounded-xl bg-primary/5 border border-border flex items-start gap-6 border-dashed">
+                                        <div className="icon-square">
+                                            <Download className="h-5 w-5" />
                                         </div>
                                         <div className="space-y-3">
-                                            <h4 className="text-[11px] font-bold text-orange-400 uppercase tracking-[0.2em]">Desktop Bridge Required</h4>
-                                            <p className="text-xs text-orange-200/60 leading-relaxed font-medium">
+                                            <h4 className="text-[11px] font-bold text-foreground uppercase tracking-[0.2em]">Desktop Bridge Required</h4>
+                                            <p className="text-[11px] text-muted-foreground leading-relaxed font-bold uppercase tracking-tight">
                                                 Direct local database access requires the VetScribe Pro Desktop Application.
-                                                Web browsers are sandboxed and cannot access your C:\ drive directly.
+                                                Browsers cannot access your local C:\ drive directly.
                                             </p>
-                                            <button className="text-[10px] font-bold text-orange-400 underline underline-offset-8 hover:text-orange-300 transition-colors uppercase tracking-widest">
+                                            <button className="text-[10px] font-bold text-primary underline underline-offset-8 hover:opacity-80 transition-all uppercase tracking-widest">
                                                 Download Installer (v0.1.0)
                                             </button>
                                         </div>
