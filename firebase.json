@@ -15,7 +15,12 @@
       "functions",
       "dist-electron",
       "electron",
-      "build"
+      "build",
+      "android",
+      "ios",
+      "vet-scribe-avimark-connector",
+      "www",
+      "out"
     ],
     "alwaysDeployFromSource": true
   }

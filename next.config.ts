@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['firebase-admin'],
   turbopack: {
-    root: process.cwd(),
+    root: '.',
   },
 } as any;
 
