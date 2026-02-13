@@ -78,14 +78,31 @@ app.whenReady().then(() => {
 
     // Handle Folder Selection
     ipcMain.handle('select-folder', async () => {
-        const { canceled, filePaths } = await dialog.showOpenDialog({
-            properties: ['openDirectory']
-        });
-        if (canceled) {
+        const win = BrowserWindow.getFocusedWindow();
+        console.log('[Native] Requesting folder selection...');
+        try {
+            const result = await dialog.showOpenDialog(win, {
+                title: 'Select Clinical Data Root',
+                properties: ['openDirectory', 'dontAddToRecent'],
+                buttonLabel: 'Select Folder'
+            });
+
+            if (result.canceled) {
+                console.log('[Native] Folder selection canceled.');
+                return null;
+            }
+
+            console.log(`[Native] Folder selected: ${result.filePaths[0]}`);
+            return result.filePaths[0];
+        } catch (err) {
+            console.error('[Native] Dialog Error:', err);
             return null;
-        } else {
-            return filePaths[0];
         }
+    });
+
+    // Bridge Health Check
+    ipcMain.handle('bridge-ping', () => {
+        return { status: 'connected', version: '1.0.4', platform: process.platform };
     });
 
     createWindow();

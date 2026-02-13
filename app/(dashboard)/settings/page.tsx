@@ -64,6 +64,7 @@ export default function SettingsPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
+    const [bridgeStatus, setBridgeStatus] = useState<'connected' | 'error' | 'none'>('none');
     const fileSelectorRef = useRef<HTMLInputElement>(null);
 
     // Enable Folder Selection (Standard webkit attrs don't work in React props)
@@ -73,6 +74,26 @@ export default function SettingsPage() {
             fileSelectorRef.current.setAttribute('directory', '');
         }
     }, [fileSelectorRef]);
+
+    // Native Bridge Health Check
+    useEffect(() => {
+        const checkBridge = async () => {
+            const connector = (window as any).avimarkConnector;
+            if (connector?.ping) {
+                try {
+                    const health = await connector.ping();
+                    if (health && health.status === 'connected') {
+                        setBridgeStatus('connected');
+                        console.log('✅ Native bridge discovered.');
+                    }
+                } catch (e) {
+                    setBridgeStatus('error');
+                    console.error('❌ Bridge ping failed:', e);
+                }
+            }
+        };
+        checkBridge();
+    }, []);
 
     useEffect(() => {
         if (!user) return;
@@ -818,9 +839,21 @@ export default function SettingsPage() {
                                         <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-4">
                                             <HardDrive className="h-4 w-4" /> Gateway Protocol
                                         </h2>
-                                        <div className="h-7 px-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span>Bridge Active</span>
+                                        <div className={cn(
+                                            "h-7 px-4 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border",
+                                            bridgeStatus === 'connected'
+                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                                : bridgeStatus === 'error'
+                                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                                                    : "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20"
+                                        )}>
+                                            <div className={cn(
+                                                "h-1.5 w-1.5 rounded-full",
+                                                bridgeStatus === 'connected' ? "bg-emerald-500 animate-pulse" : bridgeStatus === 'error' ? "bg-rose-500" : "bg-slate-400"
+                                            )} />
+                                            <span>
+                                                {bridgeStatus === 'connected' ? 'Native Bridge Active' : bridgeStatus === 'error' ? 'Bridge Error' : 'Web Protocol Mode'}
+                                            </span>
                                         </div>
                                     </div>
 
