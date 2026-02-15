@@ -14,7 +14,7 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: false,
-            webSecurity: true
+            webSecurity: false // Relaxed for local resource loading if needed, though mostly for CORS
         },
     });
 

@@ -65,7 +65,16 @@ export default function SettingsPage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
     const [bridgeStatus, setBridgeStatus] = useState<'connected' | 'error' | 'none'>('none');
+    const [isElectron, setIsElectron] = useState(false);
     const fileSelectorRef = useRef<HTMLInputElement>(null);
+
+    // Platform Detection
+    useEffect(() => {
+        const ua = navigator.userAgent.toLowerCase();
+        if (ua.includes(' electron/')) {
+            setIsElectron(true);
+        }
+    }, []);
 
     // Enable Folder Selection (Standard webkit attrs don't work in React props)
     useEffect(() => {
@@ -251,7 +260,7 @@ export default function SettingsPage() {
         { label: 'Security & Access', icon: ShieldCheck },
         { label: 'Notifications', icon: Bell },
         { label: 'Data & Integration', icon: Database },
-        { label: 'Server Bridge', icon: HardDrive },
+        ...(isElectron ? [{ label: 'Server Bridge', icon: HardDrive } as const] : []),
         { label: 'Legal & Compliance', icon: Scale },
     ];
 

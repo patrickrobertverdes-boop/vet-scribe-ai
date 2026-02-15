@@ -25,9 +25,23 @@ export async function POST(req: NextRequest) {
 
             const docRef = db.collection('calendar_events').doc(e.externalId);
 
+            // Parse Date & Time
+            const startDate = new Date(e.start);
+            const dateStr = startDate.toISOString().split('T')[0]; // YYYY-MM-DD
+            const timeStr = startDate.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
             batch.set(docRef, {
                 ...e,
-                start: new Date(e.start).toISOString(), // Ensure date is ISO string
+                // Frontend Compatibility Mappings
+                id: e.externalId,
+                date: dateStr,
+                time: timeStr,
+                patientName: `Patient #${e.patientId}`, // Fallback
+                classification: 'Consultation', // Default class
+                note: e.title || e.note || 'Synced Appointment',
+                vector: 'clinic',
+                status: e.status || 'scheduled',
+                start: startDate.toISOString(),
                 lastSyncedAt: new Date().toISOString(),
                 source: 'avimark'
             }, { merge: true });

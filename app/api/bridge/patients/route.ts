@@ -32,8 +32,27 @@ export async function POST(req: NextRequest) {
             // Using it as Doc ID makes updates easier: idempotent.
             const docRef = db.collection('patients').doc(p.externalId);
 
+            // Derive Age from BirthDate
+            let age = 0;
+            let age_months = 0;
+            if (p.birthDate) {
+                const birth = new Date(p.birthDate);
+                const now = new Date();
+                let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+                if (months < 0) months = 0;
+                age = Math.floor(months / 12);
+                age_months = months % 12;
+            }
+
             batch.set(docRef, {
                 ...p,
+                // Frontend Compatibility Mappings
+                id: p.externalId, // Explicit ID field for frontend
+                owner: `Client #${p.ownerId}`, // Fallback until Client DB is synced
+                age: age,
+                age_months: age_months,
+                status: p.status || 'Active', // Default status
+                image: '', // Placeholder
                 lastSyncedAt: new Date().toISOString(),
                 source: 'avimark'
             }, { merge: true });
