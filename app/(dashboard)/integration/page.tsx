@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     HardDrive,
     Database,
@@ -26,6 +26,34 @@ export default function IntegrationPage() {
     const [sourcePath, setSourcePath] = useState('C:\\PMS\\Data');
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSync, setLastSync] = useState<string | null>(null);
+    const fileSelectorRef = useRef<HTMLInputElement | null>(null);
+
+    // Enable Folder Selection (Standard webkit attrs don't work in React props)
+    useEffect(() => {
+        if (fileSelectorRef.current) {
+            fileSelectorRef.current.setAttribute('webkitdirectory', '');
+            fileSelectorRef.current.setAttribute('directory', '');
+        }
+    }, [fileSelectorRef]);
+
+    const handleBrowse = async () => {
+        // 1. Electron / Native Environment
+        if ((window as any).avimarkConnector?.selectFolder) {
+            try {
+                const path = await (window as any).avimarkConnector.selectFolder();
+                if (path) {
+                    setSourcePath(path);
+                    toast.success("Path Updated via Bridge");
+                }
+            } catch (err) {
+                console.error("Native browse failed:", err);
+                toast.error("Bridge Selection Failed");
+            }
+            return;
+        }
+        // 2. Web Fallback
+        fileSelectorRef.current?.click();
+    };
 
     const handleSync = async () => {
         setIsSyncing(true);
@@ -164,9 +192,26 @@ export default function IntegrationPage() {
                                             value={sourcePath}
                                             onChange={(e: any) => setSourcePath(e.target.value)}
                                         />
-                                        <button className="h-11 px-6 border border-border rounded-lg text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95">
+                                        <button
+                                            onClick={handleBrowse}
+                                            className="h-11 px-6 border border-border rounded-lg text-foreground hover:bg-muted text-[10px] font-bold uppercase tracking-widest transition-all bg-card active:scale-95"
+                                        >
                                             Browse
                                         </button>
+                                        <input
+                                            type="file"
+                                            ref={fileSelectorRef}
+                                            style={{ display: 'none' }}
+                                            onChange={(e: any) => {
+                                                if (e.target.files && e.target.files.length > 0) {
+                                                    const file = e.target.files[0];
+                                                    // Best guess at path for web simulation (browser security hides real path)
+                                                    const path = file.webkitRelativePath.split('/')[0] || file.name;
+                                                    setSourcePath(path || 'C:\\Selected\\Folder');
+                                                    toast.success("Folder Selected (Web Simulation)");
+                                                }
+                                            }}
+                                        />
                                     </div>
                                     <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">
                                         * Target root clinical database directory
